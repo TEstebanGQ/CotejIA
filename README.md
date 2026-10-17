@@ -29,14 +29,21 @@ caso (OC + remisión + CFDI XML)
 
 ## Cómo correrlo
 
+### 1. Modo Interactivo (Recomendado para evaluación rápida)
+No requiere memorizar comandos ni parámetros:
+```bash
+python main.py
+```
+Abre una terminal interactiva donde puedes seleccionar casos con `1`, `2`, `3`, `4` o chatear directamente con el agente haciendo preguntas sobre las facturas y retenciones.
+
+### 2. Modo CLI Tradicional
 ```bash
 pip install -r requirements.txt
-cp .env.example .env        # pega tu RETO_KEY (nunca la subas al repo)
-python datasets/generate.py # genera los 3 casos de ejemplo
-python main.py audit --case OC-002
-python main.py audit --all
-python main.py cotejo --case OC-002   # solo el motor, sin Grok
-pytest
+cp .env.example .env                  # pega tu RETO_KEY si vas a llamar a Grok
+python main.py audit --all             # audita lote completo con Grok
+python main.py audit --case OC-002     # audita un caso con Grok
+python main.py cotejo --case OC-002    # solo motor determinista, sin Grok
+pytest                                 # corre los 35 tests unitarios
 ```
 
 ## Resultado de la primera ejecución (Grok 4.6 vía gateway del reto)

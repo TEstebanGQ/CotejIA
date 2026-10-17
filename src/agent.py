@@ -178,3 +178,111 @@ def ejecutar_caso(case_id: str, client: OpenAI | None = None) -> dict:
 
     return {"veredicto": veredicto_escalado(case_id, "El agente agotó sus pasos sin cerrar el caso", cotejo),
             "uso": uso}
+
+
+SYSTEM_PROMPT_CHAT = f"""Eres CotejAI, un agente autónomo de cuentas por pagar y conciliación de facturas CFDI 4.0 para empresas mexicanas en la plataforma Platica.
+Tus responsabilidades:
+1. Explicar claramente a los analistas de cuentas por pagar o proveedores el estado de las facturas, retenciones y discrepancias.
+2. Si el usuario te pide auditar o revisar un caso (ej. OC-001, OC-002, OC-003), puedes usar la herramienta `cotejar_caso` para obtener los datos exactos calculados por el motor determinista.
+3. Reglas de negocio:
+   - APROBADO: sólo si no hay discrepancias (MATCH_OK).
+   - EN_RECLAMO: faltantes (QTY_SHORT) o alza de precios (PRICE_UP) con fuga de hasta ${LIMITE_AUTONOMO_MXN:,.2f} MXN. Se retiene la diferencia y se solicita nota de crédito (CFDI de Egreso tipo E con relación 01).
+   - ESCALADO: diferencias mayores al límite, discrepancia de impuestos (TAX_MISMATCH), CFDI cancelado o proveedor en lista 69-B del SAT.
+4. Responde de forma concisa, profesional y fundamentada en pesos mexicanos (MXN) y normas del SAT."""
+
+
+def tiene_llave_configurada() -> bool:
+    """Verifica si hay una API key del reto válida en el entorno."""
+    key = os.environ.get("RETO_KEY", "").strip()
+    return bool(key and not key.startswith("pk_xxx"))
+
+
+def formatear_resumen_caso(case_id: str, veredicto: dict | None = None, cotejo: dict | None = None) -> str:
+    """Genera una tarjeta de resumen legible para la terminal."""
+    if cotejo is None:
+        try:
+            cotejo = tool_cotejar_caso(case_id)
+        except Exception as e:
+            return f"Error al cargar caso {case_id}: {e}"
+
+    codigos = ", ".join(cotejo.get("codigos", []))
+    total = cotejo.get("total_cfdi_mxn", "0.00")
+    pagar = cotejo.get("monto_a_pagar_mxn", "0.00")
+    fuga = cotejo.get("fuga_detectada_mxn", "0.00")
+
+    estado = veredicto.get("estado_final") if veredicto else (
+        "APROBADO" if codigos == "MATCH_OK" else "EN_RECLAMO"
+    )
+    resumen_txt = veredicto.get("resumen") if veredicto else None
+
+    lineas = [
+        "----------------------------------------------------------------------",
+        f" [CASO: {case_id}] - Estado: {estado}",
+        "----------------------------------------------------------------------",
+        f"  Total facturado (CFDI):    ${Decimal(total):>10,.2f} MXN",
+        f"  Monto neto a pagar:        ${Decimal(pagar):>10,.2f} MXN",
+        f"  Fuga detectada / retenida: ${Decimal(fuga):>10,.2f} MXN",
+        f"  Códigos de discrepancia:   {codigos}",
+    ]
+    detalles = cotejo.get("detalle", [])
+    if detalles:
+        lineas.append("  Detalle de incidencias:")
+        for d in detalles:
+            sku = d.get("sku", "-")
+            prob = d.get("problema", "")
+            extra = " ".join(f"{k}={v}" for k, v in d.items() if k not in ("sku", "problema"))
+            lineas.append(f"    • [{sku}] {prob} ({extra})")
+    if resumen_txt:
+        lineas.append("  Veredicto del Agente:")
+        lineas.append(f"    \"{resumen_txt}\"")
+    lineas.append("----------------------------------------------------------------------")
+    return "\n".join(lineas)
+
+
+@retry(retry=retry_if_exception_type(REINTENTABLES), wait=wait_exponential_jitter(initial=1, max=30),
+       stop=stop_after_attempt(5), reraise=True)
+def llamar_grok_chat(client, model: str, messages: list):
+    """Llama a Grok en modo conversacional con tool calling opcional (auto)."""
+    tools_chat = [{"type": "function", "function": TOOLS[0]["function"]}]
+    return client.chat.completions.create(model=model, messages=messages, tools=tools_chat,
+                                          tool_choice="auto", parallel_tool_calls=False)
+
+
+def conversar(mensaje_usuario: str, historial: list | None = None, client: OpenAI | None = None) -> tuple[str, list, dict]:
+    """Envía un mensaje al agente en modo chat interactivo y devuelve (respuesta, nuevo_historial, uso)."""
+    historial = list(historial or [])
+    if not historial:
+        historial.append({"role": "system", "content": SYSTEM_PROMPT_CHAT})
+    historial.append({"role": "user", "content": mensaje_usuario})
+
+    uso = {"prompt_tokens": 0, "completion_tokens": 0, "llamadas": 0}
+    model = os.environ.get("MODEL", "grok-4.6")
+    client = client or crear_cliente()
+
+    for _ in range(3):
+        resp = llamar_grok_chat(client, model, historial)
+        uso["llamadas"] += 1
+        if resp.usage:
+            uso["prompt_tokens"] += resp.usage.prompt_tokens
+            uso["completion_tokens"] += resp.usage.completion_tokens
+        msg = resp.choices[0].message
+        historial.append(msg.model_dump(exclude_none=True))
+
+        if not msg.tool_calls:
+            return msg.content or "", historial, uso
+
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments or "{}")
+            if tc.function.name == "cotejar_caso":
+                cid = args.get("case_id", "OC-001")
+                try:
+                    res = {"ok": True, "case_id": cid, **tool_cotejar_caso(cid)}
+                except Exception as e:
+                    res = {"ok": False, "error": f"Error al cotejar {cid}: {e}"}
+            else:
+                res = {"ok": False, "error": f"Herramienta no permitida: {tc.function.name}"}
+            historial.append({"role": "tool", "tool_call_id": tc.id,
+                             "content": json.dumps(res, ensure_ascii=False)})
+
+    return "No pude generar una respuesta de texto adicional.", historial, uso
+
