@@ -62,12 +62,33 @@ def _total_segun_conceptos(cfdi: dict) -> Decimal:
     return _q(total)
 
 
+def _agrupar_oc(lineas: list[dict]) -> dict[str, dict]:
+    """Suma las líneas de la OC con el mismo SKU; si tienen precios distintos, la OC es ambigua."""
+    agrupado: dict[str, dict] = {}
+    for l in lineas:
+        sku = l["sku"]
+        if sku not in agrupado:
+            agrupado[sku] = dict(l)
+            continue
+        if Decimal(str(l["precio_unitario"])) != Decimal(str(agrupado[sku]["precio_unitario"])):
+            raise ValueError(f"La OC tiene el SKU {sku} con dos precios distintos")
+        agrupado[sku]["cantidad"] = Decimal(str(agrupado[sku]["cantidad"])) + Decimal(str(l["cantidad"]))
+    return agrupado
+
+
 def cotejar(oc: dict, remision: dict, cfdi: dict) -> dict:
     """Devuelve discrepancias, monto a pagar y fuga, todo en MXN con Decimal."""
-    ordenado = {l["sku"]: l for l in oc["lineas"]}
-    recibido = {l["sku"]: Decimal(str(l["cantidad_recibida"])) for l in remision["lineas"]}
+    ordenado = _agrupar_oc(oc["lineas"])
+    recibido = {}
+    for l in remision["lineas"]:   # una remisión puede traer el mismo SKU en varias líneas
+        recibido[l["sku"]] = recibido.get(l["sku"], CERO) + Decimal(str(l["cantidad_recibida"]))
     codigos, detalle = set(), []
     monto_pagar = CERO
+    # Lo que queda por pagar de cada SKU: se va consumiendo concepto por concepto,
+    # así un SKU facturado en varias líneas no se paga dos veces.
+    pendiente_rec = dict(recibido)
+    pendiente_oc = {sku: Decimal(str(l["cantidad"])) for sku, l in ordenado.items()}
+    facturado = {}
 
     for c in cfdi["conceptos"]:
         sku = c["sku"]
@@ -77,24 +98,17 @@ def cotejar(oc: dict, remision: dict, cfdi: dict) -> dict:
                             "importe": str(c["importe"])})
             continue
         l = ordenado[sku]
-        q_oc, p_oc = Decimal(str(l["cantidad"])), Decimal(str(l["precio_unitario"]))
-        q_rec = recibido.get(sku, CERO)
+        p_oc = Decimal(str(l["precio_unitario"]))
         q_fac, p_fac = c["cantidad"], c["valor_unitario"]
+        facturado[sku] = facturado.get(sku, CERO) + q_fac
 
         tol_p = min(p_oc * TOL_PRECIO_PCT, TOL_PRECIO_MXN)
         precio_alto = p_fac - p_oc > tol_p
         # Dentro de tolerancia se paga lo facturado; fuera, el precio pactado.
         p_pagar = p_oc if precio_alto else p_fac
-        q_pagar = min(q_fac, q_rec, q_oc)
-
-        if q_fac > q_rec:
-            codigos.add("QTY_SHORT")
-            detalle.append({"sku": sku, "problema": "Se facturó más de lo recibido",
-                            "facturada": str(q_fac), "recibida": str(q_rec)})
-        if q_fac > q_oc or q_rec > q_oc:
-            codigos.add("QTY_OVER_PO")
-            detalle.append({"sku": sku, "problema": "Cantidad mayor a lo ordenado",
-                            "ordenada": str(q_oc), "facturada": str(q_fac), "recibida": str(q_rec)})
+        q_pagar = max(min(q_fac, pendiente_rec.get(sku, CERO), pendiente_oc[sku]), CERO)
+        pendiente_rec[sku] = pendiente_rec.get(sku, CERO) - q_pagar
+        pendiente_oc[sku] -= q_pagar
         if precio_alto:
             codigos.add("PRICE_UP")
             detalle.append({"sku": sku, "problema": "Precio unitario mayor al pactado",
@@ -108,6 +122,18 @@ def cotejar(oc: dict, remision: dict, cfdi: dict) -> dict:
         desc_unit = c["descuento"] / q_fac if q_fac else CERO
         base_pagar = q_pagar * (p_pagar - desc_unit)
         monto_pagar += _q(base_pagar * (1 + _tasa_neta(c)))
+
+    for sku, q_fac in facturado.items():
+        q_rec = recibido.get(sku, CERO)
+        q_oc = Decimal(str(ordenado[sku]["cantidad"]))
+        if q_fac > q_rec:
+            codigos.add("QTY_SHORT")
+            detalle.append({"sku": sku, "problema": "Se facturó más de lo recibido",
+                            "facturada": str(q_fac), "recibida": str(q_rec)})
+        if q_fac > q_oc or q_rec > q_oc:
+            codigos.add("QTY_OVER_PO")
+            detalle.append({"sku": sku, "problema": "Cantidad mayor a lo ordenado",
+                            "ordenada": str(q_oc), "facturada": str(q_fac), "recibida": str(q_rec)})
 
     monto_pagar = _q(monto_pagar)
     total_interno = _total_segun_conceptos(cfdi)
