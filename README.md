@@ -53,7 +53,7 @@ Los tres veredictos coinciden con los esperados y con los montos que calcula el 
 
 ## Qué falta (S2 en adelante)
 
-Lectura de remisiones escaneadas con Grok Vision, validación del CFDI ante el SAT y lista 69-B, compuerta de políticas y solicitud de nota de crédito por correo/webhook (S2); set de 36 casos etiquetados y reporte de costo por factura (S3); corrida de 1,000 casos desatendida (S4). El diseño completo está en [CotejAI_guia_implementacion.md](CotejAI_guia_implementacion.md).
+Lectura de remisiones escaneadas con Grok Vision, validación del CFDI ante el SAT y lista 69-B, compuerta de políticas y solicitud de nota de crédito por correo/webhook (S2); set de 36 casos etiquetados y reporte de costo por factura (S3); corrida de 1,000 casos desatendida (S4). El diseño completo está en [CotejAI_guia_implementacion.md](CotejAI_guia_implementacion.md) y los planes del framework para cada semana en [docs/](docs/README.md).
 
 ## Licencia
 
