@@ -17,7 +17,7 @@ caso (OC + remisión + CFDI XML)
 ```
 
 - **El código calcula, Grok decide.** `src/matching.py` aplica la regla *se paga lo recibido, al precio pactado, sin exceder lo ordenado* y devuelve códigos de discrepancia y montos. Grok no puede alterarlos; interpreta y elige la acción.
-- **La factura se parsea, no se "lee":** `src/cfdi.py` lee el XML CFDI 4.0 sin LLM.
+- **La factura se parsea, no se "lee":** `src/cfdi.py` lee el XML CFDI 4.0 sin LLM, incluidos los impuestos de cada concepto: IVA 16 %, 8 % de frontera, 0 % y exento, IEPS, retenciones y descuentos. El motor revisa que cada impuesto esté bien calculado y que la tasa sea la pactada en la OC.
 - **Veredicto estricto:** `cerrar_caso` entrega `APROBADO`, `EN_RECLAMO` o `ESCALADO`, validado con Pydantic.
 - Telemetría básica por caso: llamadas, tokens y latencia.
 
