@@ -12,7 +12,7 @@ Flujo de principio a fin sobre 3 casos sintéticos con CFDI 4.0 de formato real:
 
 ```
 caso (OC + remisión + CFDI XML)
-   └─► Grok 4.7 (tool calling) ──► cotejar_caso  (Python determinista, Decimal)
+   └─► Grok 4.6 (tool calling) ──► cotejar_caso  (Python determinista, Decimal)
                               └──► cerrar_caso   (veredicto estructurado)
 ```
 
@@ -39,7 +39,7 @@ python main.py cotejo --case OC-002   # solo el motor, sin Grok
 pytest
 ```
 
-## Resultado de la primera ejecución (Grok 4.7 vía gateway del reto)
+## Resultado de la primera ejecución (Grok 4.6 vía gateway del reto)
 
 `python main.py audit --all`
 

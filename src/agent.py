@@ -74,7 +74,7 @@ def crear_cliente() -> OpenAI:
 
 def ejecutar_caso(case_id: str, client: OpenAI | None = None) -> dict:
     client = client or crear_cliente()
-    model = os.environ.get("MODEL", "grok-4.7")
+    model = os.environ.get("MODEL", "grok-4.6")
     messages = [{"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": f"Audita el caso {case_id}."}]
     uso = {"prompt_tokens": 0, "completion_tokens": 0, "llamadas": 0, "segundos": 0.0}
