@@ -39,6 +39,18 @@ python main.py cotejo --case OC-002   # solo el motor, sin Grok
 pytest
 ```
 
+## Resultado de la primera ejecución (Grok 4.7 vía gateway del reto)
+
+`python main.py audit --all`
+
+| Caso | Estado | Códigos | Fuga (MXN) | A pagar (MXN) | Llamadas | Tokens in/out | Latencia |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OC-001 | APROBADO | MATCH_OK | 0.00 | 6,090.00 | 2 | 2,529 / 133 | 10.1 s |
+| OC-002 | EN_RECLAMO | QTY_SHORT | 290.00 | 5,800.00 | 2 | 2,565 / 154 | 11.0 s |
+| OC-003 | EN_RECLAMO | PRICE_UP | 464.00 | 6,090.00 | 2 | 2,571 / 162 | 12.4 s |
+
+Los tres veredictos coinciden con los esperados y con los montos que calcula el motor determinista.
+
 ## Qué falta (S2 en adelante)
 
 Lectura de remisiones escaneadas con Grok Vision, validación del CFDI ante el SAT y lista 69-B, compuerta de políticas y solicitud de nota de crédito por correo/webhook (S2); set de 36 casos etiquetados y reporte de costo por factura (S3); corrida de 1,000 casos desatendida (S4). El diseño completo está en [CotejAI_guia_implementacion.md](CotejAI_guia_implementacion.md).
