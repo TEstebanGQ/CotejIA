@@ -149,6 +149,6 @@ La migración de `src/` a `cotejai/` es la primera tarea de S2.
 | --- | --- |
 | Una herramienta nueva | Un archivo en `cotejai/tools/` con `@herramienta` y su test |
 | Una regla de negocio | `config/policies.yaml` o `matching/engine.py`, y su test |
-| Un país (Colombia) | `cotejai/fiscal/co.py` con la misma interfaz que `mx.py` |
+| Un país (Colombia, Perú, Chile...) | `cotejai/fiscal/<pais>.py` con la interfaz `ModuloFiscal` de [mercado.md](mercado.md#5-no-es-solo-méxico) y `PAIS=<pais>` en `.env` |
 | Un canal de aviso | Una clase en `cotejai/notifiers/` |
 | Otro modelo de Grok | `MODEL` en `.env` y su tarifa en `settings.py` |

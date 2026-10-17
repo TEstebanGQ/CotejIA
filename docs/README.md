@@ -10,6 +10,7 @@ CotejAI se construye como un **framework**: un núcleo con contratos fijos (caso
 | [S2-herramientas-reales.md](S2-herramientas-reales.md) | Semana 2: visión, SAT y 69-B, notificador, compuerta, persistencia, errores, 10 ejecuciones y video |
 | [S3-datos-y-costos.md](S3-datos-y-costos.md) | Semana 3: set de 36 casos etiquetados, remisiones físicas, evaluación, optimización y reporte de costo |
 | [S4-semana-de-carga.md](S4-semana-de-carga.md) | Semana 4: despliegue, workers, 1,000 casos en 12 horas, inyección de fallos y bitácora |
+| [mercado.md](mercado.md) | Quién necesita CotejAI, datos del problema, competencia, países, pitch y validación con clientes |
 | [../README_PLATICA.md](../README_PLATICA.md) | Track 2: integración con Platica, estado de S1 y stack |
 | [../CotejAI_guia_implementacion.md](../CotejAI_guia_implementacion.md) | Guía original de diseño |
 

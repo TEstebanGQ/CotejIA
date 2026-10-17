@@ -164,7 +164,7 @@ Buscado el 17 de octubre de 2026. Resumen honesto:
 
 **Lo que ya hacen los comerciales y CotejAI debe igualar:** tolerancias configurables, rutas de excepción a un aprobador, cola de revisión.
 **Lo que los diferencia (y es el argumento del pitch):**
-1. CFDI 4.0 + estado ante el SAT + lista 69-B: ninguno lo ofrece.
+1. Cotejo contra la **remisión física** leída con visión, sumado a CFDI 4.0, SAT y lista 69-B. Ojo: los portales de proveedores mexicanos (EdiFact V3000, PortaldeProveedores.mx) ya validan el SAT y la 69-B; lo que no hacen es cotejar contra lo recibido ni perseguir la nota de crédito. Detalle en [docs/mercado.md](docs/mercado.md).
 2. Flujo cerrado de **nota de crédito** con validación del CFDI de egreso.
 3. El cierre ocurre **por WhatsApp** con el proveedor, que es como se trabaja en México.
 4. Código abierto, auditable, con compuerta de políticas en código.
