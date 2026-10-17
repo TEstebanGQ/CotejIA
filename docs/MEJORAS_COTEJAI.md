@@ -2,13 +2,24 @@
 
 Documento de optimizaciones, adiciones de arquitectura y ventajas competitivas para el agente **CotejAI** en el marco del torneo *Platica MagIA Tournament (Reto Agente 2026)*.
 
+> ⚠️ **Cifras ilustrativas.** Los porcentajes de ahorro, la tabla del dashboard, el costo por factura, el precio y el margen de este documento son **ejemplos o estimaciones sin medir**. No son resultados de CotejAI. Los números reales salen de la telemetría (`llm_calls`) y de la evaluación de S3 y S4; hasta entonces no se usan en el pitch.
+>
+> **Dónde quedó cada mejora en los planes:**
+> | Mejora | Plan |
+> | --- | --- |
+> | 1. Extracción por niveles | [S3 · T5](S3-datos-y-costos.md) |
+> | 2. Reconciliador de SKUs y unidades | [S2 · T9](S2-herramientas-reales.md) |
+> | 3. WAL, backpressure, checkpoints | [S2 · T2](S2-herramientas-reales.md) y [S4 · T2](S4-semana-de-carga.md) |
+> | 4. CLI enriquecido y reporte de fugas | [S2 · T10](S2-herramientas-reales.md) y [S3 · T6](S3-datos-y-costos.md) |
+> | 5. Servidor MCP y precios | [S4 · después de S4](S4-semana-de-carga.md) y [mercado.md](mercado.md) |
+
 ---
 
 ## 1. Arquitectura Híbrida de Ingesta Documental (OCR Ligero + Grok Visión)
 
 ### Diagnóstico del Problema
 Enviar cada remisión física como imagen en alta resolución (`detail: high`) directo a Grok en cada caso introduce tres riesgos en producción:
-- Latencia elevada por caso (de 5 a 15 segundos adicionales por llamada multimodal).
+- Latencia elevada por caso (de 5 a 15 segundos adicionales por llamada multimodal; *estimación, sin medir en el gateway*).
 - Consumo acelerado del presupuesto de tokens/créditos.
 - Dependencia crítica de la estabilidad del endpoint de visión del gateway (`api.reto.pltk.mx`), que podría saturarse en la prueba de carga.
 
@@ -21,17 +32,18 @@ flowchart TD
     B -->|Sí| C[Extracción Determinista / OCR Local Ligero]
     C --> D{Confianza de Extracción > 90%}
     D -->|Sí| E[Grok recibe texto estructurado<br/>Costo tokens ~0, latencia <1s]
-    D -->|No| F[Grok 4.7 Visión detail: high]
+    D -->|No| F[Grok Visión detail: high<br/>modelo de MODEL, hoy grok-4.6]
     B -->|No / Foto arrugada o con marcas manuales| F
     F --> G[Pydantic Validation & Normalización]
     E --> G
 ```
 
 1. **Nivel 1 (OCR Local / Determinista):** Procesamiento rápido con bibliotecas de huella mínima (`pypdf`, `rapidocr` o `pdfplumber`). Si el documento es un PDF vectorial o un escaneo nítido, los datos tabulares se extraen localmente sin llamadas a red.
-2. **Nivel 2 (Grok 4.7 Visión):** Se activa exclusivamente ante remisiones con baja confianza, firmas manuscritas, sellos de almacén o anotaciones al margen (*ej. "se recibieron 8 de 10 por daño"*).
+2. **Nivel 2 (Grok Visión):** Se activa exclusivamente ante remisiones con baja confianza, firmas manuscritas, sellos de almacén o anotaciones al margen (*ej. "se recibieron 8 de 10 por daño"*).
 
 ### Impacto en Rúbrica
-- **Reducción de costos en S3/S4:** Ahorro estimado del 40% al 60% en tokens de entrada.
+- **Reducción de costos en S3/S4:** Ahorro estimado del 40% al 60% en tokens de entrada (*ilustrativo: se mide en S3 · T5 antes y después*).
+- **Cuidado:** las fotos con tachones y notas a mano, que son el diferencial del proyecto, casi siempre caerán en el Nivel 2. El ahorro real depende de cuántas remisiones lleguen como PDF digital.
 - **Velocidad en S4:** Permite procesar lotes grandes sin agotar los límites por minuto (RPM/TPM).
 
 ---
@@ -60,6 +72,7 @@ class MapeoSKU(BaseModel):
 
 - Grok analiza los conceptos no emparejados por código exacto y calcula la equivalencia semántica y el factor de escala de unidades.
 - Toda equivalencia queda registrada en una memoria caché/base de datos (`sku_aliases`) para que el próximo lote la resuelva de forma determinista sin gastar tokens.
+- **Salvaguarda:** un `factor_conversion` mal propuesto (12 en vez de 24) haría pagar el doble o la mitad. Por eso la primera vez que aparece un alias, el caso se escala para que una persona lo confirme; solo los alias confirmados se reutilizan de forma automática.
 
 ---
 
@@ -90,9 +103,9 @@ Los desarrolladores suelen mostrar salidas de terminal en blanco y negro. Para u
 1. **CLI Enriquecido en Vivo (`rich`):**
    - Renderizado en consola con tablas tipográficas, barras de progreso y colores por estado (verde para aprobación, ámbar para retención de pago, rojo para alertas 69-B del SAT).
 2. **Generador de Reporte Financiero HTML/JSON:**
-   - Al finalizar la auditoría de un lote, el agente emite automáticamente un resumen ejecutivo estructurado:
+   - Al finalizar la auditoría de un lote, el agente emite automáticamente un resumen ejecutivo estructurado. **La tabla es un ejemplo del formato; sus valores son inventados:**
 
-| Métrica Clave | Valor Demostrativo |
+| Métrica Clave | Valor de ejemplo (ilustrativo, no medido) |
 |---|---|
 | **Facturas Auditadas** | 100 casos |
 | **Fuga Total Detectada y Retenida** | $142,850.00 MXN |
@@ -118,7 +131,7 @@ Dejar la integración modular desde el inicio mediante dos componentes:
      - `consultar_estado_factura(uuid)`
      - `auditar_lote_compras(fecha_inicio, fecha_fin)`
      - `obtener_expediente_discrepancia(case_id)`
-2. **Modelo de Precios Unit Economics (Pitch Deck):**
-   - **Costo operativo de CotejAI:** ~$0.04 USD por factura procesada.
-   - **Precio de mercado propuesto:** $0.50 USD (~$9 MXN) por factura auditada o plan mensual de $1,999 MXN por hasta 500 facturas.
-   - **Margen bruto:** Superior al **90%**, convirtiéndolo en un add-on de alta rentabilidad para el portafolio comercial de Platica.
+2. **Modelo de Precios Unit Economics (Pitch Deck)** — *hipótesis para validar en Track 2, no cifras medidas:*
+   - **Costo operativo de CotejAI:** ~$0.04 USD por factura procesada (*estimación de la guía con tarifas de grok-4.7; el costo real con grok-4.6 sale de `llm_calls` en S3*).
+   - **Precio de mercado propuesto:** $0.50 USD (~$9 MXN) por factura auditada o plan mensual de $1,999 MXN por hasta 500 facturas (*hipótesis; validar con clientes*).
+   - **Margen bruto:** Superior al **90%** (*se deriva de las dos hipótesis anteriores; debe incluir también el costo de mensajes de WhatsApp vía Platica*), convirtiéndolo en un add-on de alta rentabilidad para el portafolio comercial de Platica.

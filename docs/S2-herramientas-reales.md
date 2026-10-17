@@ -22,6 +22,8 @@ Criterios de la rúbrica que mueve esta semana: **Autonomía y funcionalidad (25
 - [ ] Compuerta de políticas con `config/policies.yaml`
 - [ ] Persistencia en SQLite: `cases`, `case_events`, `llm_calls`, `invoices_seen`
 - [ ] Facturas parciales y duplicados detectados
+- [ ] Reconciliador de SKUs con alias confirmados por una persona
+- [ ] CLI con tabla de resultados para el video
 - [ ] 10 casos en `datasets/` y una corrida guardada en `runs/`
 - [ ] Video de 2 minutos y README actualizado
 
@@ -32,7 +34,7 @@ Criterios de la rúbrica que mueve esta semana: **Autonomía y funcionalidad (25
 - Mover `src/matching.py` → `cotejai/matching/engine.py` y `src/cfdi.py` → `cotejai/fiscal/mx.py`.
 - Crear `cotejai/tools/registro.py` con el decorador `@herramienta` y `definiciones_para_grok()`.
 - Reescribir `cotejar_caso` y `cerrar_caso` como herramientas registradas.
-- **Aceptación:** los 14 tests actuales pasan sin cambiar su lógica y `audit --all` da los mismos veredictos.
+- **Aceptación:** los 31 tests actuales pasan sin cambiar su lógica y `audit --all` da los mismos veredictos.
 
 ### T2 · Persistencia y estados (día 1–2)
 
@@ -45,7 +47,9 @@ Tablas en SQLite (`cotejai.db`, misma estructura que PostgreSQL en S4):
 | `llm_calls` | `case_id`, `paso`, `herramienta`, `model`, `prompt_tokens`, `cached_tokens`, `completion_tokens`, `reasoning_tokens`, `costo_usd`, `latencia_ms`, `reintentos` |
 | `actions` | `llave_idempotencia` (única), `case_id`, `herramienta`, `args`, `resultado`, `fecha` |
 | `invoices_seen` | `uuid` (único), `rfc_emisor`, `folio`, `total`, `case_id` |
+| `sku_aliases` | `rfc_proveedor`, `texto_cfdi`, `sku_oc`, `factor_conversion`, `confianza`, `confirmado_por`, `fecha` (ver T9) |
 
+- SQLite en modo WAL desde el inicio, para que S4 no choque con `database is locked`: `PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;` al abrir cada conexión.
 - `cotejai/core/estados.py`: `transicionar(case_id, a, actor, motivo)` rechaza transiciones no válidas y sube `version`.
 - **Aceptación:** matar el proceso a mitad de un caso y relanzarlo no duplica ninguna fila de `actions`.
 
@@ -104,6 +108,23 @@ Reglas mínimas, cada una con su test:
 - **Parcial:** el motor recibe lo ya facturado y lo ya recibido de la OC en casos anteriores. La cantidad a pagar por línea es `min(facturada, recibida_acumulada − pagada_acumulada, ordenada − pagada_acumulada)`.
 - **Aceptación:** dos facturas de 50 piezas para una OC de 100 se aprueban; una tercera de 50 sale como `QTY_OVER_PO`.
 
+### T9 · Reconciliador de SKUs y unidades (día 5)
+
+Origen: [MEJORAS_COTEJAI.md §2](MEJORAS_COTEJAI.md). En la vida real la OC dice "Cinta canela 48 mm (caja con 24)", el CFDI dice `CT-CAN-TUCK-100` en `Pieza` y la remisión dice "48 rollos". Hoy eso sale como `SKU_UNMAPPED` y se escala.
+
+- Herramienta `asociar_conceptos_ambiguos` (tipo `lectura`): recibe los conceptos sin pareja y las líneas de la OC; Grok devuelve `MapeoSKU` (`sku_oc`, `concepto_cfdi`, `confianza_similitud`, `factor_conversion`, `justificacion`).
+- El motor aplica el `factor_conversion` a la cantidad antes de cotejar (por ejemplo 2 cajas × 24 = 48 piezas).
+- **Salvaguarda de dinero:** la **primera vez** que aparece un alias para un proveedor, el caso se escala con la propuesta para que una persona la confirme. Solo los alias con `confirmado_por` se reutilizan después sin llamar a Grok.
+- Confianza < 0.85 → no se propone; queda `SKU_UNMAPPED`.
+- **Aceptación:** un caso con unidades distintas se escala la primera vez con el mapeo propuesto; tras confirmar el alias, el mismo caso se resuelve sin escalar y sin llamar a Grok para el mapeo.
+
+### T10 · CLI enriquecido para la demo (día 5)
+
+Origen: [MEJORAS_COTEJAI.md §4](MEJORAS_COTEJAI.md).
+- `rich`: barra de progreso del lote, tabla final con color por estado (verde aprobado, ámbar en reclamo, rojo escalado o alerta 69-B), total de fuga y costo del lote.
+- La salida JSON sigue disponible con `--json` para scripts y para el harness del reto.
+- **Aceptación:** `audit --all` muestra la tabla final y `audit --all --json` da el mismo JSON de hoy.
+
 ### T8 · Manejo de errores (transversal)
 
 | Falla | Respuesta |
@@ -123,7 +144,7 @@ Reglas mínimas, cada una con su test:
 - Tarifas en `config/settings.py` por modelo. **Pendiente:** confirmar la tarifa de `grok-4.6` en el panel del reto (el panel muestra el consumo por modelo).
 - Header `x-grok-conv-id: <case_id>` en todas las llamadas del caso para aprovechar la caché.
 
-## Casos de la semana (10)
+## Casos de la semana (10 + 1)
 
 | Caso | Situación | Esperado |
 | --- | --- | --- |
@@ -137,6 +158,7 @@ Reglas mínimas, cada una con su test:
 | OC-008 | Remisión fotografiada legible | según cotejo |
 | OC-009 | Remisión sin firma | pedir nueva foto |
 | OC-010 | Fuga mayor a $5,000 | ESCALADO |
+| OC-011 | Unidades distintas (caja contra pieza) | ESCALADO con mapeo propuesto (T9) |
 
 ## Video de 2 minutos (guion)
 

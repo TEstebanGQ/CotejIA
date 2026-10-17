@@ -19,7 +19,8 @@ Rúbrica que mueve esta semana: **Evidencia con datos reales (15)** e **Impacto 
 - [ ] 36 casos con `datasets/<caso>/esperado.json`
 - [ ] Remisiones físicas: impresas, selladas, firmadas, tachadas y fotografiadas
 - [ ] `eval/evaluar.py`: compara veredictos contra etiquetas y calcula métricas
-- [ ] Expediente precargado y medición de costo antes y después
+- [ ] Expediente precargado y extracción por niveles, con medición de costo antes y después
+- [ ] Reporte de fugas en HTML generado desde la corrida
 - [ ] `eval/reporte_s3.md` con tablas y conclusiones
 
 ## Tareas
@@ -93,7 +94,13 @@ Si se consigue un cliente piloto: la descarga masiva del SAT da XML reales de pr
 3. **Atajo sin razonamiento:** si el cotejo da `MATCH_OK` y no hay alertas fiscales, el caso se aprueba sin llamar a Grok para decidir (la visión de la remisión sí se usa).
 4. **Caché:** system prompt y políticas idénticos en todas las llamadas, con `x-grok-conv-id`.
 5. **Modelo por tarea:** si el gateway tiene un modelo más barato, usarlo para redactar el reclamo y dejar el principal para visión y decisión.
-6. **Medir de nuevo** y reportar la diferencia con las mismas 36 entradas.
+6. **Extracción por niveles** ([MEJORAS_COTEJAI.md §1](MEJORAS_COTEJAI.md)):
+   - **Nivel 1, sin red:** si la remisión es un PDF digital (texto seleccionable), extraer la tabla con `pdfplumber`; si es un escaneo nítido, OCR local con `rapidocr`.
+   - Si cada línea extraída tiene confianza ≥ 0.90 y cuadra con el formato de la remisión, Grok recibe **texto**, no imagen.
+   - **Nivel 2, Grok Visión:** fotos, tachones, notas a mano, sellos y firmas, o cualquier línea con confianza baja.
+   - El sello y la firma siempre se verifican con visión: el OCR no sabe si una firma existe.
+   - Registrar en `llm_calls` qué nivel resolvió cada remisión.
+7. **Medir de nuevo** y reportar la diferencia con las mismas 36 entradas, incluyendo qué porcentaje de remisiones resolvió cada nivel. El ahorro de 40–60 % que sugiere MEJORAS es una hipótesis: aquí se confirma o se descarta.
 
 - **Aceptación:** la exactitud no baja y el costo por caso sí.
 
@@ -106,6 +113,8 @@ Si se consigue un cliente piloto: la descarga masiva del SAT da XML reales de pr
 - Retorno: pesos detectados por cada peso gastado en el agente.
 - Errores encontrados y qué se cambió por cada uno.
 - Limitaciones honestas: datos sintéticos, CFDI no timbrados, simulador del SAT.
+
+**Reporte de fugas en HTML** ([MEJORAS_COTEJAI.md §4](MEJORAS_COTEJAI.md)): `python -m eval.reporte --corrida runs/<archivo>.jsonl` genera `runs/reporte_<fecha>.html` con facturas auditadas, fuga detectada y retenida, notas de crédito solicitadas, alertas SAT y 69-B, costo de inferencia y retorno. **Todos los valores salen de la corrida**, nunca de la tabla de ejemplo de MEJORAS. Es la pieza visual para el reporte de S3 y para el pitch.
 
 ## Datos de costo
 

@@ -40,7 +40,8 @@ Rúbrica que mueve esta semana: **Autonomía y funcionalidad (25)** y **Viabilid
 ### T2 · Worker concurrente (día 1–2)
 
 - `cotejai/worker.py`: toma casos `RECIBIDO` con `SELECT ... FOR UPDATE SKIP LOCKED`, para que dos workers nunca agarren el mismo caso.
-- Concurrencia con `asyncio.Semaphore`: empezar en 2, subir a 4 si no aparecen 429.
+- **Concurrencia adaptativa con backpressure** ([MEJORAS_COTEJAI.md §3](MEJORAS_COTEJAI.md)): empezar en 2. Ante un 429 o una latencia media mayor al doble de la normal, bajar a 1 y esperar con backoff exponencial; después de 10 casos seguidos sin error, subir de uno en uno hasta un máximo de 4. Cada cambio de concurrencia va a la bitácora.
+- **Memoria en procesos largos:** reiniciar el worker cada 200 casos (el estado está en la base, así que retoma sin perder nada) y registrar el uso de memoria en el latido.
 - **Ritmo constante:** una cola con tasa máxima de casos por minuto, para no agotar el límite del gateway.
 - **Latido:** el worker escribe `heartbeat` cada 30 s; un caso tomado por un worker sin latido por 5 minutos vuelve a `RECIBIDO`.
 - **Aceptación:** con 2 workers, 100 casos y ninguno procesado dos veces.
@@ -97,3 +98,13 @@ Anotar hora exacta y efecto de cada fallo en `runs/s4_incidentes.md`.
 ## Después de S4: Track 2
 
 Con el servidor desplegado y la API pública, la integración con Platica de [README_PLATICA.md](../README_PLATICA.md) es conectar: notificador `platica`, webhook de respuesta y herramientas registradas en el agente de Platica.
+
+Herramientas que expondrá el servidor MCP (`cotejai/api/mcp_server.py`, de [MEJORAS_COTEJAI.md §5](MEJORAS_COTEJAI.md)):
+
+| Herramienta | Qué responde | Ojo con Platica |
+| --- | --- | --- |
+| `consultar_estado_factura(uuid)` | Estado, códigos, fuga y monto a pagar | Rápida: lectura de la base |
+| `auditar_lote_compras(fecha_inicio, fecha_fin)` | Un `job_id` al instante | El timeout de Platica es de 60 s como máximo: nunca esperar al lote |
+| `obtener_expediente_discrepancia(case_id)` | Resumen del caso con evidencia | Recortar a menos de 32 KB |
+
+El modelo de precios de MEJORAS ($0.04 USD de costo, $0.50 USD de precio, margen de 90 %) es una **hipótesis**: el costo real sale de esta corrida de S4 y el precio se valida con clientes en Track 2 ([mercado.md](mercado.md)).
