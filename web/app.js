@@ -147,9 +147,15 @@ async function cargarMetricas() {
     const enReclamoCount = (m.conteo_estados && m.conteo_estados.EN_RECLAMO) || 0;
     if (kpiReclamo) kpiReclamo.textContent = `${enReclamoCount} en Reclamo`;
 
-    const totalAuditados = m.casos_auditados || 0;
+    const totalCasos = state.casos.length > 0 ? state.casos.length : 10;
+    const auditadosCount = m.casos_auditados || 0;
     const kpiProgreso = document.getElementById('kpi-casos-progreso');
-    if (kpiProgreso) kpiProgreso.textContent = `${totalAuditados} / ${totalAuditados}`;
+    if (kpiProgreso) {
+      const pct = Math.min(100, Math.round((auditadosCount / totalCasos) * 100));
+      kpiProgreso.innerHTML = `${auditadosCount} <span class="text-xs text-zinc-500 font-normal">/ ${totalCasos}</span>`;
+      const pBar = document.getElementById('kpi-progreso-bar');
+      if (pBar) pBar.style.width = `${pct}%`;
+    }
 
     const kpiCosto = document.getElementById('kpi-costo-usd');
     if (kpiCosto && m.telemetria_llm) {
@@ -288,28 +294,38 @@ async function seleccionarCaso(caseId) {
 }
 
 function actualizarVistaExpediente(d) {
-  const c = d.caso;
+  const caseId = d.case_id || state.casoActivoId;
   const cotejo = d.cotejo || {};
   const oc = d.oc || {};
   const rem = d.remision || {};
   const cfdi = d.cfdi || {};
+  const reg = d.registro_db || {};
+  const tieneImg = d.tiene_imagen_remision;
 
   // Headers
-  document.getElementById('exp-folio').textContent = c.case_id;
-  document.getElementById('exp-rfc').textContent = c.proveedor_rfc || cfdi.rfc_emisor || 'N/A';
-  document.getElementById('exp-uuid').textContent = c.uuid || 'N/A';
+  document.getElementById('exp-folio').textContent = caseId;
+  document.getElementById('exp-rfc').textContent = (oc.proveedor_rfc || cfdi.rfc_emisor || 'N/A');
+  document.getElementById('exp-uuid').textContent = (cfdi.uuid || 'N/A');
+
+  // Proveedor Nombre en cabecera
+  const provEl = document.getElementById('exp-proveedor');
+  if (provEl) {
+    provEl.textContent = oc.proveedor_nombre || (caseId.includes('MANUAL') ? 'Carga Manual' : `Proveedor ${caseId}`);
+  }
 
   // Badge de Estado
   const badgeEstado = document.getElementById('exp-badge-estado');
-  if (c.estado_final === 'APROBADO') {
+  const estadoFinal = reg.estado_final || (cotejo.codigos && cotejo.codigos.includes('MATCH_OK') ? 'APROBADO' : (parseFloat(cotejo.fuga_detectada_mxn) > 0 ? 'EN_RECLAMO' : 'ESCALADO'));
+
+  if (estadoFinal === 'APROBADO') {
     badgeEstado.className = 'text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
     badgeEstado.textContent = 'CONCILIADO_OK';
-  } else if (c.estado_final === 'EN_RECLAMO') {
+  } else if (estadoFinal === 'EN_RECLAMO') {
     badgeEstado.className = 'text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20';
     badgeEstado.textContent = 'EN_RECLAMO';
   } else {
     badgeEstado.className = 'text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20';
-    badgeEstado.textContent = c.estado_final || 'ESCALADO';
+    badgeEstado.textContent = estadoFinal;
   }
 
   // Visor de Imagen
@@ -317,12 +333,12 @@ function actualizarVistaExpediente(d) {
   const bbox = document.getElementById('vision-bbox');
   const textoManuscrito = document.getElementById('vision-texto-manuscrito');
 
-  if (c.tiene_imagen_remision) {
-    imgEl.src = `/api/cases/${c.case_id}/image?t=${Date.now()}`;
+  if (tieneImg) {
+    imgEl.src = `/api/cases/${caseId}/image?t=${Date.now()}`;
     bbox.classList.remove('hidden');
-    if (c.case_id === 'OC-004') {
+    if (caseId === 'OC-004') {
       textoManuscrito.textContent = '"Recibidos solo 80 pzas. Merma en transporte (-20)"';
-    } else if (c.case_id === 'OC-005') {
+    } else if (caseId === 'OC-005') {
       textoManuscrito.textContent = '⚠️ Imagen ilegible / borrosa detectada por Grok Vision';
     } else {
       textoManuscrito.textContent = 'Firma y sello de almacén detectados sin anomalías';
@@ -369,7 +385,7 @@ function actualizarVistaExpediente(d) {
   if (fuga > 0) {
     banner.classList.remove('hidden');
     montoTxt.textContent = fmtMXN(fuga);
-    explTxt.innerHTML = `Cálculo determinista: Diferencia en partida de almacén. Fuga detectada de <strong>${fmtMXN(fuga)}</strong>. Estado asignado a <strong>${c.estado_final}</strong> para proteger la dispersión.`;
+    explTxt.innerHTML = `Cálculo determinista: Diferencia en partida de almacén. Fuga detectada de <strong>${fmtMXN(fuga)}</strong>. Estado asignado a <strong>${estadoFinal}</strong> para proteger la dispersión.`;
   } else {
     banner.classList.remove('hidden');
     montoTxt.textContent = '$0.00 MXN';
@@ -383,16 +399,17 @@ function actualizarVistaExpediente(d) {
   // Actualizar Copiloto con Markdown estructurado
   const introGrok = document.getElementById('chat-grok-intro');
   if (introGrok) {
-    if (c.resumen) {
-      introGrok.innerHTML = formatMarkdown(`**Expediente ${c.case_id}:** ${c.resumen}`);
+    if (reg.resumen) {
+      introGrok.innerHTML = formatMarkdown(`**Expediente ${caseId}:** ${reg.resumen}`);
     } else {
-      introGrok.innerHTML = formatMarkdown(`Expediente **${c.case_id}** cargado. ¿Qué deseas consultar sobre este caso?`);
+      introGrok.innerHTML = formatMarkdown(`Expediente **${caseId}** cargado. ¿Qué deseas consultar sobre este caso?`);
     }
   }
 
   // Checklist Fiscal
   const sat69b = document.getElementById('chk-sat-69b');
-  if (c.codigos_calculados && c.codigos_calculados.includes('SUPPLIER_69B')) {
+  const codigos = cotejo.codigos || [];
+  if (codigos.includes('SUPPLIER_69B')) {
     sat69b.innerHTML = `<span class="text-rose-400 font-semibold flex items-center gap-1 text-[11px]"><i data-lucide="alert-octagon" class="w-3 h-3"></i> En Lista Negra SAT</span>`;
   } else {
     sat69b.innerHTML = `<span class="text-emerald-400 font-semibold flex items-center gap-1 text-[11px]"><i data-lucide="check" class="w-3 h-3"></i> Limpio (No EFOS)</span>`;
