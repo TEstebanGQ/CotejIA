@@ -1,7 +1,7 @@
 /**
- * CotejAI Web Dashboard (S2) — Cliente JavaScript
- * Conecta con el backend FastAPI, renderiza el 3-way matching en tiempo real,
- * maneja la subida manual de documentos y la interacción con el Copiloto Grok 4.6.
+ * CotejAI Web Dashboard — Cliente JavaScript
+ * Vistas SPA (Dashboard vs Expedientes), Sidebar fija,
+ * Carga Manual con Grok Vision y Copiloto optimizado con Markdown renderizado.
  */
 
 // Estado Global de la Aplicación
@@ -10,6 +10,7 @@ const state = {
   casoActivoId: 'OC-004',
   casoActivoData: null,
   filtroActual: 'TODOS',
+  vistaActual: 'DASHBOARD',
   historialChat: [],
   metricas: null
 };
@@ -24,7 +25,22 @@ const fmtMXN = (val) => {
   }).format(num);
 };
 
-// Inicialización al cargar el DOM
+// Formateador Markdown seguro y estructurado
+function formatMarkdown(rawText) {
+  if (!rawText) return '';
+  if (window.marked && typeof window.marked.parse === 'function') {
+    return window.marked.parse(rawText);
+  }
+  // Fallback regex en caso de fallo de CDN
+  return rawText
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/\n\n/g, '<p></p>')
+    .replace(/\n- (.*?)/g, '<li>$1</li>');
+}
+
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
   inicializarApp();
   configurarBuscador();
@@ -48,7 +64,29 @@ function actualizarIconos() {
   }
 }
 
-// 1. Salud del Sistema y Circuit Breaker SAT
+// 1. Control de Vistas SPA (Dashboard vs Expedientes)
+function cambiarVista(vista) {
+  state.vistaActual = vista;
+  const viewDash = document.getElementById('view-dashboard');
+  const viewExp = document.getElementById('view-expedientes');
+  const navDash = document.getElementById('nav-dashboard');
+  const navExp = document.getElementById('nav-expedientes');
+
+  if (vista === 'DASHBOARD') {
+    viewDash.classList.remove('hidden');
+    viewExp.classList.add('hidden');
+    navDash.className = 'nav-link w-full flex items-center gap-2.5 px-3 py-2 rounded-md bg-zinc-800 text-white font-medium text-xs border border-zinc-700/60 transition-colors';
+    navExp.className = 'nav-link w-full flex items-center justify-between px-3 py-2 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 text-xs transition-colors';
+  } else if (vista === 'EXPEDIENTES') {
+    viewDash.classList.add('hidden');
+    viewExp.classList.remove('hidden');
+    navDash.className = 'nav-link w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 text-xs transition-colors';
+    navExp.className = 'nav-link w-full flex items-center justify-between px-3 py-2 rounded-md bg-zinc-800 text-white font-medium text-xs border border-zinc-700/60 transition-colors';
+  }
+  actualizarIconos();
+}
+
+// 2. Salud del Sistema y Circuit Breaker SAT
 async function cargarSaludSistema() {
   try {
     const res = await fetch('/api/health');
@@ -77,7 +115,7 @@ async function cargarSaludSistema() {
   }
 }
 
-// 2. Tipo de Cambio USD/MXN en Vivo
+// 3. Tipo de Cambio USD/MXN en Vivo
 async function cargarTipoCambio() {
   try {
     const res = await fetch('/api/tools/fx', {
@@ -95,7 +133,7 @@ async function cargarTipoCambio() {
   }
 }
 
-// 3. Cargar y Actualizar KPIs Bento Cards
+// 4. Cargar y Actualizar KPIs Bento Cards
 async function cargarMetricas() {
   try {
     const res = await fetch('/api/metrics');
@@ -123,7 +161,7 @@ async function cargarMetricas() {
   }
 }
 
-// 4. Cargar Lista de Casos
+// 5. Cargar Lista de Casos
 async function cargarCasos() {
   try {
     const res = await fetch('/api/cases');
@@ -139,7 +177,7 @@ async function cargarCasos() {
   }
 }
 
-// 5. Renderizado de la Tabla de Casos
+// 6. Renderizado de la Tabla Central de Expedientes
 function renderizarTablaCasos() {
   const tbody = document.getElementById('tabla-casos-body');
   if (!tbody) return;
@@ -178,31 +216,31 @@ function renderizarTablaCasos() {
 
     return `
       <tr 
-        onclick="seleccionarCaso('${c.case_id}')" 
+        onclick="inspeccionarYIrADashboard('${c.case_id}')" 
         class="cursor-pointer transition-colors ${esActivo ? 'bg-zinc-800/60 border-l-2 border-l-emerald-500' : 'hover:bg-zinc-900/60'}"
       >
-        <td class="py-3 px-3 font-mono font-bold text-white flex items-center gap-1.5">
+        <td class="py-3 px-4 font-mono font-bold text-white flex items-center gap-2">
           ${c.tiene_imagen_remision ? '<i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>' : '<i data-lucide="file-text" class="w-3.5 h-3.5 text-zinc-500 shrink-0"></i>'}
           <span>${c.case_id}</span>
         </td>
-        <td class="py-3 px-3">
+        <td class="py-3 px-4">
           <div class="font-medium text-zinc-200 truncate max-w-[200px]">${c.case_id.includes('MANUAL') ? 'Carga Manual' : 'Proveedor ' + c.case_id}</div>
           <div class="font-mono text-[10px] text-zinc-500">${c.proveedor_rfc || 'RFC Desconocido'}</div>
         </td>
-        <td class="py-3 px-3 font-mono text-zinc-300">${fmtMXN(c.total_cfdi_mxn)}</td>
-        <td class="py-3 px-3 font-mono font-semibold text-white">${fmtMXN(c.monto_a_pagar_mxn)}</td>
-        <td class="py-3 px-3 font-mono font-bold ${fugaColor}">${fmtMXN(fuga)}</td>
-        <td class="py-3 px-3">
+        <td class="py-3 px-4 font-mono text-zinc-300">${fmtMXN(c.total_cfdi_mxn)}</td>
+        <td class="py-3 px-4 font-mono font-semibold text-white">${fmtMXN(c.monto_a_pagar_mxn)}</td>
+        <td class="py-3 px-4 font-mono font-bold ${fugaColor}">${fmtMXN(fuga)}</td>
+        <td class="py-3 px-4">
           <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeClass}">
             ${c.estado_final || 'PENDIENTE'}
           </span>
         </td>
-        <td class="py-3 px-3 text-right">
+        <td class="py-3 px-4 text-right">
           <button 
-            onclick="event.stopPropagation(); seleccionarCaso('${c.case_id}')" 
-            class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-[11px] border border-zinc-700"
+            onclick="event.stopPropagation(); inspeccionarYIrADashboard('${c.case_id}')" 
+            class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-[11px] border border-zinc-700 active-press"
           >
-            Inspeccionar
+            Auditar en Dashboard
           </button>
         </td>
       </tr>
@@ -212,7 +250,27 @@ function renderizarTablaCasos() {
   actualizarIconos();
 }
 
-// 6. Selección e Inspección de un Expediente Específico
+function inspeccionarYIrADashboard(caseId) {
+  seleccionarCaso(caseId);
+  cambiarVista('DASHBOARD');
+}
+
+// 7. Navegación Secuencial de Casos
+function navegarCasoAnterior() {
+  if (state.casos.length === 0) return;
+  const idx = state.casos.findIndex(c => c.case_id === state.casoActivoId);
+  const prevIdx = idx <= 0 ? state.casos.length - 1 : idx - 1;
+  seleccionarCaso(state.casos[prevIdx].case_id);
+}
+
+function navegarCasoSiguiente() {
+  if (state.casos.length === 0) return;
+  const idx = state.casos.findIndex(c => c.case_id === state.casoActivoId);
+  const nextIdx = idx >= state.casos.length - 1 ? 0 : idx + 1;
+  seleccionarCaso(state.casos[nextIdx].case_id);
+}
+
+// 8. Selección e Inspección de un Expediente Específico
 async function seleccionarCaso(caseId) {
   state.casoActivoId = caseId;
   renderizarTablaCasos();
@@ -322,28 +380,136 @@ function actualizarVistaExpediente(d) {
   const btnMonto = document.getElementById('btn-monto-parcial');
   if (btnMonto) btnMonto.textContent = fmtMXN(cotejo.monto_a_pagar_mxn || 0);
 
-  // Actualizar Copiloto
+  // Actualizar Copiloto con Markdown estructurado
   const introGrok = document.getElementById('chat-grok-intro');
   if (introGrok) {
     if (c.resumen) {
-      introGrok.innerHTML = `<strong>Expediente ${c.case_id}:</strong> ${c.resumen}`;
+      introGrok.innerHTML = formatMarkdown(`**Expediente ${c.case_id}:** ${c.resumen}`);
     } else {
-      introGrok.innerHTML = `Expediente <strong>${c.case_id}</strong> cargado. Listo para responder tus dudas contables o redactar aclaraciones.`;
+      introGrok.innerHTML = formatMarkdown(`Expediente **${c.case_id}** cargado. ¿Qué deseas consultar sobre este caso?`);
     }
   }
 
   // Checklist Fiscal
   const sat69b = document.getElementById('chk-sat-69b');
   if (c.codigos_calculados && c.codigos_calculados.includes('SUPPLIER_69B')) {
-    sat69b.innerHTML = `<span class="text-rose-400 font-semibold flex items-center gap-1"><i data-lucide="alert-octagon" class="w-3 h-3"></i> En Lista Negra SAT</span>`;
+    sat69b.innerHTML = `<span class="text-rose-400 font-semibold flex items-center gap-1 text-[11px]"><i data-lucide="alert-octagon" class="w-3 h-3"></i> En Lista Negra SAT</span>`;
   } else {
-    sat69b.innerHTML = `<span class="text-emerald-400 font-semibold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Limpio (No EFOS)</span>`;
+    sat69b.innerHTML = `<span class="text-emerald-400 font-semibold flex items-center gap-1 text-[11px]"><i data-lucide="check" class="w-3 h-3"></i> Limpio (No EFOS)</span>`;
   }
 
   actualizarIconos();
 }
 
-// 7. Acciones Inmediatas
+// 9. Copiloto Chat Optimizado (Rápido y con Markdown)
+async function enviarMensajeChat(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const txt = input.value.trim();
+  if (!txt) return;
+
+  const stream = document.getElementById('chat-stream');
+  
+  // Agregar mensaje del usuario
+  stream.innerHTML += `
+    <div class="flex gap-2 justify-end">
+      <div class="bg-zinc-800 px-3 py-2 rounded-lg border border-zinc-700 text-zinc-100 max-w-[85%] text-xs">
+        ${txt}
+      </div>
+    </div>
+  `;
+  input.value = '';
+  stream.scrollTop = stream.scrollHeight;
+
+  // Indicador de "Escribiendo..." con animación de 3 puntos
+  const loadingId = 'grok-load-' + Date.now();
+  stream.innerHTML += `
+    <div id="${loadingId}" class="flex gap-2">
+      <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+        <i data-lucide="bot" class="w-3 h-3"></i>
+      </div>
+      <div class="bg-cardNested px-3 py-2 rounded-lg border border-borderSubtle text-zinc-400 text-xs flex items-center gap-1.5">
+        <span class="text-zinc-400">Grok está respondiendo</span>
+        <span class="inline-flex gap-0.5 ml-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 typing-dot"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 typing-dot"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 typing-dot"></span>
+        </span>
+      </div>
+    </div>
+  `;
+  actualizarIconos();
+  stream.scrollTop = stream.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mensaje: txt,
+        case_id: state.casoActivoId,
+        historial: state.historialChat
+      })
+    });
+    const data = await res.json();
+    const loadEl = document.getElementById(loadingId);
+    if (loadEl) loadEl.remove();
+
+    if (data.ok && data.respuesta) {
+      stream.innerHTML += `
+        <div class="flex gap-2">
+          <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="bot" class="w-3 h-3"></i>
+          </div>
+          <div class="bg-cardNested p-3 rounded-lg border border-borderSubtle text-zinc-200 max-w-[92%] prose-chat">
+            ${formatMarkdown(data.respuesta)}
+          </div>
+        </div>
+      `;
+      state.historialChat = data.historial || [];
+    }
+  } catch (err) {
+    const loadEl = document.getElementById(loadingId);
+    if (loadEl) loadEl.remove();
+  }
+  actualizarIconos();
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function preguntarRapido(texto) {
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.value = texto;
+    document.getElementById('form-chat').dispatchEvent(new Event('submit'));
+  }
+}
+
+// 10. Acciones Inmediatas (Idempotencia y Auditoría)
+async function solicitarNotaCredito() {
+  if (!state.casoActivoId) return;
+  try {
+    const res = await fetch(`/api/tools/reclamo/${state.casoActivoId}`, { method: 'POST' });
+    const data = await res.json();
+    if (data.idempotencia_bloqueada) {
+      alert(`⚠️ BLOQUEO DE IDEMPOTENCIA ACTIVO:\n${data.mensaje}\nSe evitó enviar un reclamo duplicado.`);
+    } else {
+      alert(`✅ RECLAMO ENVIADO CON ÉXITO:\nSe disparó el webhook formal hacia el proveedor con llave de idempotencia.`);
+    }
+  } catch (err) {
+    alert('Error enviando reclamo.');
+  }
+}
+
+function aprobarPagoParcial() {
+  if (!state.casoActivoData) return;
+  const monto = fmtMXN(state.casoActivoData.cotejo.monto_a_pagar_mxn);
+  alert(`Dispersión de tesorería autorizada por ${monto}.\nEl pago de lo recibido queda liberado y la retención resguardada.`);
+}
+
+function generarActaPDF() {
+  alert(`Generando Acta Circunstanciada en PDF para el expediente ${state.casoActivoId}...\nSe adjunta el análisis de Grok Vision, la verificación fiscal SAT 69-B y el desglose de 3 vías.`);
+}
+
 async function auditarCasoActivo() {
   if (!state.casoActivoId) return;
   try {
@@ -379,31 +545,6 @@ async function auditarTodoElLote() {
   }
 }
 
-async function solicitarNotaCredito() {
-  if (!state.casoActivoId) return;
-  try {
-    const res = await fetch(`/api/tools/reclamo/${state.casoActivoId}`, { method: 'POST' });
-    const data = await res.json();
-    if (data.idempotencia_bloqueada) {
-      alert(`⚠️ BLOQUEO DE IDEMPOTENCIA ACTIVO:\n${data.mensaje}\nSe evitó enviar un reclamo duplicado.`);
-    } else {
-      alert(`✅ RECLAMO ENVIADO CON ÉXITO:\nSe disparó el webhook formal hacia el proveedor con llave de idempotencia.`);
-    }
-  } catch (err) {
-    alert('Error enviando reclamo.');
-  }
-}
-
-function aprobarPagoParcial() {
-  if (!state.casoActivoData) return;
-  const monto = fmtMXN(state.casoActivoData.cotejo.monto_a_pagar_mxn);
-  alert(`Dispersión de tesorería autorizada por ${monto}.\nEl pago de lo recibido queda liberado y la retención queda resguardada.`);
-}
-
-function generarActaPDF() {
-  alert(`Generando Acta Circunstanciada en PDF para el expediente ${state.casoActivoId}...\nSe adjunta el análisis de Grok Vision, la verificación fiscal SAT 69-B y el desglose de 3 vías.`);
-}
-
 async function probarVisionEnVivo() {
   if (!state.casoActivoId) return;
   try {
@@ -432,83 +573,7 @@ function abrirInfo69B() {
   alert('Base de Datos Lista Negra 69-B del SAT:\nSe cuenta con los RFCs de EFOS definitivos precargados en SQLite WAL para detección instantánea offline sin depender de la latencia del portal del SAT.');
 }
 
-// 8. Copiloto Chat
-async function enviarMensajeChat(e) {
-  e.preventDefault();
-  const input = document.getElementById('chat-input');
-  const txt = input.value.trim();
-  if (!txt) return;
-
-  const stream = document.getElementById('chat-stream');
-  // Agregar mensaje del usuario
-  stream.innerHTML += `
-    <div class="flex gap-2.5 justify-end">
-      <div class="bg-zinc-800 p-2.5 rounded-lg border border-zinc-700 text-zinc-100 max-w-[85%]">
-        ${txt}
-      </div>
-    </div>
-  `;
-  input.value = '';
-  stream.scrollTop = stream.scrollHeight;
-
-  // Placeholder pensando
-  const loadingId = 'grok-load-' + Date.now();
-  stream.innerHTML += `
-    <div id="${loadingId}" class="flex gap-2.5">
-      <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-        <i data-lucide="bot" class="w-3 h-3"></i>
-      </div>
-      <div class="bg-cardNested p-3 rounded-lg border border-borderSubtle text-zinc-400 italic">
-        Grok está analizando el expediente...
-      </div>
-    </div>
-  `;
-  actualizarIconos();
-  stream.scrollTop = stream.scrollHeight;
-
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mensaje: `[Expediente activo: ${state.casoActivoId}] ${txt}`,
-        historial: state.historialChat
-      })
-    });
-    const data = await res.json();
-    const loadEl = document.getElementById(loadingId);
-    if (loadEl) loadEl.remove();
-
-    if (data.ok && data.respuesta) {
-      stream.innerHTML += `
-        <div class="flex gap-2.5">
-          <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-            <i data-lucide="bot" class="w-3 h-3"></i>
-          </div>
-          <div class="bg-cardNested p-3 rounded-lg border border-borderSubtle text-zinc-200 leading-relaxed max-w-[85%]">
-            ${data.respuesta}
-          </div>
-        </div>
-      `;
-      state.historialChat = data.historial || [];
-    }
-  } catch (err) {
-    const loadEl = document.getElementById(loadingId);
-    if (loadEl) loadEl.remove();
-  }
-  actualizarIconos();
-  stream.scrollTop = stream.scrollHeight;
-}
-
-function preguntarRapido(texto) {
-  const input = document.getElementById('chat-input');
-  if (input) {
-    input.value = texto;
-    document.getElementById('form-chat').dispatchEvent(new Event('submit'));
-  }
-}
-
-// 9. Carga Manual de Documentos (Modal & Drag & Drop)
+// 11. Carga Manual de Documentos
 function abrirModalUpload() {
   document.getElementById('modal-upload').classList.remove('hidden');
 }
@@ -550,7 +615,7 @@ async function enviarCargaManual(e) {
       cerrarModalUpload();
       await cargarMetricas();
       await cargarCasos();
-      await seleccionarCaso(data.case_id);
+      inspeccionarYIrADashboard(data.case_id);
     } else {
       alert(`Error procesando carga manual: ${data.detail || 'Verifica el XML'}`);
     }
@@ -562,7 +627,7 @@ async function enviarCargaManual(e) {
   }
 }
 
-// 10. Filtros y Búsqueda
+// 12. Filtros y Búsqueda
 function filtrarPorTab(tab) {
   state.filtroActual = tab;
   document.querySelectorAll('.tab-btn').forEach((btn) => {

@@ -56,6 +56,7 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     mensaje: str
+    case_id: str | None = None
     historial: list[dict[str, Any]] | None = None
 
 
@@ -282,7 +283,7 @@ def api_tool_reclamo(case_id: str, req: ReclamoRequest | None = None):
 @app.post("/api/chat")
 def api_chat(req: ChatRequest):
     if tiene_llave_configurada():
-        resp, hist, uso = conversar(req.mensaje, historial=req.historial)
+        resp, hist, uso = conversar(req.mensaje, case_id=req.case_id, historial=req.historial)
         return {"ok": True, "respuesta": resp, "historial": hist, "uso": uso}
     return {
         "ok": True,
