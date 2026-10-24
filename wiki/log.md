@@ -42,3 +42,11 @@ Bitácora cronológica append-only de modificaciones, ingestas y linteos del gra
   - **Base de Datos:** PostgreSQL 16 (con fallback transparente a SQLite WAL).
   - **Motor de IA:** Grok 4.6 (Text & Vision Multimodal vía Platica Gateway).
 - **Páginas creadas/actualizadas:** [[web-stack]], [[index]], `docs/PLAN_ACCION_S2_HOY.md`.
+
+## [2026-10-24] git | Configuración de Flujo Git: develop, dev-tomas y dev-leo
+- **Estrategia de ramas:**
+  - `main`: Rama de producción / entrega oficial.
+  - `develop`: Rama de integración donde se unen el frontend, backend y herramientas.
+  - `dev-tomas`: Rama de trabajo individual de Tomás.
+  - `dev-leo`: Rama de trabajo individual de Leo.
+- **Estado:** Ramas creadas y publicadas en el repositorio remoto GitHub (`origin`). Rama activa local: `dev-tomas`.
