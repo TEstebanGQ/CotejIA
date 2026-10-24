@@ -34,6 +34,7 @@ from .external_tools import (
     consultar_sat_en_vivo,
     consultar_tipo_cambio_real,
     enviar_alerta_reclamo_real,
+    listar_divisas_real,
 )
 from .vision import leer_remision_imagen, calcular_nitidez_imagen, UMBRAL_NITIDEZ_IMAGEN
 
@@ -354,6 +355,11 @@ def api_tool_vision(case_id: str):
 @app.post("/api/tools/fx")
 def api_tool_fx(req: FXRequest):
     return consultar_tipo_cambio_real(moneda=req.moneda, tipo_cambio_cfdi=req.tipo_cambio_cfdi)
+
+
+@app.get("/api/currencies")
+def api_currencies():
+    return listar_divisas_real()
 
 
 @app.post("/api/tools/sat/{case_id}")

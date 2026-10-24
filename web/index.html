@@ -189,7 +189,7 @@
       <div class="p-2.5 rounded-lg bg-zinc-900 border border-borderSubtle">
         <div class="flex items-center justify-between text-[11px] mb-1">
           <span class="text-zinc-400 font-medium">Persistencia DB</span>
-          <span id="label-motor-db" class="text-emerald-400 font-mono font-semibold">SQLite WAL</span>
+          <span id="label-motor-db" class="text-emerald-400 font-mono font-semibold">PostgreSQL 16</span>
         </div>
         <div class="flex items-center justify-between text-[11px]">
           <span class="text-zinc-400 font-medium">Motor de IA</span>
@@ -233,10 +233,18 @@
           <span>SAT: <strong id="sat-status-text">En Línea</strong></span>
         </div>
 
-        <!-- Tipo de Cambio USD/MXN -->
+        <!-- Selector Interactivo de 180 Divisas (ISO 4217 / SAT Anexo 20) -->
         <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-zinc-900 border border-borderSubtle text-zinc-300">
-          <span class="text-zinc-500">USD/MXN:</span>
-          <strong id="fx-rate-text">$17.14</strong>
+          <select 
+            id="select-fx-moneda" 
+            onchange="cargarTipoCambio(this.value)" 
+            title="Consultar cualquiera de las 180 divisas en tiempo real contra MXN"
+            class="bg-transparent text-zinc-300 font-semibold focus:outline-none cursor-pointer pr-1"
+          >
+            <option value="USD" class="bg-zinc-900 text-white">USD</option>
+          </select>
+          <span class="text-zinc-500">/MXN:</span>
+          <strong id="fx-rate-text" class="text-emerald-400">$18.69</strong>
         </div>
 
         <!-- Botón + Nuevo Cotejo (Carga Manual) -->
@@ -323,8 +331,12 @@
                 </div>
               </div>
               
-              <!-- Navegador de Expedientes Anterior / Siguiente -->
+              <!-- Navegador de Expedientes Anterior / Siguiente + Auditar Caso -->
               <div class="flex items-center gap-2">
+                <button id="btn-auditar-caso" onclick="auditarCasoActivo()" title="Ejecutar Agente Grok 4.6 y guardar en PostgreSQL 16" class="px-2.5 py-1.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-xs text-cyan-400 font-mono font-semibold border border-cyan-500/30 flex items-center gap-1.5 active-press transition-colors">
+                  <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                  <span>Auditar con Grok</span>
+                </button>
                 <button onclick="navegarCasoAnterior()" title="Expediente Anterior" class="p-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 active-press">
                   <i data-lucide="chevron-left" class="w-4 h-4"></i>
                 </button>
