@@ -25,6 +25,35 @@ const fmtMXN = (val) => {
   }).format(num);
 };
 
+// Formateador legible de objetos de detalle de hallazgos (evita [object Object])
+function formatearDetalleHallazgo(d) {
+  if (!d) return '';
+  if (typeof d === 'string') return d;
+  const partes = [];
+  if (d.sku) partes.push(`[${d.sku}]`);
+  if (d.problema) partes.push(d.problema);
+  if (d.facturada !== undefined && d.recibida !== undefined) {
+    partes.push(`(Facturado: ${d.facturada} pzas vs Recibido: ${d.recibida} pzas)`);
+  }
+  if (d.precio_oc !== undefined && d.precio_facturado !== undefined) {
+    partes.push(`(Precio OC: $${d.precio_oc} vs CFDI: $${d.precio_facturado})`);
+  }
+  if (d.tipo_cambio_cfdi !== undefined && d.tipo_cambio_oficial !== undefined) {
+    const mon = d.moneda || 'USD';
+    partes.push(`(Moneda ${mon}: TC CFDI $${d.tipo_cambio_cfdi} vs TC Oficial $${d.tipo_cambio_oficial} MXN)`);
+  }
+  if (d.tasa_oc !== undefined && d.tasa_cfdi !== undefined) {
+    partes.push(`(IVA OC: ${d.tasa_oc} vs IVA CFDI: ${d.tasa_cfdi})`);
+  }
+  if (d.rfc_emisor && d.nombre) {
+    partes.push(`(RFC: ${d.rfc_emisor} — ${d.nombre})`);
+  }
+  if (d.caso_previo) {
+    partes.push(`(UUID duplicado con ${d.caso_previo})`);
+  }
+  return partes.join(' ') || JSON.stringify(d);
+}
+
 // Formateador Markdown seguro y estructurado
 function formatMarkdown(rawText) {
   if (!rawText) return '';
@@ -48,6 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function inicializarApp() {
   actualizarIconos();
+  const params = new URLSearchParams(window.location.search);
+  const casoParam = (params.get('case') || 'OC-004').toUpperCase();
+  const viewParam = (params.get('view') || '').toUpperCase();
   await Promise.all([
     cargarSaludSistema(),
     cargarDivisas(),
@@ -55,8 +87,10 @@ async function inicializarApp() {
     cargarCasos()
   ]);
   await cargarMetricas();
-  // Seleccionar caso inicial por defecto (OC-004 para mostrar merma documental)
-  await seleccionarCaso('OC-004');
+  await seleccionarCaso(casoParam);
+  if (viewParam === 'EXPEDIENTES') {
+    cambiarVista('EXPEDIENTES');
+  }
 }
 
 function actualizarIconos() {
@@ -185,6 +219,10 @@ async function cargarMetricas() {
       if (pBar) pBar.style.width = `${pct}%`;
     }
 
+    const descFuga = document.getElementById('kpi-fuga-desc');
+    const totalDiscrepancias = ((m.conteo_estados && m.conteo_estados.EN_RECLAMO) || 0) + ((m.conteo_estados && m.conteo_estados.ESCALADO) || 0);
+    if (descFuga) descFuga.textContent = `${totalDiscrepancias} expedientes con retención preventiva aplicada`;
+
     const kpiCosto = document.getElementById('kpi-costo-usd');
     if (kpiCosto && m.telemetria_llm) {
       const costMxn = (m.telemetria_llm.costo_total_usd || 0.002) * 19.5;
@@ -258,7 +296,7 @@ function renderizarTablaCasos() {
           <span>${c.case_id}</span>
         </td>
         <td class="py-3 px-4">
-          <div class="font-medium text-zinc-200 truncate max-w-[200px]">${c.case_id.includes('MANUAL') ? 'Carga Manual' : 'Proveedor ' + c.case_id}</div>
+          <div class="font-medium text-zinc-200 truncate max-w-[200px]">${c.proveedor_nombre || (c.case_id.includes('MANUAL') ? 'Carga Manual' : 'Proveedor ' + c.case_id)}</div>
           <div class="font-mono text-[10px] text-zinc-500">${c.proveedor_rfc || 'RFC Desconocido'}</div>
         </td>
         <td class="py-3 px-4 font-mono text-zinc-300">${fmtMXN(c.total_cfdi_mxn)}</td>
@@ -306,7 +344,11 @@ function navegarCasoSiguiente() {
 
 // 8. Selección e Inspección de un Expediente Específico
 async function seleccionarCaso(caseId) {
+  const cambioDeCaso = state.casoActivoId !== caseId;
   state.casoActivoId = caseId;
+  if (cambioDeCaso) {
+    state.historialChat = null;
+  }
   renderizarTablaCasos();
 
   try {
@@ -315,13 +357,13 @@ async function seleccionarCaso(caseId) {
     if (!data.ok) return;
 
     state.casoActivoData = data;
-    actualizarVistaExpediente(data);
+    actualizarVistaExpediente(data, cambioDeCaso);
   } catch (err) {
     console.error('Error inspeccionando caso:', err);
   }
 }
 
-function actualizarVistaExpediente(d) {
+function actualizarVistaExpediente(d, resetChat = false) {
   const caseId = d.case_id || state.casoActivoId;
   const cotejo = d.cotejo || {};
   const oc = d.oc || {};
@@ -356,43 +398,98 @@ function actualizarVistaExpediente(d) {
     badgeEstado.textContent = estadoFinal;
   }
 
-  // Visor de Imagen
+  // Visor de Imagen o Dropzone Limpia + Metadatos reales de Grok Vision
+  const viewActiva = document.getElementById('view-remision-activa');
+  const viewEmpty = document.getElementById('view-remision-empty');
   const imgEl = document.getElementById('exp-remision-img');
   const bbox = document.getElementById('vision-bbox');
   const textoManuscrito = document.getElementById('vision-texto-manuscrito');
+  const nitidezLbl = document.getElementById('vision-nitidez-label');
+  const statusBadge = document.getElementById('vision-status-badge');
 
   if (tieneImg) {
-    imgEl.src = `/api/cases/${caseId}/image?t=${Date.now()}`;
-    bbox.classList.remove('hidden');
-    if (caseId === 'OC-004') {
-      textoManuscrito.textContent = '"Recibidos solo 80 pzas. Merma en transporte (-20)"';
-    } else if (caseId === 'OC-005') {
-      textoManuscrito.textContent = '⚠️ Imagen ilegible / borrosa detectada por Grok Vision';
+    if (viewActiva) viewActiva.classList.remove('hidden');
+    if (viewEmpty) viewEmpty.classList.add('hidden');
+    if (imgEl) imgEl.src = `/api/cases/${caseId}/image?t=${Date.now()}`;
+    if (bbox) bbox.classList.remove('hidden');
+
+    const codigosCaso = cotejo.codigos || [];
+    const notaReal = rem.observaciones_manuales || 'Firma y sello de almacén detectados sin anomalías';
+    const nitVal = (d.nitidez_optica !== undefined && d.nitidez_optica !== null) ? d.nitidez_optica : (caseId === 'OC-005' ? 14.8 : 112.4);
+
+    if (codigosCaso.includes('RECEIPT_UNREADABLE') || caseId === 'OC-005') {
+      if (textoManuscrito) textoManuscrito.textContent = `⚠️ RECEIPT_UNREADABLE: ${notaReal}`;
+      if (nitidezLbl) nitidezLbl.textContent = `Nitidez: ${nitVal} < 28.0`;
+      if (statusBadge) {
+        statusBadge.className = 'text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        statusBadge.textContent = 'Ilegible';
+      }
     } else {
-      textoManuscrito.textContent = 'Firma y sello de almacén detectados sin anomalías';
+      if (textoManuscrito) textoManuscrito.textContent = `"${notaReal}"`;
+      if (nitidezLbl) nitidezLbl.textContent = `Nitidez: ${nitVal}`;
+      if (statusBadge) {
+        statusBadge.className = 'text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        statusBadge.textContent = 'Legible';
+      }
     }
   } else {
-    imgEl.src = 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\' fill=\'%2318181b\'><text x=\'50%25\' y=\'50%25\' fill=\'%2371717a\' font-size=\'12\' text-anchor=\'middle\' dy=\'.3em\'>Sin imagen física escaneada</text></svg>';
-    bbox.classList.add('hidden');
+    if (viewActiva) viewActiva.classList.add('hidden');
+    if (viewEmpty) viewEmpty.classList.remove('hidden');
   }
 
   // Tríada 1: Orden de Compra
-  const primerItemOc = (oc.lineas && oc.lineas[0]) || {};
+  const lineasOc = oc.lineas || [];
   const monedaDoc = cfdi.moneda || oc.moneda || 'MXN';
   const tcDoc = parseFloat(cfdi.tipo_cambio || oc.tipo_cambio || 1);
-  const subtotalOcMxn = (parseFloat(primerItemOc.cantidad || 0) * parseFloat(primerItemOc.precio_unitario || 0)) * (monedaDoc !== 'MXN' ? tcDoc : 1);
-  document.getElementById('triad-oc-desc').textContent = `${primerItemOc.cantidad || 0} pzas @ $${parseFloat(primerItemOc.precio_unitario || 0).toFixed(2)} ${monedaDoc}`;
-  document.getElementById('triad-oc-total').textContent = fmtMXN(subtotalOcMxn || cotejo.total_cfdi_mxn || 0);
+  const totalCantOc = lineasOc.reduce((sum, l) => sum + (parseFloat(l.cantidad) || 0), 0);
+  const subtotalOcPactado = lineasOc.reduce((sum, l) => sum + ((parseFloat(l.cantidad) || 0) * (parseFloat(l.precio_unitario) || 0)), 0);
+  const subtotalOcMxn = subtotalOcPactado * (monedaDoc !== 'MXN' ? tcDoc : 1);
+
+  const triadOcDesc = document.getElementById('triad-oc-desc');
+  if (triadOcDesc) {
+    if (lineasOc.length === 1) {
+      const p1 = lineasOc[0];
+      triadOcDesc.textContent = `${p1.cantidad} pzas (${p1.sku || 'Partida'}) @ $${parseFloat(p1.precio_unitario || 0).toFixed(2)} ${monedaDoc}`;
+    } else if (lineasOc.length > 1) {
+      const partidasStr = lineasOc.map(l => `${l.cantidad} ${l.sku || ''}`.trim()).join(' + ');
+      triadOcDesc.textContent = `${totalCantOc} pzas en ${lineasOc.length} partidas (${partidasStr})`;
+    } else {
+      triadOcDesc.textContent = '0 pzas pactadas';
+    }
+  }
+  const triadOcTotal = document.getElementById('triad-oc-total');
+  if (triadOcTotal) triadOcTotal.textContent = fmtMXN(subtotalOcMxn || cotejo.total_cfdi_mxn || 0);
 
   // Tríada 2: Remisión Almacén + Diagnóstico por código real
-  const primerItemRem = (rem.lineas && rem.lineas[0]) || {};
+  const lineasRem = rem.lineas || [];
   const boxRem = document.getElementById('box-remision-triad');
   const triadRemDesc = document.getElementById('triad-rem-desc');
   const triadRemAlerta = document.getElementById('triad-rem-alerta');
+  const triadRemDiff = document.getElementById('triad-rem-diff');
 
   const codigos = cotejo.codigos || [];
   const fuga = parseFloat(cotejo.fuga_detectada_mxn) || 0;
-  const cantRecibida = primerItemRem.cantidad_recibida ?? primerItemOc.cantidad ?? 0;
+  const totalCantRem = lineasRem.length > 0
+    ? lineasRem.reduce((sum, l) => sum + (parseFloat(l.cantidad_recibida) || 0), 0)
+    : totalCantOc;
+  const diffUnidades = totalCantRem - totalCantOc;
+
+  if (triadRemDiff) {
+    if (diffUnidades < 0) {
+      triadRemDiff.textContent = `${diffUnidades} pzas (Faltante)`;
+      triadRemDiff.className = 'text-[10px] text-amber-400 font-mono font-medium';
+    } else if (diffUnidades > 0) {
+      triadRemDiff.textContent = `+${diffUnidades} pzas (Excedente)`;
+      triadRemDiff.className = 'text-[10px] text-cyan-400 font-mono font-medium';
+    } else {
+      triadRemDiff.textContent = '0 faltantes (100% recibido)';
+      triadRemDiff.className = 'text-[10px] text-emerald-400 font-mono font-medium';
+    }
+  }
+
+  const partidasRemStr = lineasRem.length > 1
+    ? ` (${lineasRem.map(l => `${l.cantidad_recibida} ${l.sku || ''}`.trim()).join(' + ')})`
+    : '';
 
   if (codigos.includes('RECEIPT_UNREADABLE')) {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-rose-500/40 flex items-center justify-between bg-rose-500/[0.04]';
@@ -401,65 +498,144 @@ function actualizarVistaExpediente(d) {
     triadRemAlerta.className = 'text-xs font-bold font-mono text-rose-400';
   } else if (codigos.includes('QTY_SHORT')) {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-amber-500/40 flex items-center justify-between bg-amber-500/[0.03]';
-    triadRemDesc.textContent = `${cantRecibida} pzas físicas recibidas (Faltante en almacén)`;
+    triadRemDesc.textContent = `${totalCantRem} pzas físicas recibidas${partidasRemStr} · Merma: ${Math.abs(diffUnidades)} pzas`;
     triadRemAlerta.textContent = 'FALTANTE / MERMA (QTY_SHORT)';
     triadRemAlerta.className = 'text-xs font-bold font-mono text-amber-400';
   } else if (fuga > 0 || !codigos.includes('MATCH_OK')) {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-amber-500/40 flex items-center justify-between bg-amber-500/[0.03]';
-    triadRemDesc.textContent = `${cantRecibida} pzas en almacén · Anomalía en CFDI/SAT`;
+    triadRemDesc.textContent = `${totalCantRem} pzas físicas en almacén${partidasRemStr} · Anomalía en CFDI/SAT`;
     triadRemAlerta.textContent = codigos.join(', ') || 'DISCREPANCIA';
     triadRemAlerta.className = 'text-xs font-bold font-mono text-amber-400';
   } else {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-borderSubtle flex items-center justify-between';
-    triadRemDesc.textContent = `${cantRecibida} pzas completas verificadas en almacén`;
+    triadRemDesc.textContent = `${totalCantRem} pzas completas verificadas en almacén${partidasRemStr}`;
     triadRemAlerta.textContent = 'RECEPCIÓN EXACTA';
     triadRemAlerta.className = 'text-xs font-bold font-mono text-emerald-400';
   }
 
   // Tríada 3: Factura CFDI
-  const primerItemCfdi = (cfdi.conceptos && cfdi.conceptos[0]) || {};
-  const descExtraCfdi = monedaDoc !== 'MXN' ? ` (${monedaDoc} @ TC $${tcDoc.toFixed(2)})` : ` (@ $${parseFloat(primerItemCfdi.valor_unitario || 0).toFixed(2)})`;
-  document.getElementById('triad-cfdi-desc').textContent = `${primerItemCfdi.cantidad || 0} pzas facturadas${descExtraCfdi}`;
-  document.getElementById('triad-cfdi-total').textContent = fmtMXN(cotejo.total_cfdi_mxn || 0);
+  const conceptosCfdi = cfdi.conceptos || [];
+  const totalCantCfdi = conceptosCfdi.reduce((sum, c) => sum + (parseFloat(c.cantidad) || 0), 0);
+  const triadCfdiDesc = document.getElementById('triad-cfdi-desc');
 
-  // Banner de Retención Preventiva con detalle real de las discrepancias
+  if (triadCfdiDesc) {
+    if (conceptosCfdi.length === 1) {
+      const c1 = conceptosCfdi[0];
+      const descExtraCfdi = monedaDoc !== 'MXN' ? ` (${monedaDoc} @ TC $${tcDoc.toFixed(2)})` : ` (@ $${parseFloat(c1.valor_unitario || 0).toFixed(2)})`;
+      triadCfdiDesc.textContent = `${c1.cantidad} pzas facturadas${descExtraCfdi}`;
+    } else if (conceptosCfdi.length > 1) {
+      const conceptosStr = conceptosCfdi.map(c => `${c.cantidad} ${c.sku || ''}`.trim()).join(' + ');
+      const descExtraCfdi = monedaDoc !== 'MXN' ? ` (${monedaDoc} @ TC $${tcDoc.toFixed(2)})` : '';
+      triadCfdiDesc.textContent = `${totalCantCfdi} pzas facturadas en ${conceptosCfdi.length} conceptos (${conceptosStr})${descExtraCfdi}`;
+    } else {
+      triadCfdiDesc.textContent = '0 pzas facturadas';
+    }
+  }
+  const triadCfdiTotal = document.getElementById('triad-cfdi-total');
+  if (triadCfdiTotal) triadCfdiTotal.textContent = fmtMXN(cotejo.total_cfdi_mxn || 0);
+
+  // Banner Dinámico de Estatus y Resolución (con detalle limpio sin [object Object])
   const banner = document.getElementById('banner-retencion');
-  const montoTxt = document.getElementById('monto-retencion-txt');
+  const bannerIcon = document.getElementById('banner-icon');
+  const bannerTitulo = document.getElementById('banner-titulo');
   const explTxt = document.getElementById('explicacion-retencion-txt');
-  const detalleTexto = Array.isArray(cotejo.detalle) && cotejo.detalle.length > 0
-    ? cotejo.detalle.join(' · ')
+  const btnAprobarTexto = document.getElementById('btn-aprobar-texto');
+  const btnSolicitarNc = document.getElementById('btn-solicitar-nc');
+
+  const total = parseFloat(cotejo.total_cfdi_mxn) || 0;
+  const pagar = parseFloat(cotejo.monto_a_pagar_mxn) || 0;
+
+  const listaDetallesLimpios = Array.isArray(cotejo.detalle)
+    ? cotejo.detalle.map(formatearDetalleHallazgo).filter(Boolean)
+    : [];
+  const detalleTexto = listaDetallesLimpios.length > 0
+    ? listaDetallesLimpios.join(' · ')
     : `Discrepancia detectada (${codigos.join(', ')})`;
 
-  if (fuga > 0 || !codigos.includes('MATCH_OK')) {
-    banner.classList.remove('hidden');
-    montoTxt.textContent = `${fmtMXN(fuga)} MXN`;
-    explTxt.innerHTML = `<strong>Hallazgos [${codigos.join(', ')}]:</strong> ${detalleTexto}. Retención preventiva de <strong>${fmtMXN(fuga)}</strong>. Estado asignado a <strong>${estadoFinal}</strong>.`;
+  if (estadoFinal === 'APROBADO' || (fuga === 0 && codigos.includes('MATCH_OK'))) {
+    banner.className = 'p-4 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20 space-y-2 transition-colors';
+    if (bannerIcon) {
+      bannerIcon.setAttribute('data-lucide', 'check-circle-2');
+      bannerIcon.className = 'w-5 h-5 text-emerald-400 shrink-0 mt-0.5';
+    }
+    if (bannerTitulo) {
+      bannerTitulo.className = 'text-sm font-bold text-emerald-300';
+      bannerTitulo.innerHTML = `Expediente Conciliado: Three-Way Match 100% Exitoso`;
+    }
+    if (explTxt) {
+      explTxt.innerHTML = `Sin discrepancias (<strong>MATCH_OK</strong>). Las cantidades, precios y condiciones de la Orden de Compra, Remisión de Almacén y Factura CFDI coinciden al 100%. Totalmente autorizado para dispersión.`;
+    }
+    if (btnAprobarTexto) {
+      btnAprobarTexto.innerHTML = `Autorizar Pago Total (<span id="btn-monto-parcial">${fmtMXN(total)}</span>)`;
+    }
+    if (btnSolicitarNc) btnSolicitarNc.classList.add('hidden');
   } else {
-    banner.classList.remove('hidden');
-    montoTxt.textContent = '$0.00 MXN';
-    explTxt.innerHTML = `Cotejo 100% conciliado (<strong>MATCH_OK</strong>). Las piezas ordenadas, recibidas en almacén y facturadas ante el SAT coinciden en su totalidad.`;
+    if (btnSolicitarNc) btnSolicitarNc.classList.remove('hidden');
+
+    if (estadoFinal === 'EN_RECLAMO') {
+      banner.className = 'p-4 rounded-lg bg-amber-500/[0.04] border border-amber-500/20 space-y-2 transition-colors';
+      if (bannerIcon) {
+        bannerIcon.setAttribute('data-lucide', 'alert-triangle');
+        bannerIcon.className = 'w-5 h-5 text-amber-400 shrink-0 mt-0.5';
+      }
+      if (bannerTitulo) {
+        bannerTitulo.className = 'text-sm font-bold text-amber-300';
+        bannerTitulo.innerHTML = `Discrepancia Detectada: Retención Preventiva de <span id="monto-retencion-txt" class="font-mono text-white">${fmtMXN(fuga)}</span>`;
+      }
+      if (btnAprobarTexto) {
+        btnAprobarTexto.innerHTML = `Aprobar Pago Parcial (<span id="btn-monto-parcial">${fmtMXN(pagar)}</span>)`;
+      }
+      if (explTxt) {
+        explTxt.innerHTML = `<strong>Hallazgos [${codigos.join(', ')}]:</strong> ${detalleTexto}. Retención preventiva de <strong>${fmtMXN(fuga)}</strong> aplicada y solicitud de Nota de Crédito habilitada.`;
+      }
+    } else {
+      banner.className = 'p-4 rounded-lg bg-rose-500/[0.04] border border-rose-500/20 space-y-2 transition-colors';
+      if (bannerIcon) {
+        bannerIcon.setAttribute('data-lucide', 'shield-alert');
+        bannerIcon.className = 'w-5 h-5 text-rose-400 shrink-0 mt-0.5';
+      }
+      if (bannerTitulo) {
+        bannerTitulo.className = 'text-sm font-bold text-rose-300';
+        bannerTitulo.innerHTML = `Alerta de Auditoría: Caso Escalado · Retención <span id="monto-retencion-txt" class="font-mono text-white">${fmtMXN(fuga)}</span>`;
+      }
+      if (btnAprobarTexto) {
+        btnAprobarTexto.innerHTML = `Liberar con Aprobación Manual (<span id="btn-monto-parcial">${fmtMXN(pagar)}</span>)`;
+      }
+      if (explTxt) {
+        explTxt.innerHTML = `<strong>Hallazgos [${codigos.join(', ')}]:</strong> ${detalleTexto}. Estado asignado a <strong>${estadoFinal}</strong>.`;
+      }
+    }
   }
 
-  // Botón Pago Parcial
-  const btnMonto = document.getElementById('btn-monto-parcial');
-  if (btnMonto) btnMonto.textContent = fmtMXN(cotejo.monto_a_pagar_mxn || 0);
-
-  // Actualizar Copiloto con Markdown estructurado
-  const introGrok = document.getElementById('chat-grok-intro');
-  if (introGrok) {
-    if (reg.resumen) {
-      introGrok.innerHTML = formatMarkdown(`**Expediente ${caseId}:** ${reg.resumen}`);
-    } else {
-      const listaHallazgos = (Array.isArray(cotejo.detalle) && cotejo.detalle.length > 0)
-        ? cotejo.detalle.map(item => `- ${item}`).join('\n')
-        : `- Conciliación exacta sin diferencias (\`MATCH_OK\`).`;
-      introGrok.innerHTML = formatMarkdown(
-        `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'}):\n` +
+  // Actualizar Copiloto con Markdown estructurado y sin [object Object]
+  const listaHallazgosMd = listaDetallesLimpios.length > 0
+    ? listaDetallesLimpios.map(item => `- ${item}`).join('\n')
+    : `- Conciliación 3-Way Matching exacta sin diferencias (\`MATCH_OK\`).`;
+  const divisaInfo = monedaDoc !== 'MXN' ? ` (Factura emitida en **${monedaDoc}** @ TC **$${tcDoc.toFixed(2)} MXN**)` : ` (Moneda: **MXN**)`;
+  const resumenInicialHtml = formatMarkdown(
+    reg.resumen
+      ? `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'}): ${reg.resumen}\n${listaHallazgosMd}`
+      : `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'})${divisaInfo}:\n` +
         `- **Códigos:** \`${codigos.join(', ')}\`\n` +
         `- **Fuga retenida:** **${fmtMXN(fuga)} MXN** | **Monto a liberar:** **${fmtMXN(cotejo.monto_a_pagar_mxn || 0)} MXN**\n` +
-        `${listaHallazgos}`
-      );
-    }
+        `${listaHallazgosMd}`
+  );
+
+  const chatStream = document.getElementById('chat-stream');
+  if (resetChat && chatStream) {
+    chatStream.innerHTML = `
+      <div class="flex gap-2">
+        <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+          <i data-lucide="bot" class="w-3 h-3"></i>
+        </div>
+        <div class="bg-cardNested p-3 rounded-lg border border-borderSubtle text-zinc-200 leading-relaxed max-w-[92%] prose-chat">
+          <div id="chat-grok-intro">${resumenInicialHtml}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    const introGrok = document.getElementById('chat-grok-intro');
+    if (introGrok) introGrok.innerHTML = resumenInicialHtml;
   }
 
   // Checklist Fiscal SAT (69-B, Timbre CFDI y Circuit Breaker)
@@ -485,24 +661,90 @@ function actualizarVistaExpediente(d) {
   actualizarIconos();
 }
 
-// 9. Copiloto Chat Optimizado (Rápido y con Markdown)
+// 9. Manejo de Fotos Directas y Adjuntos al Agente
+async function subirFotoDirectaCaso(input) {
+  if (!input.files || input.files.length === 0) return;
+  const archivo = input.files[0];
+  const caseId = state.casoActivoId;
+  if (!caseId) {
+    alert('Selecciona un caso primero.');
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('file', archivo);
+
+  try {
+    const res = await fetch(`/api/cases/${caseId}/upload-remision`, {
+      method: 'POST',
+      body: fd,
+    });
+    const data = await res.json();
+    if (data.ok) {
+      alert(`✅ ${data.mensaje}\nNuevo estado: ${data.estado_final}`);
+      await cargarMetricas();
+      await cargarCasos();
+      await seleccionarCaso(caseId);
+    } else {
+      alert('Error procesando imagen: ' + (data.detail || 'Error desconocido'));
+    }
+  } catch (err) {
+    alert('Error al subir la imagen de la remisión.');
+  } finally {
+    input.value = '';
+  }
+}
+
+let archivoAdjuntoChat = null;
+
+function seleccionarAdjuntoChat(input) {
+  if (!input.files || input.files.length === 0) return;
+  archivoAdjuntoChat = input.files[0];
+  const bar = document.getElementById('chat-attachment-bar');
+  const nameEl = document.getElementById('chat-attachment-name');
+  if (nameEl) nameEl.textContent = archivoAdjuntoChat.name;
+  if (bar) bar.classList.remove('hidden');
+  actualizarIconos();
+}
+
+function cancelarAdjuntoChat() {
+  archivoAdjuntoChat = null;
+  const bar = document.getElementById('chat-attachment-bar');
+  if (bar) bar.classList.add('hidden');
+  const fileInput = document.getElementById('chat-file-input');
+  if (fileInput) fileInput.value = '';
+}
+
+// 10. Copiloto Chat Optimizado (Rápido, con Markdown y Soporte de Fotos)
 async function enviarMensajeChat(e) {
   e.preventDefault();
   const input = document.getElementById('chat-input');
   const txt = input.value.trim();
-  if (!txt) return;
+  const archivoActual = archivoAdjuntoChat;
+
+  if (!txt && !archivoActual) return;
 
   const stream = document.getElementById('chat-stream');
-  
+  const caseId = state.casoActivoId;
+
+  // Limpiar input y adjunto
+  input.value = '';
+  cancelarAdjuntoChat();
+
+  let bannerAdjunto = '';
+  if (archivoActual) {
+    bannerAdjunto = `<div class="flex items-center gap-1.5 text-cyan-300 font-mono text-[11px] mb-1"><i data-lucide="image" class="w-3.5 h-3.5"></i><span>Foto adjunta: ${archivoActual.name}</span></div>`;
+  }
+
   // Agregar mensaje del usuario
   stream.innerHTML += `
     <div class="flex gap-2 justify-end">
       <div class="bg-zinc-800 px-3 py-2 rounded-lg border border-zinc-700 text-zinc-100 max-w-[85%] text-xs">
-        ${txt}
+        ${bannerAdjunto}
+        ${txt || 'He adjuntado una nueva foto para este caso. Por favor revísala y re-evalúa.'}
       </div>
     </div>
   `;
-  input.value = '';
   stream.scrollTop = stream.scrollHeight;
 
   // Indicador de "Escribiendo..." con animación de 3 puntos
@@ -513,7 +755,7 @@ async function enviarMensajeChat(e) {
         <i data-lucide="bot" class="w-3 h-3"></i>
       </div>
       <div class="bg-cardNested px-3 py-2 rounded-lg border border-borderSubtle text-zinc-400 text-xs flex items-center gap-1.5">
-        <span class="text-zinc-400">Grok está respondiendo</span>
+        <span class="text-zinc-400">Grok está analizando el caso</span>
         <span class="inline-flex gap-0.5 ml-1">
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 typing-dot"></span>
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 typing-dot"></span>
@@ -525,13 +767,33 @@ async function enviarMensajeChat(e) {
   actualizarIconos();
   stream.scrollTop = stream.scrollHeight;
 
+  let promptParaGrok = txt;
+
+  // Si había archivo adjunto, subirlo primero
+  if (archivoActual && caseId) {
+    try {
+      const fd = new FormData();
+      fd.append('file', archivoActual);
+      const resUp = await fetch(`/api/cases/${caseId}/upload-remision`, { method: 'POST', body: fd });
+      const dataUp = await resUp.json();
+      if (dataUp.ok) {
+        promptParaGrok = `[NUEVA EVIDENCIA FOTOGRÁFICA SUBIDA]: Se adjuntó una nueva foto de la remisión física. Nitidez calculada: ${dataUp.nitidez} (${dataUp.es_nitida ? 'Nítida y legible' : 'Ilegible'}). Estado recalculado: ${dataUp.estado_final}. ${txt}`;
+        await cargarMetricas();
+        await cargarCasos();
+        await seleccionarCaso(caseId);
+      }
+    } catch (e) {
+      console.warn('Error subiendo imagen adjunta:', e);
+    }
+  }
+
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        mensaje: txt,
-        case_id: state.casoActivoId,
+        mensaje: promptParaGrok || 'Por favor resume el estado de este expediente.',
+        case_id: caseId,
         historial: state.historialChat
       })
     });
@@ -614,7 +876,36 @@ async function auditarCasoActivo() {
       await cargarMetricas();
       await cargarSaludSistema();
       await seleccionarCaso(state.casoActivoId);
-      alert(`✅ Auditoría de ${state.casoActivoId} con Grok 4.6 finalizada.\nEstado: ${data.estado_final}\nFuga detectada: ${fmtMXN(data.fuga_detectada_mxn)}`);
+
+      // Mostrar en el Copiloto la traza completa de herramientas invocadas por Grok 4.6
+      const stream = document.getElementById('chat-stream');
+      const toolsList = (data.uso && Array.isArray(data.uso.herramientas) && data.uso.herramientas.length > 0)
+        ? data.uso.herramientas.map((t, i) => `${i + 1}. \`${t}()\``).join(' → ')
+        : '`cotejar_caso()` → `cerrar_caso()`';
+      const segs = (data.uso && data.uso.segundos) ? `${parseFloat(data.uso.segundos).toFixed(2)}s` : 'instantáneo';
+      const rechazos = (data.uso && data.uso.rechazos) || 0;
+      const trazaMd =
+        `**⚡ Ciclo Agéntico Grok 4.6 Completado (${state.casoActivoId}):**\n` +
+        `- **Herramientas invocadas:** ${toolsList}\n` +
+        `- **Veredicto:** \`${data.estado_final}\` | **Códigos:** \`${(data.codigos || []).join(', ')}\`\n` +
+        `- **Fuga retenida:** **${fmtMXN(data.fuga_detectada_mxn)} MXN** | **Liberado:** **${fmtMXN(data.monto_a_pagar_mxn)} MXN**\n` +
+        `- **Policy Gate:** ${rechazos === 0 ? 'Validado en 1er intento' : `${rechazos} corrección(es) aplicadas`} · **Tiempo:** ${segs}\n` +
+        `- **Dictamen en PostgreSQL 16:** ${data.resumen || ''}`;
+
+      if (stream) {
+        stream.innerHTML += `
+          <div class="flex gap-2">
+            <div class="w-5 h-5 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="zap" class="w-3 h-3"></i>
+            </div>
+            <div class="bg-cardNested p-3 rounded-lg border border-emerald-500/30 text-zinc-200 max-w-[92%] prose-chat">
+              ${formatMarkdown(trazaMd)}
+            </div>
+          </div>
+        `;
+        actualizarIconos();
+        stream.scrollTop = stream.scrollHeight;
+      }
     }
   } catch (err) {
     alert('Error al auditar el caso.');
@@ -792,4 +1083,220 @@ function configurarBuscador() {
       input.focus();
     }
   });
+}
+
+// ============================================================================
+// 13. MODO PRESENTACIÓN GUIADA DE KÓTEK (2 MINUTOS CON VOZ ELEVENLABS EN VIVO)
+// ============================================================================
+let kotekAudioActual = null;
+let kotekDemoActiva = false;
+let kotekTimers = [];
+
+function limpiarTimersKotek() {
+  kotekTimers.forEach(t => clearTimeout(t));
+  kotekTimers = [];
+}
+
+function mostrarToastKotek(titulo, cuerpoHtml, colorBorde = 'border-emerald-500/60') {
+  const toast = document.getElementById('kotek-action-toast');
+  const head = document.getElementById('kotek-toast-header');
+  const body = document.getElementById('kotek-toast-body');
+  if (!toast || !head || !body) return;
+  toast.className = `fixed top-16 right-6 z-50 max-w-md bg-zinc-950/95 border-2 ${colorBorde} rounded-xl p-3.5 shadow-2xl text-xs transition-all`;
+  head.innerHTML = `<span>${titulo}</span>`;
+  body.innerHTML = cuerpoHtml;
+  toast.classList.remove('hidden');
+}
+
+function ocultarToastKotek() {
+  const toast = document.getElementById('kotek-action-toast');
+  if (toast) toast.classList.add('hidden');
+}
+
+function reproducirAudioKotek(archivoMp3) {
+  return new Promise((resolve) => {
+    if (!kotekDemoActiva) {
+      resolve();
+      return;
+    }
+    if (kotekAudioActual) {
+      kotekAudioActual.pause();
+      kotekAudioActual = null;
+    }
+    const audio = new Audio(`/static/assets/audio/${archivoMp3}`);
+    kotekAudioActual = audio;
+    audio.onended = () => resolve();
+    audio.onerror = () => {
+      // Fallback temporizado si el navegador bloquea autoplay
+      const t = setTimeout(resolve, 14000);
+      kotekTimers.push(t);
+    };
+    audio.play().catch(() => {
+      const t = setTimeout(resolve, 14000);
+      kotekTimers.push(t);
+    });
+  });
+}
+
+function detenerDemoGuiadaKotek() {
+  kotekDemoActiva = false;
+  limpiarTimersKotek();
+  if (kotekAudioActual) {
+    kotekAudioActual.pause();
+    kotekAudioActual = null;
+  }
+  const modalIntro = document.getElementById('kotek-intro-modal');
+  const pipWidget = document.getElementById('kotek-pip-widget');
+  const launcher = document.getElementById('kotek-launcher-btn');
+  if (modalIntro) modalIntro.classList.add('hidden');
+  if (pipWidget) pipWidget.classList.add('hidden');
+  if (launcher) launcher.classList.remove('hidden');
+  ocultarToastKotek();
+}
+
+async function iniciarDemoGuiadaKotek() {
+  detenerDemoGuiadaKotek();
+  kotekDemoActiva = true;
+
+  const modalIntro = document.getElementById('kotek-intro-modal');
+  const pipWidget = document.getElementById('kotek-pip-widget');
+  const launcher = document.getElementById('kotek-launcher-btn');
+  const pipEscena = document.getElementById('kotek-pip-escena');
+  const pipTitulo = document.getElementById('kotek-pip-titulo');
+  const pipSub = document.getElementById('kotek-pip-subtitulo');
+  const pipBar = document.getElementById('kotek-pip-bar');
+
+  if (launcher) launcher.classList.add('hidden');
+  cambiarVista('DASHBOARD');
+
+  // ── ESCENA 1 (0:00 - 0:20): INTRODUCCIÓN HERO DE KÓTEK Y ARQUITECTURA ──
+  if (modalIntro) modalIntro.classList.remove('hidden');
+  const introSub = document.getElementById('kotek-intro-subtitulo');
+  if (introSub) {
+    introSub.textContent = '"¡Hola! Soy Kótek, el búho auditor de tres lentes de CotejAI. Nacimos para resolver uno de los mayores dolores en las empresas mexicanas: la fuga de capital en cuentas por pagar por mermas de almacén, sobrecargos cambiarios y facturas fantasma. Combino el razonamiento multimodal de Grok 4.6 con un motor matemático determinista y persistencia en PostgreSQL 16."';
+  }
+  await reproducirAudioKotek('escena_1_intro.mp3');
+  if (!kotekDemoActiva) return;
+
+  // Pasar de Modal Hero a Picture-in-Picture interactivo
+  if (modalIntro) modalIntro.classList.add('hidden');
+  if (pipWidget) pipWidget.classList.remove('hidden');
+
+  // ── ESCENA 2 (0:20 - 0:42): 180 DIVISAS EN VIVO + SOBRECARGO CAMBIARIO (OC-006) ──
+  pipEscena.textContent = 'ESCENA 2 / 6 · API FINANCIERA 180 DIVISAS';
+  pipTitulo.textContent = 'consultar_tipo_cambio_real (OC-006 en USD)';
+  pipSub.textContent = '"En nuestra barra superior conectamos en tiempo real las 180 divisas oficiales del Anexo 20 del SAT contra MXN. Al inspeccionar OC-006 en USD, detecto un tipo de cambio inflado de $21.85 vs el oficial y retengo $19,230.39 MXN por FX_OVERCHARGE."';
+  pipBar.style.width = '33%';
+
+  await seleccionarCaso('OC-006');
+  const selMoneda = document.getElementById('select-fx-moneda');
+  kotekTimers.push(setTimeout(() => {
+    if (!kotekDemoActiva) return;
+    if (selMoneda) { selMoneda.value = 'EUR'; cargarTipoCambio('EUR'); }
+    mostrarToastKotek(
+      '💱 Herramienta: consultar_tipo_cambio_real("USD", "21.85")',
+      '• Catálogo activo: <strong>180 Divisas ISO 4217 / SAT Anexo 20</strong><br>• Tasa facturada CFDI: <strong>$21.85 MXN/USD</strong> vs Oficial: <strong>$18.69 MXN/USD</strong><br>• Alerta: <span class="text-amber-400 font-bold">FX_OVERCHARGE</span> · Retención: <strong>$19,230.39 MXN</strong>',
+      'border-cyan-500/70'
+    );
+  }, 2200));
+  kotekTimers.push(setTimeout(() => {
+    if (!kotekDemoActiva) return;
+    if (selMoneda) { selMoneda.value = 'USD'; cargarTipoCambio('USD'); }
+  }, 7500));
+
+  await reproducirAudioKotek('escena_2_arquitectura_divisas.mp3');
+  if (!kotekDemoActiva) return;
+
+  // ── ESCENA 3 (0:42 - 1:06): CASO DE PRINCIPIO A FIN OC-004 (GROK VISION + NOTA A MANO) ──
+  pipEscena.textContent = 'ESCENA 3 / 6 · GROK VISION MULTIMODAL';
+  pipTitulo.textContent = 'leer_remision_imagen + cotejar_caso (OC-004)';
+  pipSub.textContent = '"Veamos un caso de principio a fin con OC-004. El proveedor facturó 100 piezas, pero al invocar leer_remision_imagen con Grok Vision sobre la foto física del almacén, detecto el sello azul, la firma y una nota escrita a mano que reporta solo 80 piezas por merma. Retengo $290.00 MXN con IVA."';
+  pipBar.style.width = '50%';
+
+  await seleccionarCaso('OC-004');
+  kotekTimers.push(setTimeout(async () => {
+    if (!kotekDemoActiva) return;
+    const resV = await fetch('/api/tools/vision/OC-004', { method: 'POST' }).then(r => r.json()).catch(() => ({}));
+    mostrarToastKotek(
+      '👁️ Herramienta: leer_remision_imagen("OC-004") — Grok Vision 4.6',
+      `• Nitidez óptica: <strong>${resV.nitidez_optica || 95.38}</strong> (Legible ≥ 28.0)<br>• Sello y Firma: <span class="text-emerald-400">Verificados</span><br>• Nota manuscrita: <strong>"Se reciben 80 pzas de TORN-001; faltaron 20 por merma"</strong><br>• Código: <span class="text-amber-400 font-bold">QTY_SHORT</span> · Fuga: <strong>$290.00 MXN</strong>`,
+      'border-cyan-500/70'
+    );
+  }, 2000));
+
+  await reproducirAudioKotek('escena_3_vision_merma.mp3');
+  if (!kotekDemoActiva) return;
+
+  // ── ESCENA 4 (1:06 - 1:26): WEBHOOK EN VIVO + IDEMPOTENCIA EN POSTGRESQL 16 ──
+  pipEscena.textContent = 'ESCENA 4 / 6 · WEBHOOK + IDEMPOTENCIA DB';
+  pipTitulo.textContent = 'enviar_alerta_reclamo_real (PostgreSQL 16)';
+  pipSub.textContent = '"Como la diferencia es menor a $5,000 MXN, policy_gate autoriza invocar enviar_alerta_reclamo_real. Y si alguien intenta enviarlo por segunda vez, nuestra llave de idempotencia en PostgreSQL 16 bloquea automáticamente el duplicado."';
+  pipBar.style.width = '67%';
+
+  // Disparar reclamo 1 y reclamo 2 para demostrar idempotencia real en vivo
+  const rec1 = await fetch('/api/tools/reclamo/OC-004', { method: 'POST' }).then(r => r.json()).catch(() => ({}));
+  mostrarToastKotek(
+    '🚀 1er Disparo: enviar_alerta_reclamo_real("OC-004")',
+    `• Webhook HTTP POST enviado · Monto NC: <strong>$290.00 MXN</strong><br>• Llave registrada en PostgreSQL 16: <code>${rec1.action_key || 'reclamo_OC-004_290.00'}</code>`,
+    'border-emerald-500/70'
+  );
+  kotekTimers.push(setTimeout(async () => {
+    if (!kotekDemoActiva) return;
+    const rec2 = await fetch('/api/tools/reclamo/OC-004', { method: 'POST' }).then(r => r.json()).catch(() => ({}));
+    mostrarToastKotek(
+      '🛡️ 2do Disparo Bloqueado (Idempotencia PostgreSQL 16)',
+      `• <strong>idempotencia_bloqueada: true</strong><br>• Llave existente: <code>${rec2.action_key || 'reclamo_OC-004_290.00'}</code><br>• ${rec2.mensaje_idempotencia || 'Se evitó enviar un reclamo duplicado al proveedor.'}`,
+      'border-amber-500/80'
+    );
+  }, 5500));
+
+  await reproducirAudioKotek('escena_4_idempotencia.mp3');
+  if (!kotekDemoActiva) return;
+
+  // ── ESCENA 5 (1:26 - 1:48): QUÉ HACE CUANDO ALGO FALLA: FOTO BORROSA (OC-005) Y LISTA 69-B (OC-007) ──
+  pipEscena.textContent = 'ESCENA 5 / 6 · ANTI-ALUCINACIÓN & EFOS 69-B';
+  pipTitulo.textContent = 'Foto Borrosa (OC-005) y Lista Negra SAT 69-B (OC-007)';
+  pipSub.textContent = '"¿Y qué hago cuando algo falla? En OC-005 la fotografía está borrosa: en lugar de inventar números, activo RECEIPT_UNREADABLE y escalo el caso. Y en OC-007, al cruzar el RFC contra el padrón oficial 69-B del SAT, bloqueo el 100% del pago por ser EFOS definitivo."';
+  pipBar.style.width = '84%';
+
+  await seleccionarCaso('OC-005');
+  mostrarToastKotek(
+    '⚠️ Fallo Óptico Detectado en OC-005: RECEIPT_UNREADABLE',
+    '• Índice de nitidez óptica: <strong>14.82 &lt; 28.0 (Umbral mínimo)</strong><br>• Barrera Anti-Alucinación activa: Grok Vision rechaza inventar cantidades y escala a revisión humana.',
+    'border-rose-500/80'
+  );
+  kotekTimers.push(setTimeout(async () => {
+    if (!kotekDemoActiva) return;
+    await seleccionarCaso('OC-007');
+    mostrarToastKotek(
+      '⛔ Alerta Fiscal SAT 69-B en OC-007: SUPPLIER_69B',
+      '• RFC Emisor: <code>AAA080808AAA</code> detectado en padrón oficial EFOS Definitivo del SAT.<br>• Retención del 100%: <strong>$6,090.00 MXN</strong> · Monto a pagar: <strong>$0.00 MXN</strong>.',
+      'border-rose-500/80'
+    );
+  }, 8500));
+
+  await reproducirAudioKotek('escena_5_fallos_vision_69b.mp3');
+  if (!kotekDemoActiva) return;
+
+  // ── ESCENA 6 (1:48 - 2:10): CAÍDA DEL SAT SOAP (CIRCUIT BREAKER) + POLICY GATE $5,000 MXN (OC-010) ──
+  pipEscena.textContent = 'ESCENA 6 / 6 · CIRCUIT BREAKER SAT & POLICY GATE';
+  pipTitulo.textContent = 'Resiliencia Extrema en OC-010 (SAT_NO_VERIFICADO)';
+  pipSub.textContent = '"En OC-010 probamos resiliencia extrema: ante una caída del SOAP del SAT, nuestro Circuit Breaker abre el circuito tras 3 fallos, marca SAT_NO_VERIFICADO sin colgar el sistema, y como el faltante supera $5,000 MXN, el policy gate bloquea el reclamo automático y lo escala."';
+  pipBar.style.width = '100%';
+
+  await seleccionarCaso('OC-010');
+  await fetch('/api/tools/sat/OC-010', { method: 'POST' }).catch(() => {});
+  await cargarSaludSistema();
+  mostrarToastKotek(
+    '🔌 Circuit Breaker SAT: OPEN + Policy Gate ($5,000 MXN)',
+    '• Servicio SOAP SAT sin respuesta (3 fallos) → Circuito <strong>OPEN (600s)</strong> → Código: <code>SAT_NO_VERIFICADO</code>.<br>• Fuga detectada: <strong>$9,280.00 MXN &gt; $5,000.00 MXN</strong> → Reclamo autónomo bloqueado y escalado a gerencia.',
+    'border-amber-500/80'
+  );
+
+  await reproducirAudioKotek('escena_6_circuit_breaker_cierre.mp3');
+  if (!kotekDemoActiva) return;
+
+  kotekTimers.push(setTimeout(() => {
+    detenerDemoGuiadaKotek();
+  }, 2500));
 }

@@ -142,7 +142,38 @@ Tú >
 
 ---
 
-### Modo 2: Comandos CLI (Automatización y Lotes)
+### Modo 2: Dashboard Web Forense & Copiloto en Vivo (S2)
+
+Levanta el servidor unificado FastAPI + Dashboard SPA conectado a **PostgreSQL 16** (con fallback automático a SQLite WAL):
+
+```bash
+python main.py web
+```
+
+Abre en tu navegador `http://127.0.0.1:8000` para acceder a:
+- **Centro de Control de 4 KPIs Bento** y **Three-Way Matching Triad** interactiva (`OC-001` a `OC-010`).
+- **Visor Multimodal Grok Vision:** Inspección de remisiones físicas escaneadas con detección de notas manuscritas de merma y nivel de nitidez óptica.
+- **Blindaje Fiscal SAT en Vivo:** Validación SOAP del SAT con *Circuit Breaker*, cruce instantáneo (`<2ms`) contra el padrón real **Lista 69-B (EFOS)** y selector en vivo de **180 divisas ISO 4217 / Anexo 20** contra MXN.
+- **Carga Manual (`+ Nuevo Cotejo`):** Sube cualquier XML CFDI 4.0 y foto/PDF de remisión para auditarlos en tiempo real.
+- **Copiloto Forense Grok 4.6 & Acciones 1-Clic:** Chat contextual con renderizado Markdown, aprobación de pago parcial y solicitud de nota de crédito con llave de idempotencia.
+
+---
+
+### Modo 3: Video Demo Programático (HyperFrames)
+
+El repositorio incluye una composición programática en **HyperFrames** (`1920×1080`, `30 fps`, `24.0 s`) que demuestra la plataforma y sus 5 flujos principales:
+- **Video MP4 renderizado:** [`video-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)
+- **Especificación y revisión:** [`video-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [`video-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
+- **Previsualizar o volver a renderizar:**
+  ```bash
+  cd video-cotejai
+  npx hyperframes preview
+  npx hyperframes render --output cotejai-demo.mp4
+  ```
+
+---
+
+### Modo 4: Comandos CLI (Automatización y Lotes)
 
 Para pruebas programáticas o integración en pipelines:
 

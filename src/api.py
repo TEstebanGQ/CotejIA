@@ -1,5 +1,6 @@
 """Servidor FastAPI de CotejAI (S2): Endpoints REST para el Frontend, Herramientas Reales y Métricas."""
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +36,7 @@ from .external_tools import (
     enviar_alerta_reclamo_real,
     listar_divisas_real,
 )
-from .vision import leer_remision_imagen
+from .vision import UMBRAL_NITIDEZ_IMAGEN, calcular_nitidez_imagen, leer_remision_imagen
 
 ROOT = Path(__file__).resolve().parent.parent
 WEB_DIR = ROOT / "web"
@@ -141,6 +142,7 @@ def api_list_cases():
         resultado.append({
             "case_id": cid,
             "proveedor_rfc": cfdi.get("rfc_emisor"),
+            "proveedor_nombre": oc.get("proveedor_nombre") or f"Proveedor {cid}",
             "uuid": cfdi.get("uuid"),
             "moneda": cfdi.get("moneda", "MXN"),
             "tipo_cambio": str(cfdi.get("tipo_cambio", "1")),
@@ -168,7 +170,9 @@ def api_case_detail(case_id: str):
     oc, rem, cfdi = cargar_caso(cid)
     cotejo = tool_cotejar_caso(cid)
     guardados = obtener_casos_db()
-    tiene_img = (DATASETS / cid / "remision.png").exists()
+    ruta_img = DATASETS / cid / "remision.png"
+    tiene_img = ruta_img.exists()
+    nitidez_img = calcular_nitidez_imagen(ruta_img) if tiene_img else None
     cfdi_serializable = {
         **cfdi,
         "tipo_cambio": str(cfdi.get("tipo_cambio", "1")),
@@ -198,6 +202,7 @@ def api_case_detail(case_id: str):
         "ok": True,
         "case_id": cid,
         "tiene_imagen_remision": tiene_img,
+        "nitidez_optica": nitidez_img,
         "imagen_url": f"/api/cases/{cid}/image" if tiene_img else None,
         "oc": oc,
         "remision": rem,
@@ -216,6 +221,80 @@ def api_case_image(case_id: str):
     if not ruta.exists():
         raise HTTPException(status_code=404, detail=f"El caso {cid} no tiene imagen remision.png")
     return FileResponse(str(ruta), media_type="image/png")
+
+
+@app.post("/api/cases/{case_id}/upload-remision")
+async def api_upload_remision(case_id: str, file: UploadFile = File(...)):
+    cid = case_id.upper()
+    dir_caso = DATASETS / cid
+    if not dir_caso.exists():
+        raise HTTPException(status_code=404, detail=f"El caso {cid} no existe en datasets/")
+
+    contenido = await file.read()
+    if not contenido:
+        raise HTTPException(status_code=400, detail="El archivo proporcionado está vacío")
+
+    ruta_img = dir_caso / "remision.png"
+    ruta_img.write_bytes(contenido)
+
+    # 1. Calcular nitidez real
+    nitidez = calcular_nitidez_imagen(ruta_img)
+    es_nitida = nitidez >= UMBRAL_NITIDEZ_IMAGEN
+
+    # 2. Si remision.json requería visión o tenía observaciones de borrosa, actualizar
+    ruta_json = dir_caso / "remision.json"
+    if ruta_json.exists():
+        try:
+            datos_rem = json.loads(ruta_json.read_text(encoding="utf-8"))
+            if es_nitida:
+                datos_rem["observaciones_manuales"] = f"Nueva remisión física adjuntada por usuario. Nitidez: {nitidez:.1f} (Aprobada)."
+                ruta_json.write_text(json.dumps(datos_rem, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+
+    # 3. Recalcular cotejo
+    cotejo = tool_cotejar_caso(cid)
+    cods = set(cotejo["codigos"])
+    fuga = float(cotejo["fuga_detectada_mxn"])
+
+    if cods == {"MATCH_OK"}:
+        nuevo_estado = "APROBADO"
+        nuevo_resumen = f"Nueva foto física recibida (nitidez {nitidez:.1f} >= 28.0). Cotejo 3-way exacto aprobado."
+    elif cods <= {"QTY_SHORT", "PRICE_UP"} and fuga <= 5000.0:
+        nuevo_estado = "EN_RECLAMO"
+        nuevo_resumen = f"Nueva foto procesada (nitidez {nitidez:.1f}). Discrepancia calculada: retención de ${fuga:,.2f} MXN."
+    else:
+        nuevo_estado = "ESCALADO"
+        nuevo_resumen = f"Nueva foto procesada (nitidez {nitidez:.1f}). Caso escalado por hallazgos: {', '.join(cotejo['codigos'])}."
+
+    veredicto = {
+        "case_id": cid,
+        "estado_final": nuevo_estado,
+        "codigos": cotejo["codigos"],
+        "monto_a_pagar_mxn": cotejo["monto_a_pagar_mxn"],
+        "fuga_detectada_mxn": cotejo["fuga_detectada_mxn"],
+        "resumen": nuevo_resumen,
+    }
+    guardar_resultado_caso(
+        case_id=cid,
+        veredicto=veredicto,
+        total_cfdi_mxn=cotejo["total_cfdi_mxn"],
+        herramientas=["leer_remision_imagen", "cotejar_caso"],
+    )
+
+    return {
+        "ok": True,
+        "case_id": cid,
+        "nitidez": round(nitidez, 2),
+        "es_nitida": es_nitida,
+        "codigos": cotejo["codigos"],
+        "estado_final": nuevo_estado,
+        "monto_a_pagar_mxn": cotejo["monto_a_pagar_mxn"],
+        "fuga_detectada_mxn": cotejo["fuga_detectada_mxn"],
+        "resumen": nuevo_resumen,
+        "imagen_url": f"/api/cases/{cid}/image?t={int(time.time())}",
+        "mensaje": f"Foto procesada correctamente. Nitidez: {nitidez:.1f} ({'Legible' if es_nitida else 'Borrosa'}).",
+    }
 
 
 @app.post("/api/audit/{case_id}")
@@ -477,3 +556,21 @@ def serve_index():
     if index_file.exists():
         return index_file.read_text(encoding="utf-8")
     return "<h1>CotejAI API Activa</h1><p>Visita <a href='/docs'>/docs</a> para ver Swagger UI.</p>"
+
+
+@app.get("/logo.png")
+def serve_logo():
+    logo_file = WEB_DIR / "logo.png"
+    if logo_file.exists():
+        return FileResponse(logo_file, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Logo no encontrado")
+
+
+@app.get("/favicon.ico")
+@app.get("/icon.png")
+def serve_icon():
+    icon_file = WEB_DIR / "icon.png"
+    if icon_file.exists():
+        return FileResponse(icon_file, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Icono no encontrado")
+

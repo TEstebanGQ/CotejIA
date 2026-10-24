@@ -1,0 +1,6 @@
+file 'C:/Users/tomas/CotejIA/video-cotejai/assets/audio/escena_1_intro.mp3'
+file 'C:/Users/tomas/CotejIA/video-cotejai/assets/audio/escena_2_arquitectura_divisas.mp3'
+file 'C:/Users/tomas/CotejIA/video-cotejai/assets/audio/escena_3_vision_merma.mp3'
+file 'C:/Users/tomas/CotejIA/video-cotejai/assets/audio/escena_4_idempotencia.mp3'
+file 'C:/Users/tomas/CotejIA/video-cotejai/assets/audio/escena_5_fallos_vision_69b.mp3'
+file 'C:/Users/tomas/CotejIA/video-cotejai/assets/audio/escena_6_circuit_breaker_cierre.mp3'

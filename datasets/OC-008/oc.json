@@ -1,6 +1,7 @@
 {
   "oc": "OC-008",
   "proveedor_rfc": "AAA010101AAA",
+  "proveedor_nombre": "Distribuidora Fronteriza de Insumos S.A. de C.V.",
   "moneda": "MXN",
   "simular_caida_sat": false,
   "lineas": [

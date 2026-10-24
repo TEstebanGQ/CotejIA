@@ -26,7 +26,14 @@ sources:
 - Ventana adyacente (o navegador) mostrando el webhook recibido.
 - Base de datos SQLite mostrando los registros en `actions` e `invoices_seen`.
 
+## Video Programático Renderizado con HyperFrames
+
+Además del guion en vivo de 2 minutos, el repositorio cuenta con el video programático de alta definición renderizado con **HyperFrames** (`1920×1080`, `30 fps`, `24.0 s`):
+- **Archivo MP4:** `video-cotejai/cotejai-demo.mp4`
+- **Documentación técnica del video:** [[hyperframes-video]]
+
 ## Páginas Relacionadas
 - [[s2-roadmap]]
 - [[resilience-matrix]]
 - [[idempotency-engine]]
+- [[hyperframes-video]]
