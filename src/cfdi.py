@@ -41,6 +41,7 @@ def leer_cfdi(ruta_xml: str) -> dict:
         "rfc_emisor": root.find("cfdi:Emisor", NS).get("Rfc"),
         "rfc_receptor": root.find("cfdi:Receptor", NS).get("Rfc"),
         "moneda": root.get("Moneda"),
+        "tipo_cambio": _dec(root.get("TipoCambio")) if root.get("TipoCambio") else Decimal("1"),
         "subtotal": _dec(root.get("SubTotal")),
         "descuento": _dec(root.get("Descuento")),
         "total": _dec(root.get("Total")),

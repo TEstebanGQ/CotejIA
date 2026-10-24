@@ -1,6 +1,8 @@
 {
   "oc": "OC-001",
   "proveedor_rfc": "AAA010101AAA",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
   "lineas": [
     {
       "sku": "TORN-001",

@@ -2,6 +2,7 @@
   "oc_referencia": "OC-003",
   "tiene_sello_almacen": true,
   "tiene_firma_recepcion": true,
+  "requiere_vision": false,
   "lineas": [
     {
       "sku": "TORN-001",

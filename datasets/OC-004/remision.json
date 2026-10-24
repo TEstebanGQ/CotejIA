@@ -1,0 +1,17 @@
+{
+  "oc_referencia": "OC-004",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": true,
+  "lineas": [
+    {
+      "sku": "TORN-001",
+      "cantidad_recibida": 80
+    },
+    {
+      "sku": "CABL-010",
+      "cantidad_recibida": 50
+    }
+  ],
+  "observaciones_manuales": "Se reciben 80 pzas de TORN-001; faltaron 20 por merma en transporte."
+}

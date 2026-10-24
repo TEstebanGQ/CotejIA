@@ -1,0 +1,22 @@
+{
+  "oc": "OC-004",
+  "proveedor_rfc": "AAA010101AAA",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "TORN-001",
+      "descripcion": "Tornillo hexagonal 1/2",
+      "cantidad": 100,
+      "precio_unitario": "12.50",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "CABL-010",
+      "descripcion": "Cable calibre 10 (rollo)",
+      "cantidad": 50,
+      "precio_unitario": "80.00",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

@@ -126,4 +126,7 @@ def test_error_transitorio_del_gateway_se_reintenta(monkeypatch):
 
 
 def test_listar_casos_ignora_carpetas_incompletas():
-    assert agent.listar_casos() == ["OC-001", "OC-002", "OC-003"]
+    casos = agent.listar_casos()
+    assert casos[:3] == ["OC-001", "OC-002", "OC-003"]
+    assert "cache" not in casos
+    assert len(casos) == 10
