@@ -153,9 +153,10 @@ El servidor **FastAPI (`src/api.py`)** ya tiene configurado:
 1. **Probar Grok Vision sobre la Foto (`OC-004` nítida o `OC-005` borrosa):**
    * `POST /api/tools/vision/{case_id}`
    * Devuelve `nitidez_optica`, `legible`, `confianza_minima`, `codigo_alerta` (`null` o `"RECEIPT_UNREADABLE"`) y `remision_extraida`.
-2. **Probar Tipo de Cambio USD/MXN en Vivo:**
-   * `POST /api/tools/fx` con body `{"moneda": "USD", "tipo_cambio_cfdi": "21.85"}`
-   * Devuelve `tasa_oficial_mxn` en tiempo real desde `open.er-api.com`, `variacion_pct` y `codigo_alerta: "FX_OVERCHARGE"`.
+2. **Probar Tipo de Cambio en Vivo (Catálogo de 180 Divisas ISO 4217 / Anexo 20 SAT):**
+   * **Listar las 180 divisas:** `GET /api/currencies` $\rightarrow$ devuelve `{"ok": true, "total_divisas": 180, "divisas": [{"codigo": "AED", "nombre": "Dírham de Emiratos Árabes Unidos"}, ...]}`.
+   * **Consultar cotización hacia MXN:** `POST /api/tools/fx` con body `{"moneda": "EUR", "tipo_cambio_cfdi": "24.50"}`
+   * Devuelve `tasa_oficial_mxn` en tiempo real desde `open.er-api.com`, `nombre_moneda`, `variacion_pct` y `codigo_alerta: "FX_OVERCHARGE"`.
 3. **Probar Consulta SAT SOAP + Lista 69-B Real + Circuit Breaker:**
    * `POST /api/tools/sat/{case_id}` (ej. `OC-007` para ver `SUPPLIER_69B` o `OC-010` para disparar el Circuit Breaker `SAT_NO_VERIFICADO`).
 4. **Probar Envío de Reclamo e Idempotencia en Base de Datos:**
