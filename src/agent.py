@@ -608,31 +608,49 @@ def conversar(
     model = os.environ.get("MODEL", "grok-4.6")
     
     if historial is None:
-        sys_prompt = SYSTEM_PROMPT_CHAT
-        if case_id:
-            try:
-                cotejo_info = tool_cotejar_caso(case_id.upper())
-                sys_prompt += (
-                    f"\n\nExpediente en pantalla: {case_id.upper()}."
-                    f"\nDatos clave precargados: Estado={cotejo_info.get('estado') or 'AUDITADO'}, "
-                    f"Códigos={cotejo_info.get('codigos')}, Total CFDI=${cotejo_info.get('total_cfdi_mxn')} MXN, "
-                    f"A Pagar=${cotejo_info.get('monto_a_pagar_mxn')} MXN, Fuga=${cotejo_info.get('fuga_detectada_mxn')} MXN."
-                )
-            except Exception:
-                sys_prompt += f"\n\nExpediente en pantalla: {case_id.upper()}."
-        historial = [{"role": "system", "content": sys_prompt}]
+        historial = [{"role": "system", "content": SYSTEM_PROMPT_CHAT}]
 
-    historial.append({"role": "user", "content": mensaje_usuario})
+    contexto_str = ""
+    if case_id:
+        cid = case_id.upper()
+        try:
+            cotejo_info = tool_cotejar_caso(cid)
+            oc_info, _, cfdi_info = cargar_caso(cid)
+            prov = oc_info.get("proveedor_nombre") or (cfdi_info.get("rfc_emisor") or "Proveedor")
+            codigos_txt = ", ".join(cotejo_info.get("codigos", []))
+            fuga_val = cotejo_info.get("fuga_detectada_mxn", "0.00")
+            pagar_val = cotejo_info.get("monto_a_pagar_mxn", "0.00")
+            total_val = cotejo_info.get("total_cfdi_mxn", "0.00")
+            detalles_txt = "; ".join([d.get("problema", "") for d in cotejo_info.get("detalle", []) if d.get("problema")])
+            
+            contexto_str = (
+                f"[EXPEDIENTE EN PANTALLA: {cid}]\n"
+                f"- Proveedor: {prov} (RFC: {cfdi_info.get('rfc_emisor', 'N/A')})\n"
+                f"- UUID: {cfdi_info.get('uuid', 'N/A')}\n"
+                f"- Facturado CFDI: ${total_val} MXN\n"
+                f"- Monto a Pagar: ${pagar_val} MXN\n"
+                f"- Retención Preventiva: ${fuga_val} MXN\n"
+                f"- Códigos: {codigos_txt}\n"
+                f"- Hallazgos: {detalles_txt or 'Sin anomalías'}\n"
+                f"REGLA: El usuario está viendo ESTE expediente. Si pide información de 'este informe' o 'redactar un reclamo', "
+                f"responde DIRECTAMENTE sobre {cid} usando estos datos. NUNCA le preguntes cuál es el case_id."
+            )
+        except Exception:
+            contexto_str = f"[Expediente actual en pantalla: {cid}. Asume este caso por defecto.]"
+
+    mensaje_final = f"{contexto_str}\n\nPregunta: {mensaje_usuario}" if contexto_str else mensaje_usuario
+    historial.append({"role": "user", "content": mensaje_final})
     uso = {"prompt_tokens": 0, "completion_tokens": 0, "llamadas": 0, "segundos": 0.0}
 
-    # Optimización de latencia: si es saludo o pregunta breve, no pasar herramientas para respuesta instantánea
+    # Optimización de latencia: si ya tenemos el contexto o es saludo/pregunta directa, responder sin iterar herramientas
     msg_clean = mensaje_usuario.lower().strip()
     es_saludo = msg_clean in {
         "hola", "hola!", "hola.", "¿hola?", "buenas", "buenos dias", "buenos días", 
         "buenas tardes", "buenas noches", "saludos", "hey", "hi", "que tal", "qué tal"
     }
+    pide_auditar_manual = any(w in msg_clean for w in ["auditar", "re-auditar", "consultar sat en vivo", "correr herramientas"])
     
-    herramientas_chat = None if es_saludo else [t for t in TOOLS if t["function"]["name"] != "cerrar_caso"]
+    herramientas_chat = [t for t in TOOLS if t["function"]["name"] != "cerrar_caso"] if pide_auditar_manual else None
 
     for _ in range(4):
         t0 = time.perf_counter()

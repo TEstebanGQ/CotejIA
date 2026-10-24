@@ -101,6 +101,22 @@ def api_list_cases():
         cotejo = tool_cotejar_caso(cid)
         db_row = guardados.get(cid)
         tiene_img = (DATASETS / cid / "remision.png").exists()
+        cods = set(cotejo["codigos"])
+        fuga = float(cotejo["fuga_detectada_mxn"])
+        if db_row and db_row.get("estado_final"):
+            estado = db_row["estado_final"]
+            resumen = db_row.get("resumen")
+        else:
+            if cods == {"MATCH_OK"}:
+                estado = "APROBADO"
+                resumen = "Cotejo exacto entre OC, remisión de almacén y factura CFDI."
+            elif cods <= {"QTY_SHORT", "PRICE_UP"} and fuga <= 5000.0:
+                estado = "EN_RECLAMO"
+                resumen = f"Diferencia detectada: se retienen ${fuga:,.2f} MXN y se solicita nota de crédito."
+            else:
+                estado = "ESCALADO"
+                resumen = f"Expediente escalado por hallazgos: {', '.join(cotejo['codigos'])}."
+
         resultado.append({
             "case_id": cid,
             "proveedor_rfc": cfdi.get("rfc_emisor"),
@@ -114,10 +130,10 @@ def api_list_cases():
             "fuga_detectada_mxn": cotejo["fuga_detectada_mxn"],
             "codigos_calculados": cotejo["codigos"],
             "auditado_en_db": db_row is not None,
-            "estado_final": db_row["estado_final"] if db_row else None,
-            "version_db": db_row["version"] if db_row else 0,
-            "herramientas_usadas": db_row["herramientas"] if db_row else [],
-            "resumen": db_row["resumen"] if db_row else None,
+            "estado_final": estado,
+            "version_db": db_row["version"] if db_row else 1,
+            "herramientas_usadas": db_row["herramientas"] if db_row else ["cotejar_caso"],
+            "resumen": resumen,
             "actualizado_en": db_row["actualizado_en"] if db_row else None,
         })
     return {"ok": True, "total": len(resultado), "casos": resultado}
