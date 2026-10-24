@@ -198,10 +198,30 @@ def dibujar_tarjeta_herramienta(
 
 
 def main():
-    print("Cargando recursos visuales y audios de ElevenLabs...")
-    mascota_raw = Image.open(ASSETS / "mascota_cotejai.jpg").convert("RGB")
-    avatar_pip = crear_avatar_circular(mascota_raw, 136)
-    mascot_hero = crear_mascot_hero(mascota_raw, 470)
+    print("Cargando cuadros 3D articulados de Kótek y audios de ElevenLabs...")
+    dir_frames = ASSETS / "frames_3d"
+    frames_hero_raw = sorted((dir_frames / "hero").glob("*.png"))
+    frames_pres_raw = sorted((dir_frames / "presenter").glob("*.png"))
+    frames_scan_raw = sorted((dir_frames / "scanning").glob("*.png"))
+    frames_alert_raw = sorted((dir_frames / "alert").glob("*.png"))
+
+    print(f"Cuadros 3D encontrados: Hero ({len(frames_hero_raw)}), Presenter ({len(frames_pres_raw)}), Scanning ({len(frames_scan_raw)}), Alert ({len(frames_alert_raw)})")
+
+    # Cargar secuencias 3D en memoria con canal alfa transparente
+    frames_hero_3d = [Image.open(f).convert("RGBA").resize((470, 470), Image.Resampling.LANCZOS) for f in frames_hero_raw]
+    frames_pres_3d = [crear_avatar_circular(Image.open(f), 136, border_color=(16, 185, 129)) for f in frames_pres_raw]
+    frames_scan_3d = [crear_avatar_circular(Image.open(f), 136, border_color=(6, 182, 212)) for f in frames_scan_raw]
+    frames_alert_3d = [crear_avatar_circular(Image.open(f), 136, border_color=(239, 68, 68)) for f in frames_alert_raw]
+
+    # Fallback si alguna carpeta estuviera vacía
+    if not frames_hero_3d:
+        mascota_raw = Image.open(ASSETS / "mascota_cotejai.jpg").convert("RGB")
+        frames_hero_3d = [crear_mascot_hero(mascota_raw, 470)]
+    if not frames_pres_3d:
+        mascota_raw = Image.open(ASSETS / "mascota_cotejai.jpg").convert("RGB")
+        frames_pres_3d = [crear_avatar_circular(mascota_raw, 136)]
+        frames_scan_3d = frames_pres_3d
+        frames_alert_3d = frames_pres_3d
 
     scr_oc004 = Image.open(ASSETS / "screen_oc004.png").convert("RGB").resize((W, H), Image.Resampling.LANCZOS)
     scr_oc006 = Image.open(ASSETS / "screen_oc006.png").convert("RGB").resize((W, H), Image.Resampling.LANCZOS)
@@ -324,13 +344,13 @@ def main():
                 break
 
         if s_idx == 0:
-            # ESCENA 1: Intro Hero con Kótek flotando en grande + Dashboard real a la derecha
+            # ESCENA 1: Intro Hero con Kótek 3D animado en grande (aleteo, pico, lentes)
             frame = bg_s1.copy()
             draw = ImageDraw.Draw(frame, "RGBA")
-            dy_hero = int(math.sin(t * 2.8) * 14)
+            dy_hero = int(math.sin(t * 2.8) * 12)
             hx, hy = 160, 265 + dy_hero
 
-            # Halo pulsante detrás de Kótek Hero
+            # Halo pulsante detrás de Kótek Hero 3D
             pulso = int((math.sin(t * 6.5) + 1.0) * 10)
             draw.rounded_rectangle(
                 (hx - 12 - pulso, hy - 12 - pulso, hx + 482 + pulso, hy + 482 + pulso),
@@ -338,7 +358,8 @@ def main():
                 outline=(6, 182, 212, 150),
                 width=4,
             )
-            frame.paste(mascot_hero, (hx, hy), mascot_hero)
+            hero_3d = frames_hero_3d[f_idx % len(frames_hero_3d)]
+            frame.paste(hero_3d, (hx, hy), hero_3d)
 
             dibujar_tarjeta_herramienta(
                 frame,
@@ -358,9 +379,10 @@ def main():
                 "¡Hola! Soy Kótek, el búho auditor de tres lentes de CotejAI. Nacimos para detener la fuga de capital en cuentas por pagar "
                 "combinando el razonamiento multimodal de Grok 4.6 con un motor determinista y PostgreSQL 16."
             )
+            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_pip,
+                avatar_3d,
                 t,
                 1,
                 "Introducción: ¿Qué es CotejAI y por qué nace?",
@@ -399,9 +421,10 @@ def main():
                 "Conectamos en tiempo real las 180 divisas oficiales del Anexo 20 del SAT contra el peso mexicano. "
                 "En OC-006 invoco consultar_tipo_cambio_real, detecto un dólar inflado a $21.85 y retengo $19,230.39 MXN."
             )
+            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_pip,
+                avatar_3d,
                 t,
                 2,
                 "API Financiera en Vivo (180 Divisas) · Caso OC-006",
@@ -444,9 +467,10 @@ def main():
                 "En el expediente OC-004 el proveedor facturó 100 piezas, pero al invocar leer_remision_imagen con Grok Vision "
                 "sobre la foto física del almacén, leo la nota escrita a mano que reporta solo 80 piezas y retengo $290.00 MXN."
             )
+            avatar_3d = frames_scan_3d[f_idx % len(frames_scan_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_pip,
+                avatar_3d,
                 t,
                 3,
                 "Grok Vision Multimodal & Three-Way Matching · Caso OC-004",
@@ -489,9 +513,10 @@ def main():
                 "Como la diferencia es menor a $5,000 MXN, policy_gate autoriza invocar enviar_alerta_reclamo_real por webhook. "
                 "Si se intenta enviar por segunda vez, nuestra llave de idempotencia en PostgreSQL 16 bloquea el duplicado."
             )
+            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_pip,
+                avatar_3d,
                 t,
                 4,
                 "Webhook en Vivo & Idempotencia Transaccional en PostgreSQL 16",
@@ -541,9 +566,11 @@ def main():
                 "¿Y qué hago cuando algo falla? En OC-005 la foto está borrosa: activo RECEIPT_UNREADABLE sin alucinar cifras. "
                 "Y en OC-007 cruzo el padrón oficial 69-B del SAT y bloqueo el 100% del pago por ser un proveedor EFOS."
             )
+            # En escena de alerta/fraude, Kótek activa modo alerta 3D (lentes rojos y cabeza diciendo no)
+            avatar_3d = frames_alert_3d[f_idx % len(frames_alert_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_pip,
+                avatar_3d,
                 t,
                 5,
                 "Manejo de Fallos: Foto Borrosa (OC-005) y Lista 69-B SAT (OC-007)",
@@ -586,9 +613,10 @@ def main():
                 "En OC-010, ante la caída del SOAP del SAT, nuestro Circuit Breaker abre el circuito marcando SAT_NO_VERIFICADO sin colgarse, "
                 "y como la fuga supera $5,000 MXN, el Policy Gate bloquea el reclamo autónomo y lo escala a gerencia."
             )
+            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_pip,
+                avatar_3d,
                 t,
                 6,
                 "Circuit Breaker SAT SOAP & Compuerta Policy Gate ($5,000 MXN)",
