@@ -1,1 +1,21 @@
-# TODO: Configuración de contenedor PostgreSQL 16 para CotejAI
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cotejai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cotejai
+      POSTGRES_PASSWORD: cotejai_secret_2026
+      POSTGRES_DB: cotejai
+    ports:
+      - "5432:5432"
+    volumes:
+      - cotejai_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cotejai -d cotejai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  cotejai_pgdata:

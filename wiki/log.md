@@ -50,3 +50,12 @@ Bitácora cronológica append-only de modificaciones, ingestas y linteos del gra
   - `dev-tomas`: Rama de trabajo individual de Tomás.
   - `dev-leo`: Rama de trabajo individual de Leo.
 - **Estado:** Ramas creadas y publicadas en el repositorio remoto GitHub (`origin`). Rama activa local: `dev-tomas`.
+
+## [2026-10-24] build | Implementación Completa Backend S2, 10 Casos y Contrato API Frontend
+- **Módulos implementados (`dev-tomas`):**
+  - `src/db.py` y `docker-compose.yml`: Persistencia híbrida PostgreSQL 16 / SQLite WAL con tablas `cases`, `actions` (idempotencia), `llm_calls`, `invoices_seen`, `sat_69b_efos` (datos reales 69-B) y `fx_cache`.
+  - `src/vision.py`: Herramienta `leer_remision_imagen` con Grok Vision (`grok-4.6`) y detección de fotos borrosas (`RECEIPT_UNREADABLE`).
+  - `src/external_tools.py`: Herramientas `consultar_tipo_cambio_real` (API FX en vivo), `consultar_sat_en_vivo` (SOAP SAT + 69-B real + Circuit Breaker) y `enviar_alerta_reclamo_real` (Webhook HTTP + Idempotencia).
+  - `src/api.py` y `docs/CONTRATO_API_FRONTEND.md`: Servidor FastAPI y contrato completo de endpoints para la integración del frontend de Leo (`web/`).
+  - `datasets/generate.py`: Generación de los 10 casos (`OC-001` a `OC-010`) e imágenes PNG de remisiones físicas.
+- **Verificación:** `41 passed` en `pytest` y ejecución en vivo de `OC-004` con Grok 4.6 invocando autónomamente `['leer_remision_imagen', 'consultar_sat_en_vivo', 'cotejar_caso', 'enviar_alerta_reclamo_real', 'cerrar_caso']`.

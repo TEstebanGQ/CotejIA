@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "OC-009",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "TORN-001",
+      "cantidad_recibida": 100
+    },
+    {
+      "sku": "CABL-010",
+      "cantidad_recibida": 50
+    }
+  ]
+}

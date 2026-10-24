@@ -1,0 +1,17 @@
+{
+  "oc_referencia": "OC-005",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": true,
+  "lineas": [
+    {
+      "sku": "TORN-001",
+      "cantidad_recibida": 100
+    },
+    {
+      "sku": "CABL-010",
+      "cantidad_recibida": 50
+    }
+  ],
+  "observaciones_manuales": "Foto tomada con camara desenfocada e ilegible."
+}
