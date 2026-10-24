@@ -403,22 +403,59 @@ function actualizarVistaExpediente(d) {
   }
 
   // Tríada 1: Orden de Compra
-  const primerItemOc = (oc.lineas && oc.lineas[0]) || {};
+  const lineasOc = oc.lineas || [];
   const monedaDoc = cfdi.moneda || oc.moneda || 'MXN';
   const tcDoc = parseFloat(cfdi.tipo_cambio || oc.tipo_cambio || 1);
-  const subtotalOcMxn = (parseFloat(primerItemOc.cantidad || 0) * parseFloat(primerItemOc.precio_unitario || 0)) * (monedaDoc !== 'MXN' ? tcDoc : 1);
-  document.getElementById('triad-oc-desc').textContent = `${primerItemOc.cantidad || 0} pzas @ $${parseFloat(primerItemOc.precio_unitario || 0).toFixed(2)} ${monedaDoc}`;
-  document.getElementById('triad-oc-total').textContent = fmtMXN(subtotalOcMxn || cotejo.total_cfdi_mxn || 0);
+  const totalCantOc = lineasOc.reduce((sum, l) => sum + (parseFloat(l.cantidad) || 0), 0);
+  const subtotalOcPactado = lineasOc.reduce((sum, l) => sum + ((parseFloat(l.cantidad) || 0) * (parseFloat(l.precio_unitario) || 0)), 0);
+  const subtotalOcMxn = subtotalOcPactado * (monedaDoc !== 'MXN' ? tcDoc : 1);
+
+  const triadOcDesc = document.getElementById('triad-oc-desc');
+  if (triadOcDesc) {
+    if (lineasOc.length === 1) {
+      const p1 = lineasOc[0];
+      triadOcDesc.textContent = `${p1.cantidad} pzas (${p1.sku || 'Partida'}) @ $${parseFloat(p1.precio_unitario || 0).toFixed(2)} ${monedaDoc}`;
+    } else if (lineasOc.length > 1) {
+      const partidasStr = lineasOc.map(l => `${l.cantidad} ${l.sku || ''}`.trim()).join(' + ');
+      triadOcDesc.textContent = `${totalCantOc} pzas en ${lineasOc.length} partidas (${partidasStr})`;
+    } else {
+      triadOcDesc.textContent = '0 pzas pactadas';
+    }
+  }
+  const triadOcTotal = document.getElementById('triad-oc-total');
+  if (triadOcTotal) triadOcTotal.textContent = fmtMXN(subtotalOcMxn || cotejo.total_cfdi_mxn || 0);
 
   // Tríada 2: Remisión Almacén + Diagnóstico por código real
-  const primerItemRem = (rem.lineas && rem.lineas[0]) || {};
+  const lineasRem = rem.lineas || [];
   const boxRem = document.getElementById('box-remision-triad');
   const triadRemDesc = document.getElementById('triad-rem-desc');
   const triadRemAlerta = document.getElementById('triad-rem-alerta');
+  const triadRemDiff = document.getElementById('triad-rem-diff');
 
   const codigos = cotejo.codigos || [];
   const fuga = parseFloat(cotejo.fuga_detectada_mxn) || 0;
-  const cantRecibida = primerItemRem.cantidad_recibida ?? primerItemOc.cantidad ?? 0;
+  const totalCantRem = lineasRem.length > 0
+    ? lineasRem.reduce((sum, l) => sum + (parseFloat(l.cantidad_recibida) || 0), 0)
+    : totalCantOc;
+  const diffUnidades = totalCantRem - totalCantOc;
+
+  // Actualizar indicador numérico de diferencia física
+  if (triadRemDiff) {
+    if (diffUnidades < 0) {
+      triadRemDiff.textContent = `${diffUnidades} pzas (Faltante)`;
+      triadRemDiff.className = 'text-[10px] text-amber-400 font-mono font-medium';
+    } else if (diffUnidades > 0) {
+      triadRemDiff.textContent = `+${diffUnidades} pzas (Excedente)`;
+      triadRemDiff.className = 'text-[10px] text-cyan-400 font-mono font-medium';
+    } else {
+      triadRemDiff.textContent = '0 faltantes (100% recibido)';
+      triadRemDiff.className = 'text-[10px] text-emerald-400 font-mono font-medium';
+    }
+  }
+
+  const partidasRemStr = lineasRem.length > 1
+    ? ` (${lineasRem.map(l => `${l.cantidad_recibida} ${l.sku || ''}`.trim()).join(' + ')})`
+    : '';
 
   if (codigos.includes('RECEIPT_UNREADABLE')) {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-rose-500/40 flex items-center justify-between bg-rose-500/[0.04]';
@@ -427,26 +464,41 @@ function actualizarVistaExpediente(d) {
     triadRemAlerta.className = 'text-xs font-bold font-mono text-rose-400';
   } else if (codigos.includes('QTY_SHORT')) {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-amber-500/40 flex items-center justify-between bg-amber-500/[0.03]';
-    triadRemDesc.textContent = `${cantRecibida} pzas físicas recibidas (Faltante en almacén)`;
+    triadRemDesc.textContent = `${totalCantRem} pzas físicas recibidas${partidasRemStr} · Merma: ${Math.abs(diffUnidades)} pzas`;
     triadRemAlerta.textContent = 'FALTANTE / MERMA (QTY_SHORT)';
     triadRemAlerta.className = 'text-xs font-bold font-mono text-amber-400';
   } else if (fuga > 0 || !codigos.includes('MATCH_OK')) {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-amber-500/40 flex items-center justify-between bg-amber-500/[0.03]';
-    triadRemDesc.textContent = `${cantRecibida} pzas en almacén · Anomalía en CFDI/SAT`;
+    triadRemDesc.textContent = `${totalCantRem} pzas físicas en almacén${partidasRemStr} · Anomalía en CFDI/SAT`;
     triadRemAlerta.textContent = codigos.join(', ') || 'DISCREPANCIA';
     triadRemAlerta.className = 'text-xs font-bold font-mono text-amber-400';
   } else {
     boxRem.className = 'p-3 rounded-lg bg-cardNested border border-borderSubtle flex items-center justify-between';
-    triadRemDesc.textContent = `${cantRecibida} pzas completas verificadas en almacén`;
+    triadRemDesc.textContent = `${totalCantRem} pzas completas verificadas en almacén${partidasRemStr}`;
     triadRemAlerta.textContent = 'RECEPCIÓN EXACTA';
     triadRemAlerta.className = 'text-xs font-bold font-mono text-emerald-400';
   }
 
   // Tríada 3: Factura CFDI
-  const primerItemCfdi = (cfdi.conceptos && cfdi.conceptos[0]) || {};
-  const descExtraCfdi = monedaDoc !== 'MXN' ? ` (${monedaDoc} @ TC $${tcDoc.toFixed(2)})` : ` (@ $${parseFloat(primerItemCfdi.valor_unitario || 0).toFixed(2)})`;
-  document.getElementById('triad-cfdi-desc').textContent = `${primerItemCfdi.cantidad || 0} pzas facturadas${descExtraCfdi}`;
-  document.getElementById('triad-cfdi-total').textContent = fmtMXN(cotejo.total_cfdi_mxn || 0);
+  const conceptosCfdi = cfdi.conceptos || [];
+  const totalCantCfdi = conceptosCfdi.reduce((sum, c) => sum + (parseFloat(c.cantidad) || 0), 0);
+  const triadCfdiDesc = document.getElementById('triad-cfdi-desc');
+
+  if (triadCfdiDesc) {
+    if (conceptosCfdi.length === 1) {
+      const c1 = conceptosCfdi[0];
+      const descExtraCfdi = monedaDoc !== 'MXN' ? ` (${monedaDoc} @ TC $${tcDoc.toFixed(2)})` : ` (@ $${parseFloat(c1.valor_unitario || 0).toFixed(2)})`;
+      triadCfdiDesc.textContent = `${c1.cantidad} pzas facturadas${descExtraCfdi}`;
+    } else if (conceptosCfdi.length > 1) {
+      const conceptosStr = conceptosCfdi.map(c => `${c.cantidad} ${c.sku || ''}`.trim()).join(' + ');
+      const descExtraCfdi = monedaDoc !== 'MXN' ? ` (${monedaDoc} @ TC $${tcDoc.toFixed(2)})` : '';
+      triadCfdiDesc.textContent = `${totalCantCfdi} pzas facturadas en ${conceptosCfdi.length} conceptos (${conceptosStr})${descExtraCfdi}`;
+    } else {
+      triadCfdiDesc.textContent = '0 pzas facturadas';
+    }
+  }
+  const triadCfdiTotal = document.getElementById('triad-cfdi-total');
+  if (triadCfdiTotal) triadCfdiTotal.textContent = fmtMXN(cotejo.total_cfdi_mxn || 0);
 
   // Banner Dinámico de Estatus y Resolución
   const banner = document.getElementById('banner-retencion');
@@ -545,7 +597,20 @@ function actualizarVistaExpediente(d) {
       introGrok.innerHTML = formatMarkdown(`**Expediente ${caseId}:** ${reg.resumen}`);
     } else {
       const listaHallazgos = (Array.isArray(cotejo.detalle) && cotejo.detalle.length > 0)
-        ? cotejo.detalle.map(item => `- ${item}`).join('\n')
+        ? cotejo.detalle.map(item => {
+            if (typeof item === 'string') return `- ${item}`;
+            if (item && typeof item === 'object') {
+              const sku = item.sku ? `\`${item.sku}\`: ` : '';
+              const prob = item.problema || item.descripcion || item.mensaje || '';
+              const extra = (item.precio_oc && item.precio_facturado)
+                ? ` (OC: $${item.precio_oc}, CFDI: $${item.precio_facturado})`
+                : (item.cant_oc && item.cant_rem)
+                ? ` (Pactado: ${item.cant_oc}, Recibido: ${item.cant_rem})`
+                : '';
+              return `- ${sku}${prob}${extra}`;
+            }
+            return `- ${String(item)}`;
+          }).join('\n')
         : `- Conciliación exacta sin diferencias (\`MATCH_OK\`).`;
       introGrok.innerHTML = formatMarkdown(
         `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'}):\n` +

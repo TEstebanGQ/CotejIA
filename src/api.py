@@ -552,3 +552,21 @@ def serve_index():
     if index_file.exists():
         return index_file.read_text(encoding="utf-8")
     return "<h1>CotejAI API Activa</h1><p>Visita <a href='/docs'>/docs</a> para ver Swagger UI.</p>"
+
+
+@app.get("/logo.png")
+def serve_logo():
+    logo_file = WEB_DIR / "logo.png"
+    if logo_file.exists():
+        return FileResponse(logo_file, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Logo no encontrado")
+
+
+@app.get("/favicon.ico")
+@app.get("/icon.png")
+def serve_icon():
+    icon_file = WEB_DIR / "icon.png"
+    if icon_file.exists():
+        return FileResponse(icon_file, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Icono no encontrado")
+

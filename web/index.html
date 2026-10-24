@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CotejAI — Three-Way Matching Autónomo para Cuentas por Pagar</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -120,15 +121,9 @@
     <div class="flex flex-col overflow-y-auto">
       <!-- Brand & Organization Header -->
       <div class="p-4 border-b border-borderSubtle flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold font-mono">
-            C
-          </div>
-          <div>
-            <span class="text-base font-bold tracking-tight text-white block">CotejAI</span>
-            <span class="text-[10px] text-zinc-500 font-mono tracking-wider uppercase block">Three-Way Matching</span>
-          </div>
-        </div>
+        <a href="/" class="flex items-center gap-2">
+          <img src="/static/logo.png" alt="CotejAI" class="h-8 w-auto object-contain select-none" />
+        </a>
       </div>
 
       <!-- Organización Selector -->
@@ -458,7 +453,7 @@
                   </div>
                   <div class="text-right">
                     <div id="triad-rem-alerta" class="text-xs font-bold font-mono text-amber-400">MERMA DETECTADA</div>
-                    <div class="text-[10px] text-amber-400/80 font-mono">-20 unidades</div>
+                    <div id="triad-rem-diff" class="text-[10px] text-zinc-400 font-mono">0 unidades</div>
                   </div>
                 </div>
 
