@@ -34,3 +34,26 @@ def test_upload_manual_cfdi_y_cotejo():
     finally:
         # Limpieza para no ensuciar datasets permanentes
         shutil.rmtree(DATASETS / res["case_id"], ignore_errors=True)
+
+
+def test_upload_remision_case():
+    # Usar la imagen de OC-004 para subirla y restaurar archivos originales al finalizar
+    img_path = DATASETS / "OC-004" / "remision.png"
+    json_path = DATASETS / "OC-004" / "remision.json"
+    img_real = img_path.read_bytes()
+    json_real = json_path.read_text(encoding="utf-8")
+    try:
+        files = {
+            "file": ("remision_nueva.png", io.BytesIO(img_real), "image/png"),
+        }
+        response = client.post("/api/cases/OC-004/upload-remision", files=files)
+        assert response.status_code == 200
+        res = response.json()
+        assert res["ok"] is True
+        assert res["case_id"] == "OC-004"
+        assert "nitidez" in res
+        assert res["es_nitida"] is True
+        assert "estado_final" in res
+    finally:
+        img_path.write_bytes(img_real)
+        json_path.write_text(json_real, encoding="utf-8")
