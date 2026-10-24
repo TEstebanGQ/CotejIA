@@ -78,11 +78,11 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "consultar_tipo_cambio_real",
-            "description": "Consulta en vivo la API financiera de tipo de cambio oficial (USD a MXN) para verificar si el TipoCambio del CFDI está inflado (FX_OVERCHARGE).",
+            "description": "Consulta en vivo la API financiera de tipo de cambio oficial desde cualquier divisa extranjera (USD, EUR, CAD, GBP, JPY, etc.) hacia MXN para verificar si el TipoCambio del CFDI está inflado (FX_OVERCHARGE).",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "moneda": {"type": "string", "description": "Código ISO de moneda, ej. USD"},
+                    "moneda": {"type": "string", "description": "Código ISO de la moneda extranjera, ej. USD, EUR, CAD, GBP"},
                     "tipo_cambio_cfdi": {"type": "string", "description": "Tipo de cambio declarado en el CFDI"},
                 },
                 "required": ["moneda"],
