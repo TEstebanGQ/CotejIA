@@ -185,17 +185,15 @@ async function cargarMetricas() {
       if (pBar) pBar.style.width = `${pct}%`;
     }
 
-<<<<<<< HEAD
     const descFuga = document.getElementById('kpi-fuga-desc');
     const totalDiscrepancias = ((m.conteo_estados && m.conteo_estados.EN_RECLAMO) || 0) + ((m.conteo_estados && m.conteo_estados.ESCALADO) || 0);
     if (descFuga) descFuga.textContent = `${totalDiscrepancias} expedientes con retención preventiva aplicada`;
-=======
+
     const kpiCosto = document.getElementById('kpi-costo-usd');
     if (kpiCosto && m.telemetria_llm) {
       const costMxn = (m.telemetria_llm.costo_total_usd || 0.002) * 19.5;
       kpiCosto.textContent = fmtMXN(costMxn / (auditadosCount || 1));
     }
->>>>>>> origin/develop
   } catch (err) {
     console.warn('Error cargando métricas:', err);
   }
