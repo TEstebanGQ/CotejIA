@@ -263,67 +263,36 @@
     <!-- ==================== VISTA 1: DASHBOARD DE AUDITORÍA ==================== -->
     <div id="view-dashboard" class="p-4 lg:p-6 space-y-6">
 
-      <!-- 1. ROW DE 4 KPIS BENTO CARDS -->
-      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- 1. ROW DE KPIS ESENCIALES (2 CARDS) -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- KPI 1: Fuga de Capital Retenida -->
         <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between relative overflow-hidden">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-zinc-400">Fuga de Capital Retenida</span>
-            <span class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+14.2%</span>
+            <span id="kpi-fuga-badge" class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Protección Activa</span>
           </div>
           <div class="my-2">
-            <span id="kpi-fuga" class="text-2xl font-bold font-mono tracking-tight text-white">$418,920.00</span>
+            <span id="kpi-fuga" class="text-3xl font-bold font-mono tracking-tight text-white">$41,734.39</span>
             <span class="text-xs text-zinc-500 font-mono ml-1">MXN</span>
           </div>
-          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+          <div class="flex items-center gap-2 text-[11px] text-zinc-400">
             <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Discrepancias bloqueadas</span>
+            <span id="kpi-fuga-desc">Discrepancias bloqueadas para proteger la dispersión</span>
           </div>
         </div>
 
-        <!-- KPI 2: Casos Auditados -->
+        <!-- KPI 2: Casos Auditados y Progreso -->
         <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-400">Casos Auditados</span>
+            <span class="text-xs font-medium text-zinc-400">Progreso de Auditoría</span>
             <span id="kpi-reclamo-badge" class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">3 en Reclamo</span>
           </div>
           <div class="my-2 flex items-baseline gap-2">
-            <span id="kpi-casos-progreso" class="text-2xl font-bold font-mono tracking-tight text-white">10 / 10</span>
-            <span class="text-xs text-emerald-400 font-mono font-semibold">100%</span>
+            <span id="kpi-casos-progreso" class="text-3xl font-bold font-mono tracking-tight text-white">10 / 10</span>
+            <span class="text-xs text-emerald-400 font-mono font-semibold">100% Auditado</span>
           </div>
           <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
             <div id="kpi-progreso-bar" class="bg-emerald-500 h-full w-full"></div>
-          </div>
-        </div>
-
-        <!-- KPI 3: Resolución Autónoma -->
-        <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-400">Resolución Autónoma</span>
-            <span class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Grok 4.6</span>
-          </div>
-          <div class="my-2">
-            <span class="text-2xl font-bold font-mono tracking-tight text-white">94.8%</span>
-          </div>
-          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
-            <span>Visión multimodal + Determinista</span>
-          </div>
-        </div>
-
-        <!-- KPI 4: Costo Operativo -->
-        <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-400">Costo Operativo / Factura</span>
-            <span class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">-99.7% Ahorro</span>
-          </div>
-          <div class="my-2">
-            <span id="kpi-costo-usd" class="text-2xl font-bold font-mono tracking-tight text-white">$0.038</span>
-            <span class="text-xs text-zinc-500 font-mono ml-1">MXN</span>
-          </div>
-          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
-            <i data-lucide="trending-down" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>vs ~$14.50 MXN costo manual</span>
           </div>
         </div>
       </section>
@@ -371,47 +340,78 @@
 
             <!-- Visor de Documento Físico & Dropzone de Reemplazo -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <!-- Visor de Imagen Remisión (5 cols) -->
-              <div class="md:col-span-5 bg-cardNested rounded-lg border border-borderSubtle p-3 flex flex-col justify-between relative group">
-                <div class="flex items-center justify-between text-xs text-zinc-400 mb-2">
-                  <span class="font-medium flex items-center gap-1.5">
-                    <i data-lucide="scan" class="w-3.5 h-3.5 text-cyan-400"></i>
-                    <span>Remisión Física (Foto)</span>
-                  </span>
-                  <span id="vision-confianza" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                    Grok Vision 99.4%
-                  </span>
-                </div>
+              <!-- Visor de Imagen Remisión o Dropzone Limpia (5 cols) -->
+              <div id="panel-remision-container" class="md:col-span-5 bg-cardNested rounded-lg border border-borderSubtle p-3 flex flex-col justify-between relative group min-h-[220px]">
+                
+                <!-- Input de archivo oculto para subir/reemplazar foto directa del caso -->
+                <input type="file" id="input-subir-foto-directa" accept="image/*,.pdf" class="hidden" onchange="subirFotoDirectaCaso(this)" />
 
-                <!-- Contenedor Imagen con Bounding Box -->
-                <div class="relative w-full h-48 bg-zinc-950 rounded border border-borderSubtle overflow-hidden flex items-center justify-center">
-                  <img 
-                    id="exp-remision-img" 
-                    src="/api/cases/OC-004/image" 
-                    alt="Remisión física escaneada" 
-                    class="max-h-full max-w-full object-contain"
-                    onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\' fill=\'%2318181b\'><text x=\'50%25\' y=\'50%25\' fill=\'%2371717a\' font-size=\'12\' text-anchor=\'middle\' dy=\'.3em\'>Sin imagen escaneada</text></svg>'"
-                  />
-                  <!-- Overlay de Bounding Box sobre anotación manuscrita -->
-                  <div id="vision-bbox" class="absolute bottom-3 left-3 right-3 bg-cyan-950/85 border border-cyan-500/50 p-2 rounded text-[10px] text-cyan-200 font-mono shadow-lg backdrop-blur-sm">
-                    <div class="font-bold text-cyan-400 flex items-center gap-1">
-                      <i data-lucide="edit-3" class="w-3 h-3"></i>
-                      <span>Nota manuscrita detectada:</span>
+                <!-- ESTADO A: Con Foto Física Activa -->
+                <div id="view-remision-activa" class="flex flex-col justify-between h-full space-y-2">
+                  <div class="flex items-center justify-between text-xs text-zinc-400">
+                    <span class="font-medium flex items-center gap-1.5">
+                      <i data-lucide="scan" class="w-3.5 h-3.5 text-cyan-400"></i>
+                      <span>Remisión Física (Foto)</span>
+                    </span>
+                    <button 
+                      type="button"
+                      onclick="document.getElementById('input-subir-foto-directa').click()" 
+                      title="Subir foto nueva si la actual no es legible"
+                      class="text-[10px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center gap-1 active-press transition-colors"
+                    >
+                      <i data-lucide="camera" class="w-3 h-3 text-cyan-400"></i>
+                      <span>Reemplazar Foto</span>
+                    </button>
+                  </div>
+
+                  <!-- Contenedor Imagen con Bounding Box -->
+                  <div class="relative w-full h-44 bg-zinc-950 rounded border border-borderSubtle overflow-hidden flex items-center justify-center">
+                    <img 
+                      id="exp-remision-img" 
+                      src="" 
+                      alt="Remisión física escaneada" 
+                      class="max-h-full max-w-full object-contain cursor-pointer"
+                      onclick="window.open(this.src, '_blank')"
+                      title="Clic para ver en tamaño completo"
+                    />
+                    <!-- Overlay de Bounding Box sobre anotación manuscrita -->
+                    <div id="vision-bbox" class="absolute bottom-2 left-2 right-2 bg-cyan-950/90 border border-cyan-500/50 p-2 rounded text-[10px] text-cyan-200 font-mono shadow-lg backdrop-blur-sm">
+                      <div class="font-bold text-cyan-400 flex items-center gap-1">
+                        <i data-lucide="edit-3" class="w-3 h-3"></i>
+                        <span>Grok Vision:</span>
+                      </div>
+                      <div id="vision-texto-manuscrito" class="text-white mt-0.5 truncate">
+                        Anotación manuscrita detectada
+                      </div>
                     </div>
-                    <div id="vision-texto-manuscrito" class="text-white mt-0.5">
-                      "Recibidos solo 80 pzas. Merma en transporte (-20)"
-                    </div>
+                  </div>
+
+                  <!-- Barra de Nitidez -->
+                  <div class="flex items-center justify-between text-[11px] pt-1">
+                    <span id="vision-nitidez-label" class="text-zinc-400 font-mono">Nitidez: --</span>
+                    <span id="vision-status-badge" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Legible</span>
                   </div>
                 </div>
 
-                <!-- Verificación en vivo de nitidez -->
-                <div class="mt-2 flex items-center justify-between text-[11px]">
-                  <button onclick="probarVisionEnVivo()" class="text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1">
-                    <i data-lucide="eye" class="w-3 h-3"></i>
-                    <span>Verificar nitidez</span>
+                <!-- ESTADO B: Sin Foto Física (Dropzone limpia y elegante) -->
+                <div id="view-remision-empty" class="hidden flex flex-col items-center justify-center text-center p-4 h-full border-2 border-dashed border-zinc-800 hover:border-cyan-500/40 rounded-md bg-zinc-900/30 transition-colors">
+                  <div class="w-10 h-10 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400 mb-2">
+                    <i data-lucide="image-plus" class="w-5 h-5 text-zinc-400"></i>
+                  </div>
+                  <div class="text-xs font-semibold text-zinc-200">Remisión Digital</div>
+                  <div class="text-[11px] text-zinc-500 mt-1 max-w-[210px] leading-snug">
+                    Sin foto física adjunta. Si cuentas con la remisión física o escaneo, adjúntala aquí para auditarla.
+                  </div>
+                  <button 
+                    type="button"
+                    onclick="document.getElementById('input-subir-foto-directa').click()" 
+                    class="mt-3 px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs border border-zinc-700 flex items-center gap-1.5 active-press transition-colors"
+                  >
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>Adjuntar Foto</span>
                   </button>
-                  <span id="vision-nitidez-label" class="text-zinc-500 font-mono">Nitidez: 112.4</span>
                 </div>
+
               </div>
 
               <!-- Tríada de Cotejo Visual (7 cols) -->
@@ -467,16 +467,16 @@
               </div>
             </div>
 
-            <!-- Banner de Retención Preventiva Calculada -->
-            <div id="banner-retencion" class="p-4 rounded-lg bg-amber-500/[0.04] border border-amber-500/20 space-y-2">
+            <!-- Banner de Estatus y Resolución Calculada -->
+            <div id="banner-retencion" class="p-4 rounded-lg bg-amber-500/[0.04] border border-amber-500/20 space-y-2 transition-colors">
               <div class="flex items-start gap-2.5">
-                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+                <i id="banner-icon" data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
                 <div class="flex-1">
-                  <div class="text-sm font-bold text-amber-300">
-                    Discrepancia Detectada: Retención Preventiva de <span id="monto-retencion-txt" class="font-mono text-white">$5,800.00 MXN</span>
+                  <div id="banner-titulo" class="text-sm font-bold text-amber-300">
+                    Discrepancia Detectada: Retención Preventiva de <span id="monto-retencion-txt" class="font-mono text-white">$0.00 MXN</span>
                   </div>
                   <div id="explicacion-retencion-txt" class="text-xs text-zinc-300 mt-1 leading-relaxed">
-                    Cálculo determinista: 20 piezas no ingresadas al almacén (-$5,000.00 MXN) + IVA 16% proporcional (-$800.00 MXN). Estado asignado a <strong>EN_RECLAMO</strong> para proteger dispersión de tesorería.
+                    Analizando cotejo determinista...
                   </div>
                 </div>
               </div>
@@ -485,14 +485,14 @@
             <!-- Botonera de Acción Inmediata (1 Clic) -->
             <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div class="flex items-center gap-2">
-                <!-- Acción Primaria: Pago Parcial -->
+                <!-- Acción Primaria: Pago Parcial o Total -->
                 <button 
                   id="btn-aprobar-parcial"
                   onclick="aprobarPagoParcial()" 
                   class="flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs active-press transition-colors shadow-sm"
                 >
                   <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                  <span>Aprobar Pago Parcial (<span id="btn-monto-parcial">$23,200.00 MXN</span>)</span>
+                  <span id="btn-aprobar-texto">Aprobar Pago Parcial (<span id="btn-monto-parcial">$0.00 MXN</span>)</span>
                 </button>
 
                 <!-- Acción Secundaria: Solicitar Nota de Crédito (Idempotente) -->
@@ -597,13 +597,33 @@
                 </button>
               </div>
 
-              <!-- Input Chat -->
-              <form id="form-chat" onsubmit="enviarMensajeChat(event)" class="relative">
+              <!-- Barra de Archivo Adjunto en Chat -->
+              <div id="chat-attachment-bar" class="hidden mb-2 px-2.5 py-1.5 rounded bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-[11px] text-cyan-200">
+                <div class="flex items-center gap-1.5 truncate">
+                  <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
+                  <span id="chat-attachment-name" class="truncate font-mono">remision_foto.jpg</span>
+                </div>
+                <button type="button" onclick="cancelarAdjuntoChat()" class="text-zinc-400 hover:text-white p-0.5 ml-2">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+              </div>
+
+              <!-- Input Chat con Soporte de Fotos -->
+              <form id="form-chat" onsubmit="enviarMensajeChat(event)" class="relative flex items-center">
+                <input type="file" id="chat-file-input" accept="image/*,.pdf" class="hidden" onchange="seleccionarAdjuntoChat(this)" />
+                <button 
+                  type="button" 
+                  onclick="document.getElementById('chat-file-input').click()" 
+                  title="Adjuntar foto de documento o remisión" 
+                  class="absolute left-2.5 text-zinc-400 hover:text-cyan-400 transition-colors p-1"
+                >
+                  <i data-lucide="paperclip" class="w-4 h-4"></i>
+                </button>
                 <input 
                   id="chat-input"
                   type="text" 
-                  placeholder="Preguntar a Grok sobre este caso..." 
-                  class="w-full bg-cardNested rounded-md pl-3 pr-10 py-2 text-xs text-white placeholder-zinc-500 border border-borderSubtle focus:outline-none focus:border-cyan-500 transition-colors"
+                  placeholder="Preguntar a Grok o adjuntar foto..." 
+                  class="w-full bg-cardNested rounded-md pl-9 pr-10 py-2 text-xs text-white placeholder-zinc-500 border border-borderSubtle focus:outline-none focus:border-cyan-500 transition-colors"
                 />
                 <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300 p-1">
                   <i data-lucide="send" class="w-3.5 h-3.5"></i>
