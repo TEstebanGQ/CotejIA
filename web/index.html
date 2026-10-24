@@ -1,1 +1,741 @@
-<!-- TODO: Dashboard Web CotejAI (Tailwind CSS + Alpine.js + Lucide Icons + Chart.js) -->
+<!DOCTYPE html>
+<html lang="es" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CotejAI — Three-Way Matching Autónomo para Cuentas por Pagar</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#09090b',
+            sidebar: '#0c0d0e',
+            card: '#121316',
+            cardNested: '#18191d',
+            borderSubtle: '#27272a',
+            borderFocus: '#3f3f46',
+            emeraldAccent: '#10b981',
+            amberAccent: '#f59e0b',
+            roseAccent: '#ef4444',
+            cyanAccent: '#06b6d4'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons & Marked (Markdown Parser) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Scrollbars discretas */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+    .active-press:active {
+      transform: scale(0.98);
+      transition: transform 80ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* Estilos para renderizado Markdown del Bot */
+    .prose-chat {
+      font-size: 0.785rem;
+      line-height: 1.5;
+      color: #e4e4e7;
+    }
+    .prose-chat p {
+      margin-bottom: 0.5rem;
+    }
+    .prose-chat p:last-child {
+      margin-bottom: 0;
+    }
+    .prose-chat strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .prose-chat ul {
+      list-style-type: disc;
+      margin-left: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .prose-chat ol {
+      list-style-type: decimal;
+      margin-left: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .prose-chat li {
+      margin-bottom: 0.25rem;
+    }
+    .prose-chat code {
+      background: #27272a;
+      color: #38bdf8;
+      padding: 0.1rem 0.3rem;
+      border-radius: 0.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+    }
+    /* Animación de puntos escribiendo */
+    .typing-dot {
+      animation: typingAnimation 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingAnimation {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="h-full w-full overflow-hidden flex flex-col md:flex-row antialiased selection:bg-emerald-500/20 selection:text-emerald-400">
+
+  <!-- ==================== SIDEBAR IZQUIERDO FIJO ==================== -->
+  <aside class="w-full md:w-64 h-full bg-sidebar border-r border-borderSubtle flex flex-col justify-between shrink-0 select-none z-30">
+    <div class="flex flex-col overflow-y-auto">
+      <!-- Brand & Organization Header -->
+      <div class="p-4 border-b border-borderSubtle flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold font-mono">
+            C
+          </div>
+          <div>
+            <span class="text-base font-bold tracking-tight text-white block">CotejAI</span>
+            <span class="text-[10px] text-zinc-500 font-mono tracking-wider uppercase block">Three-Way Matching</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Organización Selector -->
+      <div class="px-3 pt-3">
+        <div class="p-2.5 rounded-lg bg-zinc-900/80 border border-borderSubtle flex items-center justify-between text-xs text-zinc-300">
+          <div class="flex items-center gap-2 truncate">
+            <i data-lucide="building" class="w-4 h-4 text-zinc-400 shrink-0"></i>
+            <span class="font-medium truncate">Platica S.A.P.I. de C.V.</span>
+          </div>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-500 shrink-0"></i>
+        </div>
+      </div>
+
+      <!-- Navegación Principal por Vistas -->
+      <nav class="p-3 space-y-1">
+        <button 
+          id="nav-dashboard"
+          onclick="cambiarVista('DASHBOARD')" 
+          class="nav-link w-full flex items-center gap-2.5 px-3 py-2 rounded-md bg-zinc-800 text-white font-medium text-xs border border-zinc-700/60 transition-colors"
+        >
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-emerald-400"></i>
+          <span>Dashboard General</span>
+        </button>
+
+        <button 
+          id="nav-expedientes"
+          onclick="cambiarVista('EXPEDIENTES')" 
+          class="nav-link w-full flex items-center justify-between px-3 py-2 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 text-xs transition-colors"
+        >
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="folder-kanban" class="w-4 h-4 text-zinc-400"></i>
+            <span>Expedientes</span>
+          </div>
+          <span id="badge-total-sidebar" class="font-mono text-[11px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300">10</span>
+        </button>
+
+
+        <button 
+          onclick="probarSatEnVivo()" 
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 text-xs transition-colors"
+        >
+          <i data-lucide="shield-check" class="w-4 h-4 text-zinc-400"></i>
+          <span>Conciliación SAT 4.0</span>
+        </button>
+
+        <button 
+          onclick="abrirInfo69B()" 
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 text-xs transition-colors"
+        >
+          <i data-lucide="alert-octagon" class="w-4 h-4 text-zinc-400"></i>
+          <span>Lista 69-B (EFOS)</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- User & System Health Footer (SIEMPRE VISIBLE EN LA ESQUINA INFERIOR IZQUIERDA) -->
+    <div class="p-3 border-t border-borderSubtle space-y-2 bg-sidebar shrink-0">
+      <div class="p-2.5 rounded-lg bg-zinc-900 border border-borderSubtle">
+        <div class="flex items-center justify-between text-[11px] mb-1">
+          <span class="text-zinc-400 font-medium">Persistencia DB</span>
+          <span id="label-motor-db" class="text-emerald-400 font-mono font-semibold">SQLite WAL</span>
+        </div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-zinc-400 font-medium">Motor de IA</span>
+          <span class="text-zinc-300 font-mono">Grok 4.6</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 px-2 py-1 text-xs text-zinc-400">
+        <div class="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-white text-[11px]">
+          AP
+        </div>
+        <div class="truncate">
+          <div class="font-medium text-white text-xs truncate">Auditor Cuentas por Pagar</div>
+          <div class="text-[10px] text-zinc-500 font-mono">auditor@platica.mx</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== CONTENIDO PRINCIPAL SCROLLEABLE ==================== -->
+  <main class="flex-1 h-full flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- Top Navigation Bar Fijo Superior -->
+    <header class="h-14 border-b border-borderSubtle px-4 lg:px-6 flex items-center justify-between gap-4 bg-canvas/90 backdrop-blur sticky top-0 z-20 shrink-0">
+      <!-- Search Input -->
+      <div class="relative w-64 md:w-80">
+        <i data-lucide="search" class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input 
+          id="buscador-expediente" 
+          type="text" 
+          placeholder="Buscar UUID, RFC o Folio... (⌘K)" 
+          class="w-full bg-card rounded-md pl-9 pr-12 py-1.5 text-xs text-white placeholder-zinc-500 border border-borderSubtle focus:outline-none focus:border-borderFocus transition-colors font-sans"
+        />
+        <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-500 font-mono px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700">⌘K</kbd>
+      </div>
+
+      <!-- Telemetry Status Pills & Global Actions -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- SAT Circuit Breaker Pill -->
+        <div id="sat-circuit-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-zinc-900 border border-borderSubtle text-zinc-300">
+          <span id="sat-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>SAT: <strong id="sat-status-text">En Línea</strong></span>
+        </div>
+
+        <!-- Tipo de Cambio USD/MXN -->
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-zinc-900 border border-borderSubtle text-zinc-300">
+          <span class="text-zinc-500">USD/MXN:</span>
+          <strong id="fx-rate-text">$17.14</strong>
+        </div>
+
+        <!-- Botón + Nuevo Cotejo (Carga Manual) -->
+        <button 
+          onclick="abrirModalUpload()" 
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white text-zinc-950 font-semibold text-xs active-press hover:bg-zinc-200 transition-colors shadow-sm"
+        >
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>Nuevo Cotejo</span>
+        </button>
+
+        <!-- Botón Auditar Todo el Lote -->
+        <button 
+          id="btn-audit-all"
+          onclick="auditarTodoElLote()" 
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold text-xs active-press hover:bg-emerald-500/20 transition-colors"
+        >
+          <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Auditar Lote</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================== VISTA 1: DASHBOARD DE AUDITORÍA ==================== -->
+    <div id="view-dashboard" class="p-4 lg:p-6 space-y-6">
+
+      <!-- 1. ROW DE 4 KPIS BENTO CARDS -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI 1: Fuga de Capital Retenida -->
+        <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-zinc-400">Fuga de Capital Retenida</span>
+            <span class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+14.2%</span>
+          </div>
+          <div class="my-2">
+            <span id="kpi-fuga" class="text-2xl font-bold font-mono tracking-tight text-white">$418,920.00</span>
+            <span class="text-xs text-zinc-500 font-mono ml-1">MXN</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Discrepancias bloqueadas</span>
+          </div>
+        </div>
+
+        <!-- KPI 2: Casos Auditados -->
+        <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-zinc-400">Casos Auditados</span>
+            <span id="kpi-reclamo-badge" class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">3 en Reclamo</span>
+          </div>
+          <div class="my-2 flex items-baseline gap-2">
+            <span id="kpi-casos-progreso" class="text-2xl font-bold font-mono tracking-tight text-white">10 / 10</span>
+            <span class="text-xs text-emerald-400 font-mono font-semibold">100%</span>
+          </div>
+          <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+            <div id="kpi-progreso-bar" class="bg-emerald-500 h-full w-full"></div>
+          </div>
+        </div>
+
+        <!-- KPI 3: Resolución Autónoma -->
+        <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-zinc-400">Resolución Autónoma</span>
+            <span class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Grok 4.6</span>
+          </div>
+          <div class="my-2">
+            <span class="text-2xl font-bold font-mono tracking-tight text-white">94.8%</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Visión multimodal + Determinista</span>
+          </div>
+        </div>
+
+        <!-- KPI 4: Costo Operativo -->
+        <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-zinc-400">Costo Operativo / Factura</span>
+            <span class="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">-99.7% Ahorro</span>
+          </div>
+          <div class="my-2">
+            <span id="kpi-costo-usd" class="text-2xl font-bold font-mono tracking-tight text-white">$0.038</span>
+            <span class="text-xs text-zinc-500 font-mono ml-1">MXN</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <i data-lucide="trending-down" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>vs ~$14.50 MXN costo manual</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. WORKSPACE ASIMÉTRICO 65% / 35% -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- PANEL IZQUIERDO: EXPEDIENTE ACTIVO (8 COLS = 66%) -->
+        <div class="lg:col-span-8 space-y-4">
+
+          <!-- Card Contenedora del Expediente -->
+          <div class="bg-card rounded-lg border border-borderSubtle p-5 space-y-5">
+
+            <!-- Selector rápido de Caso y Encabezado -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-borderSubtle pb-4">
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <span id="exp-folio" class="text-lg font-bold text-white tracking-tight font-mono">OC-004</span>
+                  <span class="text-zinc-500">·</span>
+                  <span id="exp-proveedor" class="text-sm font-semibold text-zinc-200">Metales & Manufacturas de Toluca</span>
+                  <span id="exp-badge-estado" class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    EN_RECLAMO
+                  </span>
+                </div>
+                <div class="text-xs text-zinc-500 mt-1 flex items-center gap-3 font-mono">
+                  <span>RFC: <strong id="exp-rfc" class="text-zinc-300">AAA010101AAA</strong></span>
+                  <span>UUID: <strong id="exp-uuid" class="text-zinc-300">00000004-0000-4000-8000-000000000000</strong></span>
+                </div>
+              </div>
+              
+              <!-- Navegador de Expedientes Anterior / Siguiente -->
+              <div class="flex items-center gap-2">
+                <button onclick="navegarCasoAnterior()" title="Expediente Anterior" class="p-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 active-press">
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button onclick="cambiarVista('EXPEDIENTES')" class="px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 font-mono border border-zinc-700 flex items-center gap-1 active-press">
+                  <i data-lucide="list" class="w-3.5 h-3.5"></i>
+                  <span>Ver Todos</span>
+                </button>
+                <button onclick="navegarCasoSiguiente()" title="Expediente Siguiente" class="p-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 active-press">
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Visor de Documento Físico & Dropzone de Reemplazo -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <!-- Visor de Imagen Remisión (5 cols) -->
+              <div class="md:col-span-5 bg-cardNested rounded-lg border border-borderSubtle p-3 flex flex-col justify-between relative group">
+                <div class="flex items-center justify-between text-xs text-zinc-400 mb-2">
+                  <span class="font-medium flex items-center gap-1.5">
+                    <i data-lucide="scan" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>Remisión Física (Foto)</span>
+                  </span>
+                  <span id="vision-confianza" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    Grok Vision 99.4%
+                  </span>
+                </div>
+
+                <!-- Contenedor Imagen con Bounding Box -->
+                <div class="relative w-full h-48 bg-zinc-950 rounded border border-borderSubtle overflow-hidden flex items-center justify-center">
+                  <img 
+                    id="exp-remision-img" 
+                    src="/api/cases/OC-004/image" 
+                    alt="Remisión física escaneada" 
+                    class="max-h-full max-w-full object-contain"
+                    onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\' fill=\'%2318181b\'><text x=\'50%25\' y=\'50%25\' fill=\'%2371717a\' font-size=\'12\' text-anchor=\'middle\' dy=\'.3em\'>Sin imagen escaneada</text></svg>'"
+                  />
+                  <!-- Overlay de Bounding Box sobre anotación manuscrita -->
+                  <div id="vision-bbox" class="absolute bottom-3 left-3 right-3 bg-cyan-950/85 border border-cyan-500/50 p-2 rounded text-[10px] text-cyan-200 font-mono shadow-lg backdrop-blur-sm">
+                    <div class="font-bold text-cyan-400 flex items-center gap-1">
+                      <i data-lucide="edit-3" class="w-3 h-3"></i>
+                      <span>Nota manuscrita detectada:</span>
+                    </div>
+                    <div id="vision-texto-manuscrito" class="text-white mt-0.5">
+                      "Recibidos solo 80 pzas. Merma en transporte (-20)"
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Verificación en vivo de nitidez -->
+                <div class="mt-2 flex items-center justify-between text-[11px]">
+                  <button onclick="probarVisionEnVivo()" class="text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1">
+                    <i data-lucide="eye" class="w-3 h-3"></i>
+                    <span>Verificar nitidez</span>
+                  </button>
+                  <span id="vision-nitidez-label" class="text-zinc-500 font-mono">Nitidez: 112.4</span>
+                </div>
+              </div>
+
+              <!-- Tríada de Cotejo Visual (7 cols) -->
+              <div class="md:col-span-7 flex flex-col justify-between space-y-2">
+                <div class="text-xs font-semibold text-zinc-400 uppercase tracking-wider font-mono">
+                  Three-Way Matching Triad
+                </div>
+
+                <!-- Box 1: Orden de Compra -->
+                <div class="p-3 rounded-lg bg-cardNested border border-borderSubtle flex items-center justify-between">
+                  <div>
+                    <div class="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
+                      <span class="w-4 h-4 rounded-full bg-zinc-800 text-zinc-300 font-mono text-[10px] flex items-center justify-center">1</span>
+                      <span>Orden de Compra (ERP)</span>
+                    </div>
+                    <div id="triad-oc-desc" class="text-sm font-semibold text-white mt-1">100 pzas @ $250.00 MXN</div>
+                  </div>
+                  <div class="text-right">
+                    <div id="triad-oc-total" class="text-sm font-bold font-mono text-zinc-200">$25,000.00</div>
+                    <div class="text-[10px] text-zinc-500 font-mono">Subtotal Pactado</div>
+                  </div>
+                </div>
+
+                <!-- Box 2: Remisión Física (Almacén) -->
+                <div id="box-remision-triad" class="p-3 rounded-lg bg-cardNested border border-amber-500/30 flex items-center justify-between bg-amber-500/[0.02]">
+                  <div>
+                    <div class="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                      <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] flex items-center justify-center font-bold">2</span>
+                      <span>Remisión Física Almacén</span>
+                    </div>
+                    <div id="triad-rem-desc" class="text-sm font-semibold text-amber-200 mt-1">80 pzas físicas (Faltante: 20 pzas)</div>
+                  </div>
+                  <div class="text-right">
+                    <div id="triad-rem-alerta" class="text-xs font-bold font-mono text-amber-400">MERMA DETECTADA</div>
+                    <div class="text-[10px] text-amber-400/80 font-mono">-20 unidades</div>
+                  </div>
+                </div>
+
+                <!-- Box 3: Factura CFDI 4.0 XML -->
+                <div class="p-3 rounded-lg bg-cardNested border border-borderSubtle flex items-center justify-between">
+                  <div>
+                    <div class="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
+                      <span class="w-4 h-4 rounded-full bg-zinc-800 text-zinc-300 font-mono text-[10px] flex items-center justify-center">3</span>
+                      <span>Factura CFDI 4.0 (SAT XML)</span>
+                    </div>
+                    <div id="triad-cfdi-desc" class="text-sm font-semibold text-white mt-1">100 pzas facturadas</div>
+                  </div>
+                  <div class="text-right">
+                    <div id="triad-cfdi-total" class="text-sm font-bold font-mono text-zinc-200">$29,000.00</div>
+                    <div class="text-[10px] text-zinc-500 font-mono">Total c/IVA (16%)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Banner de Retención Preventiva Calculada -->
+            <div id="banner-retencion" class="p-4 rounded-lg bg-amber-500/[0.04] border border-amber-500/20 space-y-2">
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+                <div class="flex-1">
+                  <div class="text-sm font-bold text-amber-300">
+                    Discrepancia Detectada: Retención Preventiva de <span id="monto-retencion-txt" class="font-mono text-white">$5,800.00 MXN</span>
+                  </div>
+                  <div id="explicacion-retencion-txt" class="text-xs text-zinc-300 mt-1 leading-relaxed">
+                    Cálculo determinista: 20 piezas no ingresadas al almacén (-$5,000.00 MXN) + IVA 16% proporcional (-$800.00 MXN). Estado asignado a <strong>EN_RECLAMO</strong> para proteger dispersión de tesorería.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botonera de Acción Inmediata (1 Clic) -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <div class="flex items-center gap-2">
+                <!-- Acción Primaria: Pago Parcial -->
+                <button 
+                  id="btn-aprobar-parcial"
+                  onclick="aprobarPagoParcial()" 
+                  class="flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs active-press transition-colors shadow-sm"
+                >
+                  <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                  <span>Aprobar Pago Parcial (<span id="btn-monto-parcial">$23,200.00 MXN</span>)</span>
+                </button>
+
+                <!-- Acción Secundaria: Solicitar Nota de Crédito (Idempotente) -->
+                <button 
+                  id="btn-solicitar-nc"
+                  onclick="solicitarNotaCredito()" 
+                  class="flex items-center gap-2 px-3.5 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-semibold active-press transition-colors"
+                >
+                  <i data-lucide="send" class="w-4 h-4 text-amber-400"></i>
+                  <span>Solicitar Nota de Crédito</span>
+                </button>
+              </div>
+
+              <!-- Dictamen / Acta Circunstanciada PDF -->
+              <button 
+                onclick="generarActaPDF()" 
+                class="flex items-center gap-1.5 px-3 py-2 rounded-md text-zinc-400 hover:text-white text-xs font-medium active-press transition-colors"
+              >
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                <span>Acta Circunstanciada</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- PANEL DERECHO: COPILOTO GROK 4.6 (4 COLS = 34%) -->
+        <div class="lg:col-span-4 space-y-4">
+
+          <div class="bg-card rounded-lg border border-borderSubtle p-4 flex flex-col justify-between">
+            <div>
+              <!-- Header Copiloto -->
+              <div class="flex items-center justify-between border-b border-borderSubtle pb-2.5 mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-md bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-xs font-bold text-white">Copiloto Grok 4.6</h3>
+                    <span class="text-[10px] text-zinc-500 font-mono">Razonamiento Forense</span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Activo
+                </span>
+              </div>
+
+              <!-- Checklist Fiscal SAT en Vivo -->
+              <div class="space-y-1.5 p-2.5 rounded-lg bg-cardNested border border-borderSubtle mb-3">
+                <div class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider font-mono">
+                  Validación Regulatoria SAT
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-zinc-300">Lista 69-B (EFOS):</span>
+                  <span id="chk-sat-69b" class="text-emerald-400 font-mono font-semibold flex items-center gap-1 text-[11px]">
+                    <i data-lucide="check" class="w-3 h-3"></i> Limpio (No EFOS)
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-zinc-300">Timbre Fiscal CFDI:</span>
+                  <span id="chk-sat-timbre" class="text-emerald-400 font-mono font-semibold flex items-center gap-1 text-[11px]">
+                    <i data-lucide="check" class="w-3 h-3"></i> Válido y Vigente
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-zinc-300">Circuit Breaker:</span>
+                  <span id="chk-sat-cb" class="text-zinc-300 font-mono text-[11px]">CLOSED (Normal)</span>
+                </div>
+              </div>
+
+              <!-- Historial de Conversación Chat (CON ALTURA CONTROLADA Y AUTO-SCROLL) -->
+              <div id="chat-stream" class="space-y-2.5 h-[340px] overflow-y-auto pr-1 text-xs mb-3 flex flex-col">
+                <!-- Mensaje inicial estructurado -->
+                <div class="flex gap-2">
+                  <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <i data-lucide="bot" class="w-3 h-3"></i>
+                  </div>
+                  <div class="bg-cardNested p-3 rounded-lg border border-borderSubtle text-zinc-200 leading-relaxed max-w-[92%] prose-chat">
+                    <div id="chat-grok-intro">
+                      ¡Hola! Analicé el expediente <strong>OC-004</strong>:
+                      <ul>
+                        <li><strong>Remisión física:</strong> nota manuscrita detecta solo 80 piezas por merma.</li>
+                        <li><strong>Retención:</strong> se sugiere retener <strong>$5,800.00 MXN</strong>.</li>
+                        <li><strong>Dispersión:</strong> liberar pago parcial por <strong>$23,200.00 MXN</strong>.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input & Quick Prompts -->
+            <div class="space-y-2 pt-2 border-t border-borderSubtle">
+              <!-- Quick Chips -->
+              <div class="flex flex-wrap gap-1.5">
+                <button onclick="preguntarRapido('¿Por qué se retuvo dinero en este caso?')" class="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/60 transition-colors">
+                  ¿Por qué se retuvo dinero?
+                </button>
+                <button onclick="preguntarRapido('Redacta un correo formal de reclamo para solicitar la nota de crédito.')" class="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/60 transition-colors">
+                  Redactar reclamo
+                </button>
+              </div>
+
+              <!-- Input Chat -->
+              <form id="form-chat" onsubmit="enviarMensajeChat(event)" class="relative">
+                <input 
+                  id="chat-input"
+                  type="text" 
+                  placeholder="Preguntar a Grok sobre este caso..." 
+                  class="w-full bg-cardNested rounded-md pl-3 pr-10 py-2 text-xs text-white placeholder-zinc-500 border border-borderSubtle focus:outline-none focus:border-cyan-500 transition-colors"
+                />
+                <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300 p-1">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                </button>
+              </form>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- ==================== VISTA 2: SECCIÓN COMPLETA DE EXPEDIENTES ==================== -->
+    <div id="view-expedientes" class="p-4 lg:p-6 space-y-5 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-4 rounded-lg border border-borderSubtle">
+        <div>
+          <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+            <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-400"></i>
+            <span>Registro Central de Expedientes Auditados</span>
+          </h2>
+          <p class="text-xs text-zinc-400 mt-0.5">Control y gestión de todas las facturas y conciliaciones registradas.</p>
+        </div>
+
+        <!-- Pestañas de Filtro -->
+        <div class="flex items-center gap-1 p-1 bg-zinc-900 border border-borderSubtle rounded-lg text-xs font-medium overflow-x-auto">
+          <button onclick="filtrarPorTab('TODOS')" class="tab-btn px-2.5 py-1 rounded-md bg-zinc-800 text-white transition-colors" data-tab="TODOS">Todos</button>
+          <button onclick="filtrarPorTab('LOTE_S2')" class="tab-btn px-2.5 py-1 rounded-md text-zinc-400 hover:text-white transition-colors" data-tab="LOTE_S2">Lote Inicial (1-10)</button>
+          <button onclick="filtrarPorTab('MANUAL')" class="tab-btn px-2.5 py-1 rounded-md text-zinc-400 hover:text-white transition-colors" data-tab="MANUAL">Cargas Manuales</button>
+          <button onclick="filtrarPorTab('EN_RECLAMO')" class="tab-btn px-2.5 py-1 rounded-md text-zinc-400 hover:text-white transition-colors" data-tab="EN_RECLAMO">En Reclamo</button>
+          <button onclick="filtrarPorTab('APROBADO')" class="tab-btn px-2.5 py-1 rounded-md text-zinc-400 hover:text-white transition-colors" data-tab="APROBADO">Aprobados</button>
+          <button onclick="filtrarPorTab('ESCALADO')" class="tab-btn px-2.5 py-1 rounded-md text-zinc-400 hover:text-white transition-colors" data-tab="ESCALADO">Escalados</button>
+        </div>
+      </div>
+
+      <!-- Tabla Completa de Expedientes -->
+      <div class="bg-card rounded-lg border border-borderSubtle overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-zinc-400 bg-cardNested border-b border-borderSubtle font-mono text-[11px] uppercase">
+              <tr>
+                <th class="py-3 px-4">Expediente</th>
+                <th class="py-3 px-4">Proveedor / RFC</th>
+                <th class="py-3 px-4">Total Facturado</th>
+                <th class="py-3 px-4">Monto a Pagar</th>
+                <th class="py-3 px-4">Fuga Retenida</th>
+                <th class="py-3 px-4">Estado</th>
+                <th class="py-3 px-4 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-casos-body" class="divide-y divide-borderSubtle font-sans">
+              <!-- Renderizado dinámico vía app.js -->
+              <tr>
+                <td colspan="7" class="py-8 text-center text-zinc-500 font-mono">Cargando expedientes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL DE CARGA MANUAL DE EXPEDIENTE ==================== -->
+  <div id="modal-upload" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-card w-full max-w-2xl rounded-xl border border-borderSubtle shadow-2xl p-6 space-y-5 animate-in fade-in duration-150">
+      <div class="flex items-center justify-between border-b border-borderSubtle pb-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="upload-cloud" class="w-5 h-5 text-emerald-400"></i>
+            <span>Nuevo Expediente de Cotejo (Carga Manual)</span>
+          </h2>
+          <p class="text-xs text-zinc-400 mt-0.5">Sube tus archivos reales para ejecutar el 3-way matching en tiempo real.</p>
+        </div>
+        <button onclick="cerrarModalUpload()" class="text-zinc-400 hover:text-white p-1 rounded">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-upload-manual" onsubmit="enviarCargaManual(event)" class="space-y-4">
+        <!-- Dropzones en Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dropzone 1: XML CFDI -->
+          <div class="p-4 rounded-lg bg-cardNested border-2 border-dashed border-borderSubtle hover:border-emerald-500/50 transition-colors flex flex-col items-center justify-center text-center cursor-pointer relative" onclick="document.getElementById('input-xml').click()">
+            <input type="file" id="input-xml" name="cfdi_file" accept=".xml" class="hidden" required onchange="actualizarNombreArchivo(this, 'label-xml')" />
+            <i data-lucide="file-code" class="w-8 h-8 text-emerald-400 mb-2"></i>
+            <span class="text-xs font-semibold text-white">Factura CFDI 4.0 (XML) *</span>
+            <span id="label-xml" class="text-[11px] text-zinc-400 mt-1">Arrastra o selecciona el XML</span>
+          </div>
+
+          <!-- Dropzone 2: Imagen Remisión Física -->
+          <div class="p-4 rounded-lg bg-cardNested border-2 border-dashed border-borderSubtle hover:border-cyan-500/50 transition-colors flex flex-col items-center justify-center text-center cursor-pointer relative" onclick="document.getElementById('input-img').click()">
+            <input type="file" id="input-img" name="remision_file" accept="image/*,.pdf" class="hidden" onchange="actualizarNombreArchivo(this, 'label-img')" />
+            <i data-lucide="camera" class="w-8 h-8 text-cyan-400 mb-2"></i>
+            <span class="text-xs font-semibold text-white">Remisión Física (Foto / PDF)</span>
+            <span id="label-img" class="text-[11px] text-zinc-400 mt-1">Grok Vision leerá sellos y merma</span>
+          </div>
+        </div>
+
+        <!-- Campos Opcionales -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1">Nombre del Proveedor (Opcional)</label>
+            <input type="text" name="proveedor_nombre" placeholder="ej. Metales del Bajío S.A." class="w-full bg-cardNested rounded px-3 py-1.5 text-xs text-white border border-borderSubtle focus:outline-none focus:border-borderFocus" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1">Notas de Auditoría / Instrucciones</label>
+            <input type="text" name="notas" placeholder="ej. Revisar faltante en partida 2" class="w-full bg-cardNested rounded px-3 py-1.5 text-xs text-white border border-borderSubtle focus:outline-none focus:border-borderFocus" />
+          </div>
+        </div>
+
+        <!-- Mensaje de Carga / Spinner -->
+        <div id="upload-status" class="hidden p-3 rounded bg-zinc-900 border border-zinc-800 text-xs flex items-center gap-2 text-zinc-300">
+          <i data-lucide="loader-2" class="w-4 h-4 text-emerald-400 animate-spin"></i>
+          <span id="upload-status-text">Analizando XML y ejecutando Grok Vision...</span>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-borderSubtle">
+          <button type="button" onclick="cerrarModalUpload()" class="px-4 py-2 rounded text-xs text-zinc-400 hover:text-white">Cancelar</button>
+          <button type="submit" id="btn-submit-upload" class="px-5 py-2 rounded bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs active-press transition-colors flex items-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>Ejecutar CotejAI Autónomo</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

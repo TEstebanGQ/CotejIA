@@ -523,15 +523,18 @@ def ejecutar_caso(case_id: str, client: OpenAI | None = None) -> dict:
     return {"veredicto": veredicto_esc, "uso": uso}
 
 
-SYSTEM_PROMPT_CHAT = f"""Eres CotejAI, un agente autónomo de cuentas por pagar y conciliación de facturas CFDI 4.0 para empresas mexicanas en la plataforma Platica.
-Tus responsabilidades:
-1. Explicar claramente a los analistas de cuentas por pagar o proveedores el estado de las facturas, retenciones y discrepancias.
-2. Si el usuario te pide auditar o revisar un caso (ej. OC-001 a OC-010), puedes usar las herramientas (`cotejar_caso`, `leer_remision_imagen`, `consultar_tipo_cambio_real`, `consultar_sat_en_vivo`) para obtener los datos reales.
-3. Reglas de negocio:
-   - APROBADO: sólo si no hay discrepancias (MATCH_OK).
-   - EN_RECLAMO: faltantes (QTY_SHORT) o alza de precios (PRICE_UP) con fuga de hasta ${LIMITE_AUTONOMO_MXN:,.2f} MXN. Se retiene la diferencia y se solicita nota de crédito (CFDI de Egreso tipo E con relación 01) con llave de idempotencia.
-   - ESCALADO: diferencias mayores al límite, foto de remisión borrosa (RECEIPT_UNREADABLE), tipo de cambio inflado (FX_OVERCHARGE), discrepancia de impuestos (TAX_MISMATCH), factura duplicada (DUPLICATE) o proveedor en lista 69-B del SAT (SUPPLIER_69B).
-4. Responde de forma concisa, profesional y fundamentada en pesos mexicanos (MXN) y normas del SAT."""
+SYSTEM_PROMPT_CHAT = f"""Eres CotejAI, copiloto inteligente de cuentas por pagar y auditoría fiscal CFDI 4.0 para empresas mexicanas en Platica.
+
+Reglas de Comportamiento y Velocidad:
+1. Si el usuario saluda (ej. "hola", "buenos días"), hace preguntas de cortesía o dudas generales, responde DIRECTAMENTE de forma inmediata, amable y concisa SIN llamar herramientas.
+2. Si te pide explícitamente auditar, re-cotejar o verificar en vivo contra el SAT o la remisión, puedes llamar a las herramientas correspondientes.
+3. Formato y Presentación de Respuestas:
+   - Responde SIEMPRE con formato Markdown limpio, estructurado y visualmente ordenado.
+   - Usa párrafos breves y listas con viñetas (- o •) para desglosar hallazgos.
+   - Resalta siempre las cifras monetarias en negrita con moneda (ej. **$5,800.00 MXN**).
+   - Resalta los estados fiscales y códigos (ej. **EN_RECLAMO**, **APROBADO**, **ESCALADO**).
+   - NUNCA generes un solo bloque masivo de texto sin saltos de línea ni estructura.
+4. Sé ágil, preciso y profesional para asistir eficientemente al analista de tesorería."""
 
 
 def tiene_llave_configurada() -> bool:
@@ -596,29 +599,71 @@ def formatear_resumen_caso(case_id: str, veredicto: dict | None = None, cotejo: 
 
 def conversar(
     mensaje_usuario: str,
+    case_id: str | None = None,
     historial: list | None = None,
     client: OpenAI | None = None,
 ) -> tuple[str, list, dict]:
     """Permite conversar en lenguaje natural con CotejAI manteniendo contexto y herramientas."""
     client = client or crear_cliente()
     model = os.environ.get("MODEL", "grok-4.6")
+    
     if historial is None:
         historial = [{"role": "system", "content": SYSTEM_PROMPT_CHAT}]
 
-    historial.append({"role": "user", "content": mensaje_usuario})
+    contexto_str = ""
+    if case_id:
+        cid = case_id.upper()
+        try:
+            cotejo_info = tool_cotejar_caso(cid)
+            oc_info, _, cfdi_info = cargar_caso(cid)
+            prov = oc_info.get("proveedor_nombre") or (cfdi_info.get("rfc_emisor") or "Proveedor")
+            codigos_txt = ", ".join(cotejo_info.get("codigos", []))
+            fuga_val = cotejo_info.get("fuga_detectada_mxn", "0.00")
+            pagar_val = cotejo_info.get("monto_a_pagar_mxn", "0.00")
+            total_val = cotejo_info.get("total_cfdi_mxn", "0.00")
+            detalles_txt = "; ".join([d.get("problema", "") for d in cotejo_info.get("detalle", []) if d.get("problema")])
+            
+            contexto_str = (
+                f"[EXPEDIENTE EN PANTALLA: {cid}]\n"
+                f"- Proveedor: {prov} (RFC: {cfdi_info.get('rfc_emisor', 'N/A')})\n"
+                f"- UUID: {cfdi_info.get('uuid', 'N/A')}\n"
+                f"- Facturado CFDI: ${total_val} MXN\n"
+                f"- Monto a Pagar: ${pagar_val} MXN\n"
+                f"- Retención Preventiva: ${fuga_val} MXN\n"
+                f"- Códigos: {codigos_txt}\n"
+                f"- Hallazgos: {detalles_txt or 'Sin anomalías'}\n"
+                f"REGLA: El usuario está viendo ESTE expediente. Si pide información de 'este informe' o 'redactar un reclamo', "
+                f"responde DIRECTAMENTE sobre {cid} usando estos datos. NUNCA le preguntes cuál es el case_id."
+            )
+        except Exception:
+            contexto_str = f"[Expediente actual en pantalla: {cid}. Asume este caso por defecto.]"
+
+    mensaje_final = f"{contexto_str}\n\nPregunta: {mensaje_usuario}" if contexto_str else mensaje_usuario
+    historial.append({"role": "user", "content": mensaje_final})
     uso = {"prompt_tokens": 0, "completion_tokens": 0, "llamadas": 0, "segundos": 0.0}
 
-    herramientas_chat = [t for t in TOOLS if t["function"]["name"] != "cerrar_caso"]
+    # Optimización de latencia: si ya tenemos el contexto o es saludo/pregunta directa, responder sin iterar herramientas
+    msg_clean = mensaje_usuario.lower().strip()
+    es_saludo = msg_clean in {
+        "hola", "hola!", "hola.", "¿hola?", "buenas", "buenos dias", "buenos días", 
+        "buenas tardes", "buenas noches", "saludos", "hey", "hi", "que tal", "qué tal"
+    }
+    pide_auditar_manual = any(w in msg_clean for w in ["auditar", "re-auditar", "consultar sat en vivo", "correr herramientas"])
+    
+    herramientas_chat = [t for t in TOOLS if t["function"]["name"] != "cerrar_caso"] if pide_auditar_manual else None
 
     for _ in range(4):
         t0 = time.perf_counter()
-        resp = client.chat.completions.create(
-            model=model,
-            messages=historial,
-            tools=herramientas_chat,
-            tool_choice="auto",
-            parallel_tool_calls=False,
-        )
+        call_kwargs = {
+            "model": model,
+            "messages": historial,
+        }
+        if herramientas_chat:
+            call_kwargs["tools"] = herramientas_chat
+            call_kwargs["tool_choice"] = "auto"
+            call_kwargs["parallel_tool_calls"] = False
+
+        resp = client.chat.completions.create(**call_kwargs)
         uso["segundos"] += time.perf_counter() - t0
         uso["llamadas"] += 1
         if resp.usage:
