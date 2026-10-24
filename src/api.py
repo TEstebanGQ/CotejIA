@@ -87,6 +87,26 @@ def api_health():
 @app.get("/api/metrics")
 def api_metrics():
     m = obtener_metricas_db()
+    casos_resp = api_list_cases()
+    casos = casos_resp["casos"]
+
+    conteo_estados = {"APROBADO": 0, "EN_RECLAMO": 0, "ESCALADO": 0}
+    total_fuga = 0.0
+    total_pagar = 0.0
+    total_cfdi = 0.0
+
+    for c in casos:
+        est = c.get("estado_final", "ESCALADO")
+        conteo_estados[est] = conteo_estados.get(est, 0) + 1
+        total_fuga += float(c.get("fuga_detectada_mxn") or 0)
+        total_pagar += float(c.get("monto_a_pagar_mxn") or 0)
+        total_cfdi += float(c.get("total_cfdi_mxn") or 0)
+
+    m["casos_auditados"] = len(casos)
+    m["conteo_estados"] = conteo_estados
+    m["fuga_total_retenida_mxn"] = f"{total_fuga:.2f}"
+    m["total_facturado_mxn"] = f"{total_cfdi:.2f}"
+    m["total_a_pagar_mxn"] = f"{total_pagar:.2f}"
     m["circuit_breaker_sat"] = CIRCUIT_BREAKER_SAT.estado_dict()
     m["grok_conectado"] = tiene_llave_configurada()
     return m
