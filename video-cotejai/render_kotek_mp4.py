@@ -2,7 +2,8 @@
 
 Utiliza la imagen oficial de Kótek (mascota_cotejai.jpg), incorpora las evidencias
 visuales de inspección multidocumental y modales interactivos del README (docs/screenshots),
-y garantiza recuadros dinámicos sin desborde de texto en ninguna de las 6 escenas.
+y ubica todas las tarjetas HUD en zonas laterales libres y márgenes exteriores para que
+JAMÁS se sobrepongan a la información vital de la interfaz ni de los modales.
 """
 import math
 import shutil
@@ -46,11 +47,11 @@ def cargar_fuente(size: int, bold: bool = False, mono: bool = False):
 
 FONT_H1 = cargar_fuente(46, bold=True)
 FONT_H2 = cargar_fuente(28, bold=True)
-FONT_BODY = cargar_fuente(19, bold=False)
-FONT_BODY_B = cargar_fuente(19, bold=True)
+FONT_BODY = cargar_fuente(17, bold=False)
+FONT_BODY_B = cargar_fuente(17, bold=True)
 FONT_SUB = cargar_fuente(22, bold=False)
-FONT_MONO_B = cargar_fuente(19, bold=True, mono=True)
-FONT_MONO_S = cargar_fuente(17, bold=True, mono=True)
+FONT_MONO_B = cargar_fuente(18, bold=True, mono=True)
+FONT_MONO_S = cargar_fuente(16, bold=True, mono=True)
 
 
 def duracion_mp3(ruta: Path) -> float:
@@ -129,7 +130,7 @@ def dibujar_dock_kotek(
     draw.rounded_rectangle(
         (box_x1, box_y1, box_x2, box_y2),
         radius=22,
-        fill=(9, 13, 22, 244),
+        fill=(9, 13, 22, 246),
         outline=(6, 182, 212, 195),
         width=3,
     )
@@ -176,28 +177,29 @@ def dibujar_dock_kotek(
     draw.rounded_rectangle((222, 1028, 222 + bar_w, 1038), radius=5, fill=(16, 185, 129, 255))
 
 
-def dibujar_tarjeta_herramienta(
+def dibujar_tarjeta_hud(
     frame: Image.Image,
     t_local: float,
     t_aparicion: float,
     titulo: str,
     lineas: list[str],
     color_borde=(16, 185, 129),
-    x=1100,
-    y=95,
-    max_w=680,
+    x=1380,
+    y=230,
+    max_w=480,
 ):
+    """Dibuja una tarjeta HUD ultra-nítida en zonas laterales libres sin tapar los datos de la UI."""
     if t_local < t_aparicion:
         return
-    progreso = min(1.0, (t_local - t_aparicion) / 0.45)
+    progreso = min(1.0, (t_local - t_aparicion) / 0.40)
     ease = 1.0 - (1.0 - progreso) ** 3
-    offset_y = int((1.0 - ease) * 30)
-    alpha = int(ease * 248)
+    offset_y = int((1.0 - ease) * 25)
+    alpha = int(ease * 250)
 
     draw = ImageDraw.Draw(frame, "RGBA")
-    pad_x = 24
-    pad_top = 16
-    pad_bot = 16
+    pad_x = 18
+    pad_top = 12
+    pad_bot = 12
     max_text_w = max_w - (pad_x * 2)
 
     titulo_env = envolver_texto_px(draw, titulo, FONT_MONO_B, max_text_w)
@@ -208,12 +210,12 @@ def dibujar_tarjeta_herramienta(
     anchos_medidos = [draw.textlength(t_l, font=FONT_MONO_B) for t_l in titulo_env] + [
         draw.textlength(c_l, font=FONT_BODY) for c_l in cuerpo_env
     ]
-    w_box = int(max(anchos_medidos, default=420)) + (pad_x * 2) + 8
-    w_box = max(460, min(w_box, max_w + 16))
+    w_box = min(max_w, int(max(anchos_medidos, default=380)) + (pad_x * 2) + 6)
+    w_box = max(380, w_box)
 
-    line_h_title = 27
-    line_h_body = 28
-    sep_gap = 10
+    line_h_title = 24
+    line_h_body = 23
+    sep_gap = 8
     h_box = pad_top + len(titulo_env) * line_h_title + sep_gap + len(cuerpo_env) * line_h_body + pad_bot
 
     bx1 = max(36, min(x, W - w_box - 36))
@@ -221,16 +223,16 @@ def dibujar_tarjeta_herramienta(
     bx2, by2 = bx1 + w_box, by1 + h_box
 
     draw.rounded_rectangle(
-        (bx1 + 4, by1 + 6, bx2 + 4, by2 + 6),
-        radius=16,
-        fill=(0, 0, 0, int(alpha * 0.60)),
+        (bx1 + 3, by1 + 4, bx2 + 3, by2 + 4),
+        radius=14,
+        fill=(0, 0, 0, int(alpha * 0.65)),
     )
     draw.rounded_rectangle(
         (bx1, by1, bx2, by2),
-        radius=16,
+        radius=14,
         fill=(9, 13, 22, alpha),
         outline=(*color_borde, min(255, alpha)),
-        width=3,
+        width=2,
     )
 
     curr_y = by1 + pad_top
@@ -239,7 +241,7 @@ def dibujar_tarjeta_herramienta(
         curr_y += line_h_title
 
     curr_y += sep_gap // 2
-    draw.line((bx1 + pad_x, curr_y, bx2 - pad_x, curr_y), fill=(*color_borde, int(alpha * 0.35)), width=1)
+    draw.line((bx1 + pad_x, curr_y, bx2 - pad_x, curr_y), fill=(*color_borde, int(alpha * 0.40)), width=1)
     curr_y += sep_gap // 2 + 2
 
     for c_l in cuerpo_env:
@@ -260,7 +262,6 @@ def main():
     pip_avatar_scan = crear_avatar_circular(mascota_raw, 136, border_color=(6, 182, 212))
     pip_avatar_alert = crear_avatar_circular(mascota_raw, 136, border_color=(239, 68, 68))
 
-    # Capturas de la interfaz y modales documentados en README.md
     scr_doc_oc004 = cargar_imagen_ajustada(DOCS_SCREENSHOTS / "01_dashboard_principal_oc004.png")
     scr_doc_modal_rem = cargar_imagen_ajustada(DOCS_SCREENSHOTS / "02_modal_inspeccion_remision_fisica.png")
     scr_doc_tab_cfdi = cargar_imagen_ajustada(DOCS_SCREENSHOTS / "05_tab_panel_cfdi_xml.png")
@@ -271,11 +272,10 @@ def main():
     scr_doc_expedientes = cargar_imagen_ajustada(DOCS_SCREENSHOTS / "11_vista_tabla_expedientes.png")
 
     scr_oc005 = cargar_imagen_ajustada(ASSETS / "screen_oc005.png")
-    scr_oc007 = cargar_imagen_ajustada(ASSETS / "screen_oc007.png")
     scr_oc010 = cargar_imagen_ajustada(ASSETS / "screen_oc010.png")
 
-    rem_004 = Image.open(ASSETS / "remision-oc004.png").convert("RGB").resize((620, 415), Image.Resampling.LANCZOS)
-    rem_005 = Image.open(ASSETS / "remision-oc005.png").convert("RGB").resize((620, 415), Image.Resampling.LANCZOS)
+    rem_004 = Image.open(ASSETS / "remision-oc004.png").convert("RGB").resize((600, 400), Image.Resampling.LANCZOS)
+    rem_005 = Image.open(ASSETS / "remision-oc005.png").convert("RGB").resize((600, 400), Image.Resampling.LANCZOS)
 
     audios = [
         AUDIO_DIR / "escena_1_intro.mp3",
@@ -398,15 +398,15 @@ def main():
             )
             frame.paste(hero_mascot, (hx, hy), hero_mascot)
 
-            dibujar_tarjeta_herramienta(
+            dibujar_tarjeta_hud(
                 frame,
                 t_local,
                 1.0,
                 "ARQUITECTURA HÍBRIDA COTEJAI (S2)",
                 [
-                    "• 1. Ojos LED Cian: Grok Vision 4.6 lee remisiones físicas y notas a mano.",
-                    "• 2. Tercer Lente Esmeralda: Motor Determinista 3-Way Matching en centavos.",
-                    "• 3. Escudo en Pecho: PostgreSQL 16 + SAT SOAP + Lista 69-B + Idempotencia.",
+                    "• 1. Ojos LED Cian: Grok Vision lee remisiones físicas y notas manuscritas.",
+                    "• 2. Tercer Lente: Motor Determinista 3-Way Matching en centavos.",
+                    "• 3. Escudo: PostgreSQL 16 + SAT SOAP + Lista 69-B + Idempotencia.",
                 ],
                 color_borde=(16, 185, 129),
                 x=860,
@@ -429,6 +429,8 @@ def main():
 
         elif s_idx == 1:
             # ESCENA 2: 180 Divisas (OC-006) y Pestaña CFDI XML
+            # La tarjeta HUD se ubica en la columna Copilot derecha (x=1385, y=230)
+            # NO cubre el selector Banxico superior ni el expediente central ni la Tríada
             if t_local < 11.0:
                 frame = scr_doc_fx006.copy()
                 draw = ImageDraw.Draw(frame, "RGBA")
@@ -442,21 +444,20 @@ def main():
             else:
                 frame = scr_doc_tab_cfdi.copy()
 
-            dibujar_tarjeta_herramienta(
+            dibujar_tarjeta_hud(
                 frame,
                 t_local,
                 0.8,
-                'HERRAMIENTA EN VIVO: consultar_tipo_cambio_real("USD", "21.85")',
+                'HERRAMIENTA: consultar_tipo_cambio_real',
                 [
-                    "• Catálogo conectado: 180 Divisas ISO 4217 / SAT Anexo 20 en tiempo real",
-                    "• TC en CFDI (OC-006): $21.85 MXN/USD vs Oficial Banxico: $18.69 MXN/USD",
-                    "• Código detectado: FX_OVERCHARGE · Fuga retenida: $19,230.39 MXN",
-                    "• Resiliencia: Caché automático en PostgreSQL 16 (fx_rates_cache)",
+                    "• Moneda USD: $21.85 CFDI vs $18.69 Banxico",
+                    "• Código: FX_OVERCHARGE · Fuga: $19,230.39 MXN",
+                    "• Resiliencia: Caché en PostgreSQL 16 (fx_rates_cache)",
                 ],
                 color_borde=(6, 182, 212),
-                x=340,
-                y=540,
-                max_w=760,
+                x=1385,
+                y=230,
+                max_w=480,
             )
             sub = (
                 "Conectamos en tiempo real las 180 divisas oficiales del Anexo 20 del SAT contra el peso mexicano. "
@@ -474,36 +475,55 @@ def main():
 
         elif s_idx == 2:
             # ESCENA 3: Grok Vision OC-004 + Modal de Inspección de Remisión Física
-            if t_local < 10.0:
+            if t_local < 9.5:
                 frame = scr_doc_oc004.copy()
                 draw = ImageDraw.Draw(frame, "RGBA")
-                rx, ry = 1210, 88
+                rx, ry = 1240, 88
                 frame.paste(rem_004, (rx, ry))
-                draw.rounded_rectangle((rx - 3, ry - 3, rx + 623, ry + 418), radius=12, outline=(6, 182, 212, 255), width=4)
+                draw.rounded_rectangle((rx - 3, ry - 3, rx + 603, ry + 403), radius=12, outline=(6, 182, 212, 255), width=3)
 
-                scan_y = ry + int(((math.sin(t_local * 2.6) + 1.0) / 2.0) * 395)
-                draw.line((rx + 4, scan_y, rx + 616, scan_y), fill=(6, 182, 212, 255), width=4)
-                draw.rectangle((rx + 4, max(ry, scan_y - 22), rx + 616, scan_y), fill=(6, 182, 212, 55))
-                draw.rounded_rectangle((rx + 26, ry + 210, rx + 594, ry + 275), radius=8, outline=(245, 158, 11, 255), width=3)
+                scan_y = ry + int(((math.sin(t_local * 2.6) + 1.0) / 2.0) * 380)
+                draw.line((rx + 4, scan_y, rx + 596, scan_y), fill=(6, 182, 212, 255), width=4)
+                draw.rectangle((rx + 4, max(ry, scan_y - 20), rx + 596, scan_y), fill=(6, 182, 212, 50))
+                draw.rounded_rectangle((rx + 24, ry + 200, rx + 576, ry + 265), radius=8, outline=(245, 158, 11, 255), width=3)
+
+                # Tarjeta debajo de la remisión en la columna derecha
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    0.8,
+                    'HERRAMIENTA: leer_remision_imagen',
+                    [
+                        "• Grok Vision 4.6: Nitidez óptica 41.89 (Legible)",
+                        "• Nota manuscrita: '80 pzas; faltaron 20 por merma'",
+                        "• Retención aplicada: $290.00 MXN en centavos",
+                    ],
+                    color_borde=(6, 182, 212),
+                    x=1240,
+                    y=510,
+                    max_w=600,
+                )
             else:
                 # Transición al Modal Completo de Inspección de Remisión Física del README
+                # La tarjeta HUD se ubica en el margen derecho exterior (x=1430, y=220)
+                # NO cubre la foto, ni los sellos, ni las firmas, ni la tabla de partidas
                 frame = scr_doc_modal_rem.copy()
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    9.6,
+                    'HERRAMIENTA: leer_remision_imagen("OC-004")',
+                    [
+                        "• Grok Vision 4.6: Nitidez óptica 41.89 (Legible)",
+                        "• Manuscrito leído: '80 pzas; merma: 20'",
+                        "• Retención aplicada: $290.00 MXN en centavos",
+                    ],
+                    color_borde=(6, 182, 212),
+                    x=1430,
+                    y=220,
+                    max_w=440,
+                )
 
-            dibujar_tarjeta_herramienta(
-                frame,
-                t_local,
-                0.8,
-                'HERRAMIENTA: leer_remision_imagen("OC-004") — Grok Vision 4.6',
-                [
-                    "• Nitidez óptica: 41.89 (Legible >= 28.0) · Sello y Firma: Verificados",
-                    '• Nota manuscrita: "Se reciben 80 pzas de TORN-001; faltaron 20 por merma"',
-                    "• Motor Determinista (cotejar_caso): Retiene $290.00 MXN (20 pzas + IVA 16%)",
-                ],
-                color_borde=(6, 182, 212),
-                x=340,
-                y=88,
-                max_w=760,
-            )
             sub = (
                 "En el expediente OC-004 el proveedor facturó 100 piezas, pero al invocar leer_remision_imagen con Grok Vision "
                 "sobre la foto física del almacén, leo la nota escrita a mano que reporta solo 80 piezas y retengo $290.00 MXN."
@@ -520,43 +540,62 @@ def main():
 
         elif s_idx == 3:
             # ESCENA 4: Webhook en Vivo + Tabla General de Expedientes + Modal CFDI XML
-            if t_local < 7.5:
+            if t_local < 7.0:
                 frame = scr_doc_oc004.copy()
+                # Tarjeta en la columna Copilot derecha
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    0.5,
+                    '1er DISPARO: enviar_alerta_reclamo_real',
+                    [
+                        "• Compuerta Policy Gate: $290.00 MXN <= $5,000 (Autorizado)",
+                        "• Webhook HTTP POST en vivo solicitando Nota de Crédito",
+                        "• Llave en PostgreSQL 16: OC-004:nota_credito:v1",
+                    ],
+                    color_borde=(16, 185, 129),
+                    x=1385,
+                    y=230,
+                    max_w=480,
+                )
             elif t_local < 13.0:
+                # Tabla General de Expedientes: la tarjeta se ubica arriba a la derecha en la cabecera
+                # NO cubre ninguna de las 10 filas de expedientes
                 frame = scr_doc_expedientes.copy()
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    7.2,
+                    "2do DISPARO BLOQUEADO: IDEMPOTENCIA",
+                    [
+                        "• idempotencia_bloqueada: true (Tabla acciones_idempotentes)",
+                        "• Llave única existente en PostgreSQL 16 desde 1er envío",
+                        "• Cero correos o notas de crédito duplicadas al proveedor",
+                    ],
+                    color_borde=(245, 158, 11),
+                    x=1180,
+                    y=80,
+                    max_w=680,
+                )
             else:
+                # Modal Inspección CFDI XML: tarjeta en el margen derecho exterior (x=1430, y=220)
                 frame = scr_doc_modal_cfdi.copy()
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    13.2,
+                    "AUDITORÍA FISCAL CFDI 4.0 XML",
+                    [
+                        "• Timbre SAT verificado contra PAC oficial",
+                        "• Conceptos SAT e IVA 16% conciliados a nivel partida",
+                        "• Llave de Idempotencia garantizada en base transaccional",
+                    ],
+                    color_borde=(16, 185, 129),
+                    x=1430,
+                    y=220,
+                    max_w=440,
+                )
 
-            dibujar_tarjeta_herramienta(
-                frame,
-                t_local,
-                0.5,
-                '1er DISPARO: enviar_alerta_reclamo_real("OC-004")',
-                [
-                    "• Compuerta Policy Gate: Fuga $290.00 MXN <= $5,000 MXN (Autorizado)",
-                    "• Webhook HTTP POST enviado en vivo solicitando Nota de Crédito CFDI",
-                    "• Llave registrada en PostgreSQL 16: OC-004:nota_credito:v1",
-                ],
-                color_borde=(16, 185, 129),
-                x=340,
-                y=92,
-                max_w=730,
-            )
-            dibujar_tarjeta_herramienta(
-                frame,
-                t_local,
-                5.5,
-                "2do DISPARO BLOQUEADO: IDEMPOTENCIA EN POSTGRESQL 16",
-                [
-                    "• idempotencia_bloqueada: true (Tabla transaccional acciones_idempotentes)",
-                    "• La llave única ya existe en PostgreSQL 16 desde el primer envío",
-                    "• Resultado: Cero correos o notas de crédito duplicadas al proveedor",
-                ],
-                color_borde=(245, 158, 11),
-                x=1100,
-                y=520,
-                max_w=730,
-            )
             sub = (
                 "Como la diferencia es menor a $5,000 MXN, policy_gate autoriza invocar enviar_alerta_reclamo_real por webhook. "
                 "Si se intenta enviar por segunda vez, nuestra llave de idempotencia en PostgreSQL 16 bloquea el duplicado."
@@ -573,45 +612,47 @@ def main():
 
         elif s_idx == 4:
             # ESCENA 5: Fallos Ópticos (OC-005) y Diálogo In-App SAT SOAP / Lista 69-B
-            if t_local < 11.5:
+            if t_local < 11.0:
                 frame = scr_oc005.copy()
                 draw = ImageDraw.Draw(frame, "RGBA")
-                rx, ry = 1210, 88
+                rx, ry = 1240, 88
                 frame.paste(rem_005, (rx, ry))
-                draw.rounded_rectangle((rx - 3, ry - 3, rx + 623, ry + 418), radius=12, outline=(239, 68, 68, 255), width=4)
-                dibujar_tarjeta_herramienta(
+                draw.rounded_rectangle((rx - 3, ry - 3, rx + 603, ry + 403), radius=12, outline=(239, 68, 68, 255), width=3)
+                dibujar_tarjeta_hud(
                     frame,
                     t_local,
                     0.6,
                     "FALLO ÓPTICO (OC-005): BARRERA ANTI-ALUCINACIÓN",
                     [
-                        "• Nitidez medida: 14.82 < 28.0 (Fotografía desenfocada / ilegible)",
-                        "• Código activado: RECEIPT_UNREADABLE · Estado: ESCALADO",
-                        "• Grok Vision se niega a inventar números y protege la auditoría",
+                        "• Nitidez: 14.82 < 28.0 (Fotografía desenfocada / ilegible)",
+                        "• Código: RECEIPT_UNREADABLE · Estado: ESCALADO",
+                        "• Grok Vision no inventa números y protege la auditoría",
                     ],
                     color_borde=(239, 68, 68),
-                    x=1130,
-                    y=535,
-                    max_w=710,
+                    x=1240,
+                    y=510,
+                    max_w=600,
                 )
             else:
-                # Transición al Diálogo In-App SAT SOAP con la Lista 69-B del README
+                # Diálogo In-App SAT SOAP: la tarjeta se ubica en el margen derecho exterior libre (x=1300, y=240)
+                # NO cubre el cuadro de diálogo central ni sus líneas de texto
                 frame = scr_doc_sat_soap.copy()
-                dibujar_tarjeta_herramienta(
+                dibujar_tarjeta_hud(
                     frame,
                     t_local,
-                    11.8,
-                    'ALERTA FISCAL SAT 69-B (OC-007): consultar_sat_en_vivo("OC-007")',
+                    11.2,
+                    'ALERTA FISCAL SAT 69-B (OC-007)',
                     [
-                        "• RFC Emisor: AAA080808AAA detectado en tabla sat_69b (PostgreSQL 16)",
-                        "• Situación SAT: EFOS Definitivo (Art. 69-B CFF — Operaciones Simuladas)",
-                        "• Código: SUPPLIER_69B · Bloqueo del 100% ($6,090.00 MXN retenidos)",
+                        "• RFC AAA080808AAA en tabla sat_69b (PostgreSQL 16)",
+                        "• Situación: EFOS Definitivo (Operaciones Simuladas)",
+                        "• Bloqueo total: $6,090.00 MXN retenidos al 100%",
                     ],
                     color_borde=(239, 68, 68),
-                    x=340,
-                    y=535,
-                    max_w=750,
+                    x=1300,
+                    y=240,
+                    max_w=540,
                 )
+
             sub = (
                 "¿Y qué hago cuando algo falla? En OC-005 la foto está borrosa: activo RECEIPT_UNREADABLE sin alucinar cifras. "
                 "Y en OC-007 cruzo el padrón oficial 69-B del SAT y bloqueo el 100% del pago por ser un proveedor EFOS."
@@ -628,41 +669,43 @@ def main():
 
         else:
             # ESCENA 6: Circuit Breaker SAT SOAP & Modal Orden de Compra ERP
-            if t_local < 11.5:
+            if t_local < 10.5:
                 frame = scr_oc010.copy()
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    0.8,
+                    "CIRCUIT BREAKER SAT SOAP: OPEN (OC-010)",
+                    [
+                        "• Webservice SOAP SAT sin respuesta tras 3 intentos",
+                        "• Circuito abierto por 600s con estado SAT_NO_VERIFICADO",
+                        "• El agente no se cuelga: degrada con elegancia y continúa",
+                    ],
+                    color_borde=(245, 158, 11),
+                    x=1385,
+                    y=230,
+                    max_w=480,
+                )
             else:
+                # Modal Inspección Orden de Compra ERP: la tarjeta se ubica en el margen derecho exterior (x=1430, y=220)
+                # NO cubre la tabla de partidas pactadas ni las condiciones comerciales
                 frame = scr_doc_modal_oc.copy()
+                dibujar_tarjeta_hud(
+                    frame,
+                    t_local,
+                    10.6,
+                    "COMPUERTA POLICY GATE ($5,000 MXN)",
+                    [
+                        "• Faltante en almacén OC-010: Fuga $9,280.00 MXN",
+                        "• Supera límite autónomo ($9,280.00 > $5,000.00 MXN)",
+                        "• Reclamo escalado a Gerencia de Tesorería",
+                    ],
+                    color_borde=(239, 68, 68),
+                    x=1430,
+                    y=220,
+                    max_w=440,
+                )
 
-            dibujar_tarjeta_herramienta(
-                frame,
-                t_local,
-                0.8,
-                "CIRCUIT BREAKER SAT SOAP: OPEN (OC-010)",
-                [
-                    "• Webservice SOAP del SAT sin respuesta tras 3 intentos consecutivos",
-                    "• Circuit Breaker abre el circuito por 600s y emite SAT_NO_VERIFICADO",
-                    "• El agente no se cuelga: degrada con elegancia y continúa la auditoría",
-                ],
-                color_borde=(245, 158, 11),
-                x=1110,
-                y=88,
-                max_w=730,
-            )
-            dibujar_tarjeta_herramienta(
-                frame,
-                t_local,
-                7.2,
-                "COMPUERTA POLICY GATE ($5,000 MXN) EN ACCIÓN",
-                [
-                    "• Faltante en almacén en OC-010: 100 rollos -> Fuga de $9,280.00 MXN",
-                    "• Supera el umbral autónomo ($9,280.00 > $5,000.00 MXN)",
-                    "• Policy Gate bloquea el reclamo automático y escala a Tesorería",
-                ],
-                color_borde=(239, 68, 68),
-                x=340,
-                y=545,
-                max_w=730,
-            )
             sub = (
                 "En OC-010, ante la caída del SOAP del SAT, nuestro Circuit Breaker abre el circuito marcando SAT_NO_VERIFICADO sin colgarse, "
                 "y como la fuga supera $5,000 MXN, el Policy Gate bloquea el reclamo autónomo y lo escala a gerencia."
