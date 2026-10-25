@@ -69,10 +69,184 @@ function formatMarkdown(rawText) {
     .replace(/\n- (.*?)/g, '<li>$1</li>');
 }
 
+// ============================================================================
+// SISTEMA DE NOTIFICACIONES TOASTS FLOTANTES (ESTILO SONNER / SHADCN DARK)
+// ============================================================================
+function showToast({ type = 'info', title = '', message = '', duration = 4000 }) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+  const toast = document.createElement('div');
+  toast.id = id;
+  toast.className = 'pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl bg-[#121316] border shadow-2xl transition-all duration-300 transform translate-y-3 opacity-0';
+
+  let borderStyle = 'border-borderSubtle';
+  let iconName = 'info';
+  let iconColor = 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+
+  if (type === 'success') {
+    borderStyle = 'border-emerald-500/30';
+    iconName = 'check-circle-2';
+    iconColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+  } else if (type === 'warning') {
+    borderStyle = 'border-amber-500/30';
+    iconName = 'alert-triangle';
+    iconColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+  } else if (type === 'error') {
+    borderStyle = 'border-rose-500/30';
+    iconName = 'alert-octagon';
+    iconColor = 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+  }
+
+  toast.classList.add(borderStyle);
+
+  toast.innerHTML = `
+    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${iconColor}">
+      <i data-lucide="${iconName}" class="w-4 h-4"></i>
+    </div>
+    <div class="flex-1 min-w-0 pr-1">
+      ${title ? `<div class="text-xs font-bold text-white tracking-tight">${title}</div>` : ''}
+      <div class="text-[11px] text-zinc-400 leading-snug mt-0.5">${message}</div>
+    </div>
+    <button onclick="dismissToast('${id}')" class="text-zinc-500 hover:text-zinc-300 p-0.5 rounded transition-colors shrink-0 active:scale-95">
+      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+    </button>
+  `;
+
+  container.appendChild(toast);
+  actualizarIconos();
+
+  requestAnimationFrame(() => {
+    toast.classList.remove('translate-y-3', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+  });
+
+  if (duration > 0) {
+    setTimeout(() => {
+      dismissToast(id);
+    }, duration);
+  }
+}
+
+function dismissToast(id) {
+  const toast = document.getElementById(id);
+  if (!toast) return;
+  toast.classList.remove('translate-y-0', 'opacity-100');
+  toast.classList.add('translate-y-2', 'opacity-0');
+  setTimeout(() => {
+    toast.remove();
+  }, 250);
+}
+
+// ============================================================================
+// SISTEMA DE DIÁLOGOS IN-APP ELEGANTES (ESTILO SHADCN UI DIALOG)
+// ============================================================================
+function showAppDialog({
+  type = 'info',
+  icon = 'info',
+  title = '',
+  description = '',
+  details = '',
+  buttonText = 'Entendido',
+  onConfirm = null
+}) {
+  const backdrop = document.getElementById('app-dialog-backdrop');
+  const card = document.getElementById('app-dialog-card');
+  const titleEl = document.getElementById('app-dialog-title');
+  const descEl = document.getElementById('app-dialog-desc');
+  const extraEl = document.getElementById('app-dialog-extra');
+  const iconWrapper = document.getElementById('app-dialog-icon-wrapper');
+  const iconEl = document.getElementById('app-dialog-icon');
+  const btnPrimary = document.getElementById('app-dialog-btn-primary');
+
+  if (!backdrop) return;
+
+  titleEl.textContent = title;
+  descEl.textContent = description;
+
+  if (details) {
+    extraEl.textContent = details;
+    extraEl.classList.remove('hidden');
+  } else {
+    extraEl.classList.add('hidden');
+  }
+
+  let wrapperClass = 'bg-zinc-800 text-zinc-300 border border-zinc-700';
+  let btnClass = 'bg-emerald-500 hover:bg-emerald-600 text-zinc-950';
+
+  if (type === 'danger' || type === 'error') {
+    wrapperClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/30';
+    btnClass = 'bg-rose-500 hover:bg-rose-600 text-white';
+    icon = icon || 'alert-octagon';
+  } else if (type === 'warning') {
+    wrapperClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
+    btnClass = 'bg-amber-500 hover:bg-amber-600 text-zinc-950';
+    icon = icon || 'alert-triangle';
+  } else if (type === 'success') {
+    wrapperClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+    btnClass = 'bg-emerald-500 hover:bg-emerald-600 text-zinc-950';
+    icon = icon || 'check-circle-2';
+  }
+
+  iconWrapper.className = `w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${wrapperClass}`;
+  iconEl.setAttribute('data-lucide', icon);
+  btnPrimary.className = `px-5 py-2 rounded-lg font-bold text-xs active-press transition-colors shadow-sm ${btnClass}`;
+  btnPrimary.textContent = buttonText;
+
+  btnPrimary.onclick = () => {
+    cerrarAppDialog();
+    if (typeof onConfirm === 'function') onConfirm();
+  };
+
+  backdrop.classList.remove('hidden');
+  backdrop.classList.add('flex');
+  requestAnimationFrame(() => {
+    backdrop.classList.remove('opacity-0');
+    backdrop.classList.add('opacity-100');
+    card.classList.remove('scale-95');
+    card.classList.add('scale-100');
+  });
+
+  actualizarIconos();
+}
+
+function cerrarAppDialog() {
+  const backdrop = document.getElementById('app-dialog-backdrop');
+  const card = document.getElementById('app-dialog-card');
+  if (!backdrop) return;
+
+  backdrop.classList.remove('opacity-100');
+  backdrop.classList.add('opacity-0');
+  card.classList.remove('scale-100');
+  card.classList.add('scale-95');
+
+  setTimeout(() => {
+    backdrop.classList.add('hidden');
+    backdrop.classList.remove('flex');
+  }, 200);
+}
+
+function configurarEventosDialogo() {
+  const backdrop = document.getElementById('app-dialog-backdrop');
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) cerrarAppDialog();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      cerrarAppDialog();
+      cerrarModalUpload();
+    }
+  });
+}
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
   inicializarApp();
   configurarBuscador();
+  configurarEventosDialogo();
 });
 
 async function inicializarApp() {
@@ -437,6 +611,35 @@ function actualizarVistaExpediente(d, resetChat = false) {
     if (viewEmpty) viewEmpty.classList.remove('hidden');
   }
 
+  // Actualizar datos de Ficha Digital de Recepción (Pestaña Remisión)
+  const remDigitalFolio = document.getElementById('rem-digital-folio');
+  if (remDigitalFolio) remDigitalFolio.textContent = `REF: ${rem.folio || oc.folio || caseId}`;
+  const remDigitalObs = document.getElementById('rem-digital-obs');
+  if (remDigitalObs) {
+    remDigitalObs.textContent = rem.observaciones || rem.notas || (tieneImg ? 'Foto física adjunta con sello y firma de almacén.' : 'Mercancía recibida conforme en almacén central.');
+  }
+
+  // Actualizar datos de Pestaña CFDI XML
+  const cfdiTabTipo = document.getElementById('cfdi-tab-tipo');
+  if (cfdiTabTipo) cfdiTabTipo.textContent = cfdi.tipo_de_comprobante === 'I' ? 'Ingreso (I)' : (cfdi.tipo_de_comprobante || 'Ingreso (I)');
+  const cfdiTabUuid = document.getElementById('cfdi-tab-uuid');
+  if (cfdiTabUuid) cfdiTabUuid.textContent = cfdi.uuid || 'N/A';
+  const cfdiTabEmisor = document.getElementById('cfdi-tab-emisor');
+  if (cfdiTabEmisor) cfdiTabEmisor.textContent = cfdi.rfc_emisor || oc.proveedor_rfc || 'N/A';
+  const cfdiTabTotal = document.getElementById('cfdi-tab-total');
+  if (cfdiTabTotal) cfdiTabTotal.textContent = fmtMXN(cotejo.total_cfdi_mxn || cfdi.total || 0);
+  const btnDescXml = document.getElementById('btn-descargar-xml-raw');
+  if (btnDescXml) {
+    btnDescXml.href = `/api/cases/${caseId}/xml`;
+    btnDescXml.download = `${cfdi.uuid || caseId}.xml`;
+  }
+
+  // Actualizar datos de Pestaña Orden de Compra ERP
+  const ocTabFolio = document.getElementById('oc-tab-folio');
+  if (ocTabFolio) ocTabFolio.textContent = oc.folio || caseId;
+  const ocTabProveedor = document.getElementById('oc-tab-proveedor');
+  if (ocTabProveedor) ocTabProveedor.textContent = oc.proveedor_nombre || (caseId.includes('MANUAL') ? 'Carga Manual' : `Proveedor ${caseId}`);
+
   // Tríada 1: Orden de Compra
   const lineasOc = oc.lineas || [];
   const monedaDoc = cfdi.moneda || oc.moneda || 'MXN';
@@ -444,6 +647,11 @@ function actualizarVistaExpediente(d, resetChat = false) {
   const totalCantOc = lineasOc.reduce((sum, l) => sum + (parseFloat(l.cantidad) || 0), 0);
   const subtotalOcPactado = lineasOc.reduce((sum, l) => sum + ((parseFloat(l.cantidad) || 0) * (parseFloat(l.precio_unitario) || 0)), 0);
   const subtotalOcMxn = subtotalOcPactado * (monedaDoc !== 'MXN' ? tcDoc : 1);
+
+  const ocTabMoneda = document.getElementById('oc-tab-moneda');
+  if (ocTabMoneda) ocTabMoneda.textContent = monedaDoc;
+  const ocTabSubtotal = document.getElementById('oc-tab-subtotal');
+  if (ocTabSubtotal) ocTabSubtotal.textContent = fmtMXN(subtotalOcMxn || 0);
 
   const triadOcDesc = document.getElementById('triad-oc-desc');
   if (triadOcDesc) {
@@ -667,7 +875,7 @@ async function subirFotoDirectaCaso(input) {
   const archivo = input.files[0];
   const caseId = state.casoActivoId;
   if (!caseId) {
-    alert('Selecciona un caso primero.');
+    showToast({ type: 'warning', title: 'Atención', message: 'Selecciona un expediente primero.' });
     return;
   }
 
@@ -681,15 +889,15 @@ async function subirFotoDirectaCaso(input) {
     });
     const data = await res.json();
     if (data.ok) {
-      alert(`✅ ${data.mensaje}\nNuevo estado: ${data.estado_final}`);
+      showToast({ type: 'success', title: 'Foto de Remisión Actualizada', message: `${data.mensaje} · Estado: ${data.estado_final}` });
       await cargarMetricas();
       await cargarCasos();
       await seleccionarCaso(caseId);
     } else {
-      alert('Error procesando imagen: ' + (data.detail || 'Error desconocido'));
+      showToast({ type: 'error', title: 'Error de Imagen', message: data.detail || 'Error desconocido' });
     }
   } catch (err) {
-    alert('Error al subir la imagen de la remisión.');
+    showToast({ type: 'error', title: 'Error de Subida', message: 'Fallo al subir la imagen de la remisión al servidor.' });
   } finally {
     input.value = '';
   }
@@ -830,35 +1038,59 @@ function preguntarRapido(texto) {
   }
 }
 
-// 10. Acciones Inmediatas (Idempotencia, Policy Gate y Auditoría)
+/// 10. Acciones Inmediatas (Idempotencia, Policy Gate y Auditoría)
 async function solicitarNotaCredito() {
   if (!state.casoActivoId) return;
   try {
     const res = await fetch(`/api/tools/reclamo/${state.casoActivoId}`, { method: 'POST' });
     const data = await res.json();
     if (!data.ok) {
-      alert(`⛔ RECHAZADO POR POLICY GATE ($5,000 MXN):\n${data.error || 'Acción no permitida.'}`);
+      showAppDialog({
+        type: 'danger',
+        icon: 'shield-alert',
+        title: 'Rechazado por Policy Gate ($5,000 MXN)',
+        description: 'La compuerta autónoma impide emitir reclamos que superen el límite corporativo permitido.',
+        details: `${data.error || 'El monto de la discrepancia excede el umbral autónomo.'}\n\n• Umbral Máximo Autónomo: $5,000.00 MXN\n• Acción de Gobierno: El caso debe cerrarse como ESCALADO para autorización manual por Contraloría y Dirección de Finanzas.`
+      });
       return;
     }
     if (data.idempotencia_bloqueada) {
-      alert(`⚠️ BLOQUEO DE IDEMPOTENCIA ACTIVO (PostgreSQL 16):\n${data.mensaje_idempotencia || data.mensaje}\nLlave: ${data.action_key}\nSe evitó enviar un reclamo duplicado.`);
+      showAppDialog({
+        type: 'warning',
+        icon: 'shield-check',
+        title: 'Bloqueo de Idempotencia Activo',
+        description: 'Se evitó el reenvío duplicado de este reclamo al proveedor.',
+        details: `${data.mensaje_idempotencia || data.mensaje}\n\n• Llave de Idempotencia: ${data.action_key}\n• Registro en Base de Datos: SQLite WAL / PostgreSQL`
+      });
     } else {
-      alert(`✅ RECLAMO ENVIADO CON ÉXITO:\n${data.mensaje_idempotencia || 'Webhook formal disparado hacia el proveedor.'}\nLlave de idempotencia registrada: ${data.action_key}`);
+      showToast({
+        type: 'success',
+        title: 'Reclamo Disparado con Éxito',
+        message: `${data.mensaje_idempotencia || 'Webhook formal disparado hacia el proveedor.'} · Llave: ${data.action_key}`
+      });
     }
     await cargarMetricas();
   } catch (err) {
-    alert('Error enviando reclamo.');
+    showToast({ type: 'error', title: 'Error en Reclamo', message: 'No se pudo emitir el webhook hacia el proveedor.' });
   }
 }
 
 function aprobarPagoParcial() {
   if (!state.casoActivoData) return;
   const monto = fmtMXN(state.casoActivoData.cotejo.monto_a_pagar_mxn);
-  alert(`Dispersión de tesorería autorizada por ${monto}.\nEl pago de lo recibido queda liberado y la retención resguardada.`);
+  showToast({
+    type: 'success',
+    title: 'Dispersión de Pago Autorizada',
+    message: `Pago liberado por ${monto}. La retención preventiva queda resguardada en tesorería.`
+  });
 }
 
 function generarActaPDF() {
-  alert(`Generando Acta Circunstanciada en PDF para el expediente ${state.casoActivoId}...\nSe adjunta el análisis de Grok Vision, la verificación fiscal SAT 69-B y el desglose de 3 vías.`);
+  showToast({
+    type: 'info',
+    title: 'Generando Acta Circunstanciada en PDF',
+    message: `Expediente ${state.casoActivoId}: compilando análisis de Grok Vision, SAT 69-B y desglose de 3 vías.`
+  });
 }
 
 async function auditarCasoActivo() {
@@ -906,9 +1138,15 @@ async function auditarCasoActivo() {
         actualizarIconos();
         stream.scrollTop = stream.scrollHeight;
       }
+
+      showToast({
+        type: 'success',
+        title: 'Auditoría Grok 4.6 Finalizada',
+        message: `Expediente ${state.casoActivoId}: ${data.estado_final} · Fuga detectada: ${fmtMXN(data.fuga_detectada_mxn)}`
+      });
     }
   } catch (err) {
-    alert('Error al auditar el caso.');
+    showToast({ type: 'error', title: 'Error de Auditoría', message: 'No se pudo completar la auditoría con Grok 4.6.' });
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -929,10 +1167,14 @@ async function auditarTodoElLote() {
       await cargarMetricas();
       await cargarSaludSistema();
       await seleccionarCaso(state.casoActivoId);
-      alert(`✅ Lote completado: ${data.total_procesados} expedientes procesados por Grok 4.6 y persistidos en PostgreSQL 16.`);
+      showToast({
+        type: 'success',
+        title: 'Lote Auditado con Éxito',
+        message: `${data.total_procesados} expedientes procesados por Grok 4.6 y persistidos.`
+      });
     }
   } catch (err) {
-    alert('Error al auditar el lote.');
+    showToast({ type: 'error', title: 'Error de Lote', message: 'Fallo al procesar el lote completo.' });
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -946,19 +1188,22 @@ async function probarVisionEnVivo() {
     const lbl = document.getElementById('vision-nitidez-label');
     if (lbl && data.nitidez_optica !== undefined) lbl.textContent = `Nitidez: ${data.nitidez_optica}`;
     if (!data.ok && !data.nitidez_optica) {
-      alert(`Inspección Grok Vision (${state.casoActivoId}):\n${data.error || 'Este expediente no incluye imagen física de remisión.'}`);
+      showToast({
+        type: 'warning',
+        title: 'Grok Vision',
+        message: `Expediente ${state.casoActivoId}: no incluye imagen física de remisión escaneada.`
+      });
       return;
     }
-    alert(
-      `👁️ Inspección Grok Vision (${state.casoActivoId}):\n` +
-      `- Nitidez óptica: ${data.nitidez_optica}\n` +
-      `- Legible: ${data.legible ? 'Sí (Nítida)' : 'No (RECEIPT_UNREADABLE — Foto borrosa)'}\n` +
-      `- Sello almacén: ${data.sello_almacen ? 'Detectado' : 'No detectado'}\n` +
-      `- Nota manuscrita: ${data.notas_manuscritas || 'Sin anomalías'}\n` +
-      `- Modelo: ${data.modelo_vision || 'grok-4.6'}`
-    );
+    showAppDialog({
+      type: 'info',
+      icon: 'eye',
+      title: `Inspección Grok Vision (${state.casoActivoId})`,
+      description: 'Análisis óptico y extracción de sellos y firmas por visión computacional',
+      details: `- Nitidez óptica: ${data.nitidez_optica}\n- Legibilidad: ${data.legible ? 'Nítida (Aprobada)' : 'Borrosa (RECEIPT_UNREADABLE)'}\n- Sello de almacén: ${data.sello_almacen ? 'Detectado y verificado' : 'No detectado'}\n- Anotaciones manuscritas: ${data.notas_manuscritas || 'Sin anomalías'}\n- Modelo: ${data.modelo_vision || 'grok-4.6'}`
+    });
   } catch (err) {
-    alert('Error en Grok Vision.');
+    showToast({ type: 'error', title: 'Error Grok Vision', message: 'Fallo al ejecutar la herramienta de visión.' });
   }
 }
 
@@ -972,28 +1217,32 @@ async function probarSatEnVivo() {
     const estadoCfdi = soap.estado_sat || soap.estado || 'SAT_NO_VERIFICADO';
     const codigoEstatus = soap.codigo_estatus_sat || soap.detalle || 'N/A';
     const estatus69b = data.en_lista_69b
-      ? `⛔ EN LISTA 69-B (${(data.detalle_69b && data.detalle_69b.nombre_contribuyente) || 'EFOS Definitivo'})`
-      : '✅ Limpio (No EFOS)';
+      ? `EN LISTA 69-B (${(data.detalle_69b && data.detalle_69b.nombre_contribuyente) || 'EFOS Definitivo'})`
+      : 'Limpio (No EFOS)';
 
     await cargarSaludSistema();
 
-    alert(
-      `🛡️ Consulta SAT SOAP en Vivo (${state.casoActivoId}):\n` +
-      `- RFC Emisor: ${data.rfc_emisor || 'N/A'}\n` +
-      `- Estado CFDI SOAP: ${estadoCfdi}\n` +
-      `- Detalle / Código: ${codigoEstatus}\n` +
-      `- Lista 69-B (EFOS): ${estatus69b}\n` +
-      `- UUID Duplicado: ${data.uuid_duplicado ? '⚠️ Sí (' + data.uuid_duplicado_en + ')' : 'No'}\n` +
-      `- Circuit Breaker SAT: ${cbEstado}`
-    );
+    showAppDialog({
+      type: data.en_lista_69b ? 'danger' : 'info',
+      icon: 'shield-check',
+      title: `Consulta SAT SOAP en Vivo (${state.casoActivoId})`,
+      description: 'Verificación de estado fiscal y timbre digital en tiempo real con el SAT',
+      details: `- RFC Emisor: ${data.rfc_emisor || 'N/A'}\n- Estado CFDI SOAP: ${estadoCfdi}\n- Código Estatus: ${codigoEstatus}\n- Lista Negra 69-B (EFOS): ${estatus69b}\n- UUID Duplicado: ${data.uuid_duplicado ? 'Sí (' + data.uuid_duplicado_en + ')' : 'No'}\n- Circuit Breaker SAT: ${cbEstado}`
+    });
   } catch (err) {
-    alert('Error en consulta SAT.');
+    showToast({ type: 'error', title: 'Error SAT', message: 'Fallo al consultar el servicio SOAP del SAT.' });
   }
 }
 
 function abrirInfo69B() {
   const motor = (document.getElementById('label-motor-db') && document.getElementById('label-motor-db').textContent) || 'PostgreSQL 16';
-  alert(`Base de Datos Lista Negra 69-B del SAT (${motor}):\nSe cuenta con el padrón de RFCs EFOS definitivos del SAT indexado en ${motor} para detección instantánea (< 2ms) sin depender de la latencia del portal del SAT.`);
+  showAppDialog({
+    type: 'info',
+    icon: 'database',
+    title: 'Base de Datos Lista Negra SAT 69-B',
+    description: `Indexación local de EFOS definitivos en ${motor}`,
+    details: `Se cuenta con el padrón oficial de RFCs EFOS definitivos del SAT indexado localmente en ${motor} para validación instantánea (< 2ms) con alta disponibilidad y tolerancia a fallos del portal del SAT.`
+  });
 }
 
 // 11. Carga Manual de Documentos
@@ -1034,16 +1283,24 @@ async function enviarCargaManual(e) {
     const data = await res.json();
 
     if (data.ok) {
-      alert(`🎉 Expediente ${data.case_id} procesado exitosamente.\nResultado del Cotejo: ${data.veredicto.estado_final}\nFuga detectada: ${fmtMXN(data.veredicto.fuga_detectada_mxn)}`);
+      showToast({
+        type: 'success',
+        title: 'Expediente Auditado con Éxito',
+        message: `Caso ${data.case_id}: ${data.veredicto.estado_final} · Fuga detectada: ${fmtMXN(data.veredicto.fuga_detectada_mxn)}`
+      });
       cerrarModalUpload();
       await cargarMetricas();
       await cargarCasos();
       inspeccionarYIrADashboard(data.case_id);
     } else {
-      alert(`Error procesando carga manual: ${data.detail || 'Verifica el XML'}`);
+      showToast({
+        type: 'error',
+        title: 'Error de Validación XML',
+        message: data.detail || 'Verifica la estructura del archivo CFDI 4.0 XML'
+      });
     }
   } catch (err) {
-    alert('Error al enviar los archivos al servidor.');
+    showToast({ type: 'error', title: 'Error de Servidor', message: 'Fallo al procesar los archivos en el servidor.' });
   } finally {
     statusEl.classList.add('hidden');
     btnSubmit.disabled = false;
@@ -1084,3 +1341,423 @@ function configurarBuscador() {
     }
   });
 }
+
+// 13. Inspección y Gestión Multidocumental (Remisión Almacén, CFDI XML, Orden de Compra ERP)
+let docInspectorContenidoActual = '';
+
+function cambiarTabDocumento(tab) {
+  const btnRem = document.getElementById('tab-doc-btn-remision');
+  const btnCfdi = document.getElementById('tab-doc-btn-cfdi');
+  const btnOc = document.getElementById('tab-doc-btn-oc');
+
+  const paneRem = document.getElementById('pane-doc-remision');
+  const paneCfdi = document.getElementById('pane-doc-cfdi');
+  const paneOc = document.getElementById('pane-doc-oc');
+
+  const activeBtn = 'tab-doc-btn flex-1 py-1 px-1.5 rounded text-[11px] font-medium transition-colors bg-zinc-800 text-white shadow-sm flex items-center justify-center gap-1';
+  const inactiveBtn = 'tab-doc-btn flex-1 py-1 px-1.5 rounded text-[11px] font-medium transition-colors text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1';
+
+  if (tab === 'REMISION') {
+    if (btnRem) btnRem.className = activeBtn;
+    if (btnCfdi) btnCfdi.className = inactiveBtn;
+    if (btnOc) btnOc.className = inactiveBtn;
+
+    if (paneRem) paneRem.classList.remove('hidden');
+    if (paneCfdi) paneCfdi.classList.add('hidden');
+    if (paneOc) paneOc.classList.add('hidden');
+  } else if (tab === 'CFDI') {
+    if (btnRem) btnRem.className = inactiveBtn;
+    if (btnCfdi) btnCfdi.className = activeBtn;
+    if (btnOc) btnOc.className = inactiveBtn;
+
+    if (paneRem) paneRem.classList.add('hidden');
+    if (paneCfdi) paneCfdi.classList.remove('hidden');
+    if (paneOc) paneOc.classList.add('hidden');
+  } else if (tab === 'OC') {
+    if (btnRem) btnRem.className = inactiveBtn;
+    if (btnCfdi) btnCfdi.className = inactiveBtn;
+    if (btnOc) btnOc.className = activeBtn;
+
+    if (paneRem) paneRem.classList.add('hidden');
+    if (paneCfdi) paneCfdi.classList.add('hidden');
+    if (paneOc) paneOc.classList.remove('hidden');
+  }
+
+  actualizarIconos();
+}
+
+function abrirModalInspeccionDocumento(tipo) {
+  const modal = document.getElementById('modal-doc-inspector');
+  const card = document.getElementById('modal-doc-card');
+  const titleEl = document.getElementById('modal-doc-title');
+  const subtitleEl = document.getElementById('modal-doc-subtitle');
+  const iconWrapper = document.getElementById('modal-doc-icon-wrapper');
+  const bodyEl = document.getElementById('modal-doc-body');
+  const footerMeta = document.getElementById('modal-doc-footer-meta');
+
+  if (!modal || !bodyEl) return;
+
+  const caseId = state.casoActivoId || 'OC-001';
+  const d = state.casoActivoData || {};
+  const oc = d.oc || {};
+  const rem = d.remision || {};
+  const cfdi = d.cfdi || {};
+  const cotejo = d.cotejo || {};
+  const tieneImg = d.tiene_imagen_remision;
+
+  if (subtitleEl) subtitleEl.textContent = `Expediente: ${caseId} · ${oc.proveedor_nombre || cfdi.rfc_emisor || 'Platica.mx'}`;
+
+  if (tipo === 'REMISION') {
+    if (titleEl) titleEl.textContent = 'Remisión de Almacén (Documento de Entrega)';
+    if (iconWrapper) {
+      iconWrapper.className = 'w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center';
+      iconWrapper.innerHTML = '<i data-lucide="package-check" class="w-4 h-4"></i>';
+    }
+    if (footerMeta) footerMeta.textContent = 'Constancia de recepción física firmada por almacén';
+
+    const lineasRem = rem.lineas || [];
+    const lineasOc = oc.lineas || [];
+    const filasPartidas = lineasRem.length > 0
+      ? lineasRem.map((lr, idx) => {
+          const loc = lineasOc.find(lo => lo.sku === lr.sku) || lineasOc[idx] || {};
+          const cantPactada = loc.cantidad || 0;
+          const cantRecibida = lr.cantidad_recibida || 0;
+          const diff = cantRecibida - cantPactada;
+          const statusPartida = diff < 0
+            ? `<span class="text-amber-400 font-bold font-mono">${diff} (Faltante)</span>`
+            : diff > 0
+            ? `<span class="text-cyan-400 font-bold font-mono">+${diff} (Excedente)</span>`
+            : `<span class="text-emerald-400 font-bold font-mono">Completo</span>`;
+
+          return `
+            <tr class="border-b border-borderSubtle">
+              <td class="py-2 px-3 font-mono text-zinc-400">${lr.partida || (idx + 1)}</td>
+              <td class="py-2 px-3 font-mono font-semibold text-white">${lr.sku || loc.sku || 'N/A'}</td>
+              <td class="py-2 px-3 text-zinc-300">${loc.descripcion || 'Mercancía entregada'}</td>
+              <td class="py-2 px-3 font-mono text-center text-zinc-400">${cantPactada}</td>
+              <td class="py-2 px-3 font-mono text-center font-bold text-white">${cantRecibida}</td>
+              <td class="py-2 px-3 text-right">${statusPartida}</td>
+            </tr>
+          `;
+        }).join('')
+      : `
+        <tr>
+          <td colspan="6" class="py-4 text-center text-zinc-500">
+            Recepción global registrada conforme a la Orden de Compra (${oc.lineas ? oc.lineas.length : 1} partidas).
+          </td>
+        </tr>
+      `;
+
+    let bloqueImagen = '';
+    if (tieneImg) {
+      bloqueImagen = `
+        <div class="p-3 rounded-lg bg-zinc-950 border border-borderSubtle space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-cyan-400 flex items-center gap-1.5">
+              <i data-lucide="scan" class="w-3.5 h-3.5"></i>
+              <span>Escaneo Físico / Fotografía del Almacenista</span>
+            </span>
+            <a href="/api/cases/${caseId}/image" target="_blank" class="text-[11px] text-cyan-400 hover:underline flex items-center gap-1">
+              <span>Abrir original</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <div class="h-44 bg-black/60 rounded border border-borderSubtle flex items-center justify-center overflow-hidden">
+            <img src="/api/cases/${caseId}/image" alt="Remisión" class="max-h-full max-w-full object-contain" />
+          </div>
+        </div>
+      `;
+    }
+
+    bodyEl.innerHTML = `
+      <div class="space-y-4">
+        ${bloqueImagen}
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Folio Remisión:</div>
+            <div class="font-bold text-white font-mono mt-0.5">${rem.folio || caseId}</div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Fecha Recepción:</div>
+            <div class="text-zinc-200 font-mono mt-0.5">${rem.fecha_entrega || '2024-03-03'}</div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Sello de Almacén:</div>
+            <div class="font-bold text-emerald-400 mt-0.5 flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>Verificado</span>
+            </div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Firma Almacenista:</div>
+            <div class="font-bold text-emerald-400 mt-0.5 flex items-center gap-1">
+              <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+              <span>Conforme</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-borderSubtle overflow-hidden">
+          <div class="px-3 py-2 bg-zinc-900 border-b border-borderSubtle flex items-center justify-between text-xs">
+            <span class="font-semibold text-zinc-200">Partidas y Cantidades Físicas Recibidas</span>
+            <span class="font-mono text-[10px] text-zinc-500">${lineasRem.length || 1} Partida(s)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-zinc-950 text-[10px] uppercase font-mono text-zinc-500 border-b border-borderSubtle">
+                <tr>
+                  <th class="py-2 px-3">#</th>
+                  <th class="py-2 px-3">SKU</th>
+                  <th class="py-2 px-3">Descripción</th>
+                  <th class="py-2 px-3 text-center">Pactado</th>
+                  <th class="py-2 px-3 text-center">Recibido</th>
+                  <th class="py-2 px-3 text-right">Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasPartidas}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-zinc-950 border border-borderSubtle text-xs space-y-1">
+          <div class="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Anotaciones y Observaciones de Almacén:</div>
+          <div class="text-zinc-200 leading-relaxed">${rem.observaciones || rem.notas || 'Sin incidencias. Entrega recibida completa y sellada por el personal de patio.'}</div>
+        </div>
+      </div>
+    `;
+
+    docInspectorContenidoActual = JSON.stringify(rem, null, 2);
+
+  } else if (tipo === 'CFDI') {
+    if (titleEl) titleEl.textContent = 'Factura CFDI 4.0 Timbrada SAT (XML)';
+    if (iconWrapper) {
+      iconWrapper.className = 'w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center';
+      iconWrapper.innerHTML = '<i data-lucide="file-code" class="w-4 h-4"></i>';
+    }
+    if (footerMeta) footerMeta.textContent = 'CFDI 4.0 verificado ante el SAT con timbre fiscal digital';
+
+    const conceptos = cfdi.conceptos || [];
+    const rawXml = d.raw_xml || '';
+    const moneda = cfdi.moneda || 'MXN';
+    const tc = parseFloat(cfdi.tipo_cambio || 1);
+
+    const filasConceptos = conceptos.map((c, idx) => {
+      return `
+        <tr class="border-b border-borderSubtle">
+          <td class="py-2 px-3 font-mono text-zinc-400">${c.clave_prod_serv || '01010101'}</td>
+          <td class="py-2 px-3 font-mono font-semibold text-white">${c.sku || 'PARTIDA'}</td>
+          <td class="py-2 px-3 text-zinc-300 max-w-[200px] truncate">${c.descripcion || ''}</td>
+          <td class="py-2 px-3 font-mono text-center text-zinc-200">${c.cantidad}</td>
+          <td class="py-2 px-3 font-mono text-right text-zinc-300">$${parseFloat(c.valor_unitario || 0).toFixed(2)}</td>
+          <td class="py-2 px-3 font-mono text-right font-bold text-emerald-400">$${parseFloat(c.importe || 0).toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    bodyEl.innerHTML = `
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle space-y-1">
+            <div class="text-[10px] text-zinc-500 font-mono">Folio Fiscal (UUID SAT):</div>
+            <div class="font-mono text-white select-all break-all text-[11px] font-bold">${cfdi.uuid || 'N/A'}</div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle grid grid-cols-2 gap-2">
+            <div>
+              <div class="text-[10px] text-zinc-500 font-mono">RFC Emisor:</div>
+              <div class="font-mono text-emerald-400 font-bold">${cfdi.rfc_emisor || 'N/A'}</div>
+            </div>
+            <div>
+              <div class="text-[10px] text-zinc-500 font-mono">Moneda / TC:</div>
+              <div class="font-mono text-white font-bold">${moneda} ${moneda !== 'MXN' ? `($${tc.toFixed(2)})` : ''}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-borderSubtle overflow-hidden">
+          <div class="px-3 py-2 bg-zinc-900 border-b border-borderSubtle flex items-center justify-between text-xs">
+            <span class="font-semibold text-zinc-200">Conceptos Facturados</span>
+            <span class="font-mono text-[10px] text-zinc-500">${conceptos.length} Concepto(s)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-zinc-950 text-[10px] uppercase font-mono text-zinc-500 border-b border-borderSubtle">
+                <tr>
+                  <th class="py-2 px-3">Clave SAT</th>
+                  <th class="py-2 px-3">SKU</th>
+                  <th class="py-2 px-3">Descripción</th>
+                  <th class="py-2 px-3 text-center">Cant.</th>
+                  <th class="py-2 px-3 text-right">P. Unitario</th>
+                  <th class="py-2 px-3 text-right">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasConceptos}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-zinc-950 border border-borderSubtle flex items-center justify-between text-xs">
+          <div class="text-zinc-400">Total Facturado en CFDI:</div>
+          <div class="font-mono text-base font-bold text-emerald-400">${fmtMXN(cotejo.total_cfdi_mxn || cfdi.total || 0)}</div>
+        </div>
+
+        ${rawXml ? `
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-zinc-400">
+              <span class="font-semibold flex items-center gap-1">
+                <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Estructura XML Original (CFDI 4.0)</span>
+              </span>
+              <a href="/api/cases/${caseId}/xml" target="_blank" download="${cfdi.uuid || caseId}.xml" class="text-emerald-400 hover:underline flex items-center gap-1">
+                <span>Descargar XML</span>
+                <i data-lucide="download" class="w-3 h-3"></i>
+              </a>
+            </div>
+            <pre class="p-3 rounded bg-black/80 border border-borderSubtle text-[10px] font-mono text-zinc-300 max-h-48 overflow-auto select-all leading-relaxed whitespace-pre">${escapeHtml(rawXml.slice(0, 3000))}${rawXml.length > 3000 ? '\n... [XML completo disponible para descarga]' : ''}</pre>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    docInspectorContenidoActual = rawXml || JSON.stringify(cfdi, null, 2);
+
+  } else if (tipo === 'OC') {
+    if (titleEl) titleEl.textContent = 'Orden de Compra ERP (Compromiso Comercial)';
+    if (iconWrapper) {
+      iconWrapper.className = 'w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center';
+      iconWrapper.innerHTML = '<i data-lucide="shopping-cart" class="w-4 h-4"></i>';
+    }
+    if (footerMeta) footerMeta.textContent = 'Orden autorizada en ERP Platica.mx con condiciones pactadas';
+
+    const lineasOc = oc.lineas || [];
+    const moneda = oc.moneda || 'MXN';
+    const subtotalPactado = lineasOc.reduce((sum, l) => sum + ((parseFloat(l.cantidad) || 0) * (parseFloat(l.precio_unitario) || 0)), 0);
+
+    const filasPartidasOc = lineasOc.map((l, idx) => {
+      const imp = (parseFloat(l.cantidad) || 0) * (parseFloat(l.precio_unitario) || 0);
+      return `
+        <tr class="border-b border-borderSubtle">
+          <td class="py-2 px-3 font-mono text-zinc-400">${l.partida || (idx + 1)}</td>
+          <td class="py-2 px-3 font-mono font-semibold text-white">${l.sku || 'SKU'}</td>
+          <td class="py-2 px-3 text-zinc-300">${l.descripcion || 'Artículo autorizado'}</td>
+          <td class="py-2 px-3 font-mono text-center font-bold text-white">${l.cantidad}</td>
+          <td class="py-2 px-3 font-mono text-right text-zinc-300">$${parseFloat(l.precio_unitario || 0).toFixed(2)}</td>
+          <td class="py-2 px-3 font-mono text-right font-bold text-amber-300">$${imp.toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    bodyEl.innerHTML = `
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Folio OC ERP:</div>
+            <div class="font-bold text-white font-mono mt-0.5">${oc.folio || caseId}</div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Moneda Pactada:</div>
+            <div class="font-bold text-white font-mono mt-0.5">${moneda}</div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">RFC Proveedor:</div>
+            <div class="font-mono text-zinc-200 mt-0.5">${oc.proveedor_rfc || 'N/A'}</div>
+          </div>
+          <div class="p-2.5 rounded bg-zinc-950 border border-borderSubtle">
+            <div class="text-[10px] text-zinc-500 font-mono">Condiciones:</div>
+            <div class="text-zinc-200 mt-0.5 font-medium">${oc.condiciones_pago || 'Crédito 30 días'}</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-zinc-950 border border-borderSubtle text-xs">
+          <div class="text-[10px] text-zinc-500 font-mono">Razón Social Proveedor Adjudicado:</div>
+          <div class="font-semibold text-white mt-0.5">${oc.proveedor_nombre || 'Proveedor Oficial'}</div>
+        </div>
+
+        <div class="rounded-lg border border-borderSubtle overflow-hidden">
+          <div class="px-3 py-2 bg-zinc-900 border-b border-borderSubtle flex items-center justify-between text-xs">
+            <span class="font-semibold text-zinc-200">Partidas y Precios Negociados</span>
+            <span class="font-mono text-[10px] text-zinc-500">${lineasOc.length} Partida(s)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-zinc-950 text-[10px] uppercase font-mono text-zinc-500 border-b border-borderSubtle">
+                <tr>
+                  <th class="py-2 px-3">#</th>
+                  <th class="py-2 px-3">SKU</th>
+                  <th class="py-2 px-3">Descripción</th>
+                  <th class="py-2 px-3 text-center">Cantidad</th>
+                  <th class="py-2 px-3 text-right">P. Unitario</th>
+                  <th class="py-2 px-3 text-right">Importe (${moneda})</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasPartidasOc}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-zinc-950 border border-borderSubtle flex items-center justify-between text-xs">
+          <div class="text-zinc-400">Subtotal Pactado en ERP:</div>
+          <div class="font-mono text-base font-bold text-amber-300">$${subtotalPactado.toFixed(2)} ${moneda}</div>
+        </div>
+      </div>
+    `;
+
+    docInspectorContenidoActual = JSON.stringify(oc, null, 2);
+  }
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+    if (card) card.classList.remove('scale-95');
+  }, 10);
+
+  actualizarIconos();
+}
+
+function cerrarModalInspeccionDocumento() {
+  const modal = document.getElementById('modal-doc-inspector');
+  const card = document.getElementById('modal-doc-card');
+  if (!modal) return;
+
+  modal.classList.add('opacity-0');
+  if (card) card.classList.add('scale-95');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 200);
+}
+
+async function copiarContenidoDocumento() {
+  if (!docInspectorContenidoActual) return;
+  try {
+    await navigator.clipboard.writeText(docInspectorContenidoActual);
+    showToast({
+      type: 'success',
+      title: 'Copiado al Portapapeles',
+      message: 'El contenido del documento se ha copiado con éxito.'
+    });
+  } catch (err) {
+    showToast({
+      type: 'info',
+      title: 'Portapapeles',
+      message: 'Selecciona el texto del visor para copiar manualmente.'
+    });
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+}
+

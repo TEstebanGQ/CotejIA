@@ -228,18 +228,20 @@
           <span>SAT: <strong id="sat-status-text">En Línea</strong></span>
         </div>
 
-        <!-- Selector Interactivo de 180 Divisas (ISO 4217 / SAT Anexo 20) -->
-        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-zinc-900 border border-borderSubtle text-zinc-300">
+        <!-- Tipo de Cambio Oficial (Auditoría FX Banxico) -->
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-zinc-900 border border-borderSubtle text-zinc-300" title="Tipo de cambio oficial Banxico para auditar facturas en moneda extranjera">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
+          <span class="text-zinc-500 font-sans text-[10px] uppercase font-bold tracking-wider">TC Banxico:</span>
           <select 
             id="select-fx-moneda" 
             onchange="cargarTipoCambio(this.value)" 
-            title="Consultar cualquiera de las 180 divisas en tiempo real contra MXN"
-            class="bg-transparent text-zinc-300 font-semibold focus:outline-none cursor-pointer pr-1"
+            title="Consultar cotización oficial en tiempo real contra MXN"
+            class="bg-transparent text-zinc-200 font-semibold focus:outline-none cursor-pointer pr-0.5"
           >
             <option value="USD" class="bg-zinc-900 text-white">USD</option>
           </select>
-          <span class="text-zinc-500">/MXN:</span>
-          <strong id="fx-rate-text" class="text-emerald-400">$18.69</strong>
+          <span class="text-zinc-500">/MXN</span>
+          <strong id="fx-rate-text" class="text-emerald-400 font-mono">$18.69</strong>
         </div>
 
         <!-- Botón + Nuevo Cotejo (Carga Manual) -->
@@ -345,78 +347,250 @@
               </div>
             </div>
 
-            <!-- Visor de Documento Físico & Dropzone de Reemplazo -->
+            <!-- Visor de Documentos del Expediente (Tabs Remisión / CFDI / OC) -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <!-- Visor de Imagen Remisión o Dropzone Limpia (5 cols) -->
-              <div id="panel-remision-container" class="md:col-span-5 bg-cardNested rounded-lg border border-borderSubtle p-3 flex flex-col justify-between relative group min-h-[220px]">
+              <!-- Visor y Revisor de Documentos del Expediente (5 cols) -->
+              <div id="panel-remision-container" class="md:col-span-5 bg-cardNested rounded-lg border border-borderSubtle p-3 flex flex-col justify-between relative group min-h-[250px]">
                 
                 <!-- Input de archivo oculto para subir/reemplazar foto directa del caso -->
                 <input type="file" id="input-subir-foto-directa" accept="image/*,.pdf" class="hidden" onchange="subirFotoDirectaCaso(this)" />
 
-                <!-- ESTADO A: Con Foto Física Activa -->
-                <div id="view-remision-activa" class="flex flex-col justify-between h-full space-y-2">
-                  <div class="flex items-center justify-between text-xs text-zinc-400">
-                    <span class="font-medium flex items-center gap-1.5">
-                      <i data-lucide="scan" class="w-3.5 h-3.5 text-cyan-400"></i>
-                      <span>Remisión Física (Foto)</span>
-                    </span>
-                    <button 
-                      type="button"
-                      onclick="document.getElementById('input-subir-foto-directa').click()" 
-                      title="Subir foto nueva si la actual no es legible"
-                      class="text-[10px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center gap-1 active-press transition-colors"
-                    >
-                      <i data-lucide="camera" class="w-3 h-3 text-cyan-400"></i>
-                      <span>Reemplazar Foto</span>
-                    </button>
+                <!-- Selector de Pestañas de Documentos -->
+                <div class="flex items-center gap-1 p-1 bg-zinc-900/90 rounded-md border border-borderSubtle mb-2.5">
+                  <button 
+                    id="tab-doc-btn-remision" 
+                    type="button" 
+                    onclick="cambiarTabDocumento('REMISION')" 
+                    class="tab-doc-btn flex-1 py-1 px-1.5 rounded text-[11px] font-medium transition-colors bg-zinc-800 text-white shadow-sm flex items-center justify-center gap-1"
+                  >
+                    <i data-lucide="package-check" class="w-3 h-3 text-cyan-400"></i>
+                    <span>Remisión</span>
+                  </button>
+                  <button 
+                    id="tab-doc-btn-cfdi" 
+                    type="button" 
+                    onclick="cambiarTabDocumento('CFDI')" 
+                    class="tab-doc-btn flex-1 py-1 px-1.5 rounded text-[11px] font-medium transition-colors text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1"
+                  >
+                    <i data-lucide="file-code" class="w-3 h-3 text-emerald-400"></i>
+                    <span>Factura XML</span>
+                  </button>
+                  <button 
+                    id="tab-doc-btn-oc" 
+                    type="button" 
+                    onclick="cambiarTabDocumento('OC')" 
+                    class="tab-doc-btn flex-1 py-1 px-1.5 rounded text-[11px] font-medium transition-colors text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1"
+                  >
+                    <i data-lucide="shopping-cart" class="w-3 h-3 text-amber-400"></i>
+                    <span>Orden ERP</span>
+                  </button>
+                </div>
+
+                <!-- CONTENIDO PESTAÑA 1: REMISIÓN DE ALMACÉN -->
+                <div id="pane-doc-remision" class="flex-1 flex flex-col justify-between">
+                  <!-- ESTADO A: Con Foto Física Activa -->
+                  <div id="view-remision-activa" class="flex flex-col justify-between h-full space-y-2">
+                    <div class="flex items-center justify-between text-xs text-zinc-400">
+                      <span class="font-medium flex items-center gap-1.5 text-zinc-300">
+                        <i data-lucide="scan" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>Remisión Física (Foto)</span>
+                      </span>
+                      <div class="flex items-center gap-1">
+                        <button 
+                          type="button"
+                          onclick="abrirModalInspeccionDocumento('REMISION')" 
+                          title="Inspeccionar datos de remisión"
+                          class="text-[10px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center gap-1 active-press transition-colors"
+                        >
+                          <i data-lucide="eye" class="w-3 h-3 text-cyan-400"></i>
+                          <span>Datos</span>
+                        </button>
+                        <button 
+                          type="button"
+                          onclick="document.getElementById('input-subir-foto-directa').click()" 
+                          title="Subir foto nueva"
+                          class="text-[10px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center gap-1 active-press transition-colors"
+                        >
+                          <i data-lucide="camera" class="w-3 h-3 text-zinc-400"></i>
+                          <span>Reemplazar</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Contenedor Imagen con Bounding Box -->
+                    <div class="relative w-full h-36 bg-zinc-950 rounded border border-borderSubtle overflow-hidden flex items-center justify-center">
+                      <img 
+                        id="exp-remision-img" 
+                        src="" 
+                        alt="Remisión física escaneada" 
+                        class="max-h-full max-w-full object-contain cursor-pointer"
+                        onclick="window.open(this.src, '_blank')"
+                        title="Clic para ver en tamaño completo"
+                      />
+                      <div id="vision-bbox" class="absolute bottom-2 left-2 right-2 bg-cyan-950/90 border border-cyan-500/50 p-2 rounded text-[10px] text-cyan-200 font-mono shadow-lg backdrop-blur-sm">
+                        <div class="font-bold text-cyan-400 flex items-center gap-1">
+                          <i data-lucide="edit-3" class="w-3 h-3"></i>
+                          <span>Grok Vision:</span>
+                        </div>
+                        <div id="vision-texto-manuscrito" class="text-white mt-0.5 truncate">
+                          Anotación manuscrita detectada
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Barra de Nitidez -->
+                    <div class="flex items-center justify-between text-[11px] pt-1">
+                      <span id="vision-nitidez-label" class="text-zinc-400 font-mono">Nitidez: --</span>
+                      <span id="vision-status-badge" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Legible</span>
+                    </div>
                   </div>
 
-                  <!-- Contenedor Imagen con Bounding Box -->
-                  <div class="relative w-full h-44 bg-zinc-950 rounded border border-borderSubtle overflow-hidden flex items-center justify-center">
-                    <img 
-                      id="exp-remision-img" 
-                      src="" 
-                      alt="Remisión física escaneada" 
-                      class="max-h-full max-w-full object-contain cursor-pointer"
-                      onclick="window.open(this.src, '_blank')"
-                      title="Clic para ver en tamaño completo"
-                    />
-                    <!-- Overlay de Bounding Box sobre anotación manuscrita -->
-                    <div id="vision-bbox" class="absolute bottom-2 left-2 right-2 bg-cyan-950/90 border border-cyan-500/50 p-2 rounded text-[10px] text-cyan-200 font-mono shadow-lg backdrop-blur-sm">
-                      <div class="font-bold text-cyan-400 flex items-center gap-1">
-                        <i data-lucide="edit-3" class="w-3 h-3"></i>
-                        <span>Grok Vision:</span>
+                  <!-- ESTADO B: Sin Foto Física (Ficha Digital de Recepción en Almacén) -->
+                  <div id="view-remision-empty" class="hidden flex flex-col justify-between h-full space-y-2 p-2 rounded bg-zinc-900/40 border border-borderSubtle">
+                    <div>
+                      <div class="flex items-center justify-between text-xs pb-1.5 border-b border-borderSubtle">
+                        <span class="font-semibold text-zinc-200 flex items-center gap-1.5">
+                          <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+                          <span>Remisión Digital Almacén</span>
+                        </span>
+                        <span class="text-[10px] font-mono text-zinc-500" id="rem-digital-folio">REF: OC-001</span>
                       </div>
-                      <div id="vision-texto-manuscrito" class="text-white mt-0.5 truncate">
-                        Anotación manuscrita detectada
+                      
+                      <!-- Checks de Recepción -->
+                      <div class="grid grid-cols-2 gap-1.5 my-2">
+                        <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle flex items-center gap-1.5 text-[10px]">
+                          <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
+                          <span class="text-zinc-300">Sello Almacén: <strong>OK</strong></span>
+                        </div>
+                        <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle flex items-center gap-1.5 text-[10px]">
+                          <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
+                          <span class="text-zinc-300">Firma Recibo: <strong>OK</strong></span>
+                        </div>
+                      </div>
+
+                      <!-- Observaciones / Partidas -->
+                      <div class="text-[11px] text-zinc-400 bg-zinc-950 p-2 rounded border border-borderSubtle">
+                        <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-0.5">Observaciones Almacén:</div>
+                        <div id="rem-digital-obs" class="text-zinc-300 leading-snug line-clamp-2">Entregado completo sin novedades.</div>
+                      </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex items-center gap-2 pt-1 border-t border-borderSubtle">
+                      <button 
+                        type="button"
+                        onclick="abrirModalInspeccionDocumento('REMISION')" 
+                        class="flex-1 px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs border border-zinc-700 flex items-center justify-center gap-1.5 active-press transition-colors"
+                      >
+                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>Revisar Documento</span>
+                      </button>
+                      <button 
+                        type="button"
+                        onclick="document.getElementById('input-subir-foto-directa').click()" 
+                        class="px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white font-medium text-xs border border-zinc-700 flex items-center justify-center gap-1 active-press transition-colors"
+                        title="Adjuntar foto si tienes el escaneo físico"
+                      >
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        <span>+ Foto</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CONTENIDO PESTAÑA 2: FACTURA CFDI 4.0 XML -->
+                <div id="pane-doc-cfdi" class="hidden flex-1 flex flex-col justify-between h-full space-y-2 p-2 rounded bg-zinc-900/40 border border-borderSubtle">
+                  <div>
+                    <div class="flex items-center justify-between text-xs pb-1.5 border-b border-borderSubtle">
+                      <span class="font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <i data-lucide="file-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>CFDI 4.0 Timbrado SAT</span>
+                      </span>
+                      <span id="cfdi-tab-tipo" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ingreso (I)</span>
+                    </div>
+
+                    <div class="space-y-1.5 my-2 text-[11px]">
+                      <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle">
+                        <div class="text-[10px] font-mono text-zinc-500">Folio Fiscal (UUID SAT):</div>
+                        <div id="cfdi-tab-uuid" class="font-mono text-zinc-200 truncate select-all">00000000-0000-4000-8000-000000000000</div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-1.5">
+                        <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle">
+                          <div class="text-[10px] font-mono text-zinc-500">RFC Emisor:</div>
+                          <div id="cfdi-tab-emisor" class="font-mono font-bold text-zinc-200">AAA010101AAA</div>
+                        </div>
+                        <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle">
+                          <div class="text-[10px] font-mono text-zinc-500">Total c/IVA:</div>
+                          <div id="cfdi-tab-total" class="font-mono font-bold text-emerald-400">$0.00 MXN</div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Barra de Nitidez -->
-                  <div class="flex items-center justify-between text-[11px] pt-1">
-                    <span id="vision-nitidez-label" class="text-zinc-400 font-mono">Nitidez: --</span>
-                    <span id="vision-status-badge" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Legible</span>
+                  <!-- Botones de Acción CFDI -->
+                  <div class="flex items-center gap-2 pt-1 border-t border-borderSubtle">
+                    <button 
+                      type="button"
+                      onclick="abrirModalInspeccionDocumento('CFDI')" 
+                      class="flex-1 px-2.5 py-1.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 font-medium text-xs border border-emerald-500/30 flex items-center justify-center gap-1.5 active-press transition-colors"
+                    >
+                      <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i>
+                      <span>Inspeccionar XML SAT</span>
+                    </button>
+                    <a 
+                      id="btn-descargar-xml-raw"
+                      href="#" 
+                      target="_blank"
+                      download="cfdi.xml"
+                      class="px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white font-medium text-xs border border-zinc-700 flex items-center justify-center gap-1 active-press transition-colors"
+                      title="Descargar archivo XML original"
+                    >
+                      <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                      <span>XML</span>
+                    </a>
                   </div>
                 </div>
 
-                <!-- ESTADO B: Sin Foto Física (Dropzone limpia y elegante) -->
-                <div id="view-remision-empty" class="hidden flex flex-col items-center justify-center text-center p-4 h-full border-2 border-dashed border-zinc-800 hover:border-cyan-500/40 rounded-md bg-zinc-900/30 transition-colors">
-                  <div class="w-10 h-10 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400 mb-2">
-                    <i data-lucide="image-plus" class="w-5 h-5 text-zinc-400"></i>
+                <!-- CONTENIDO PESTAÑA 3: ORDEN DE COMPRA ERP -->
+                <div id="pane-doc-oc" class="hidden flex-1 flex flex-col justify-between h-full space-y-2 p-2 rounded bg-zinc-900/40 border border-borderSubtle">
+                  <div>
+                    <div class="flex items-center justify-between text-xs pb-1.5 border-b border-borderSubtle">
+                      <span class="font-semibold text-amber-300 flex items-center gap-1.5">
+                        <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>Orden de Compra ERP</span>
+                      </span>
+                      <span id="oc-tab-folio" class="text-[10px] font-mono text-zinc-400">OC-001</span>
+                    </div>
+
+                    <div class="space-y-1.5 my-2 text-[11px]">
+                      <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle">
+                        <div class="text-[10px] font-mono text-zinc-500">Proveedor ERP:</div>
+                        <div id="oc-tab-proveedor" class="font-medium text-zinc-200 truncate">Metales y Manufacturas</div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-1.5">
+                        <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle">
+                          <div class="text-[10px] font-mono text-zinc-500">Moneda Pactada:</div>
+                          <div id="oc-tab-moneda" class="font-mono font-bold text-zinc-200">MXN</div>
+                        </div>
+                        <div class="p-1.5 rounded bg-zinc-950 border border-borderSubtle">
+                          <div class="text-[10px] font-mono text-zinc-500">Subtotal Pactado:</div>
+                          <div id="oc-tab-subtotal" class="font-mono font-bold text-zinc-200">$0.00</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-xs font-semibold text-zinc-200">Remisión Digital</div>
-                  <div class="text-[11px] text-zinc-500 mt-1 max-w-[210px] leading-snug">
-                    Sin foto física adjunta. Si cuentas con la remisión física o escaneo, adjúntala aquí para auditarla.
+
+                  <!-- Botón Acción OC -->
+                  <div class="flex items-center gap-2 pt-1 border-t border-borderSubtle">
+                    <button 
+                      type="button"
+                      onclick="abrirModalInspeccionDocumento('OC')" 
+                      class="w-full px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs border border-zinc-700 flex items-center justify-center gap-1.5 active-press transition-colors"
+                    >
+                      <i data-lucide="list-ordered" class="w-3.5 h-3.5 text-amber-400"></i>
+                      <span>Revisar Partidas de OC</span>
+                    </button>
                   </div>
-                  <button 
-                    type="button"
-                    onclick="document.getElementById('input-subir-foto-directa').click()" 
-                    class="mt-3 px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs border border-zinc-700 flex items-center gap-1.5 active-press transition-colors"
-                  >
-                    <i data-lucide="upload" class="w-3.5 h-3.5 text-cyan-400"></i>
-                    <span>Adjuntar Foto</span>
-                  </button>
                 </div>
 
               </div>
@@ -428,11 +602,12 @@
                 </div>
 
                 <!-- Box 1: Orden de Compra -->
-                <div class="p-3 rounded-lg bg-cardNested border border-borderSubtle flex items-center justify-between">
+                <div onclick="cambiarTabDocumento('OC')" class="p-3 rounded-lg bg-cardNested border border-borderSubtle hover:border-zinc-500 flex items-center justify-between cursor-pointer transition-colors" title="Clic para inspeccionar la Orden de Compra ERP">
                   <div>
                     <div class="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
                       <span class="w-4 h-4 rounded-full bg-zinc-800 text-zinc-300 font-mono text-[10px] flex items-center justify-center">1</span>
                       <span>Orden de Compra (ERP)</span>
+                      <i data-lucide="external-link" class="w-3 h-3 text-zinc-500"></i>
                     </div>
                     <div id="triad-oc-desc" class="text-sm font-semibold text-white mt-1">100 pzas @ $250.00 MXN</div>
                   </div>
@@ -443,11 +618,12 @@
                 </div>
 
                 <!-- Box 2: Remisión Física (Almacén) -->
-                <div id="box-remision-triad" class="p-3 rounded-lg bg-cardNested border border-amber-500/30 flex items-center justify-between bg-amber-500/[0.02]">
+                <div id="box-remision-triad" onclick="cambiarTabDocumento('REMISION')" class="p-3 rounded-lg bg-cardNested border border-amber-500/30 hover:border-amber-500/60 flex items-center justify-between bg-amber-500/[0.02] cursor-pointer transition-colors" title="Clic para inspeccionar la Remisión de Almacén">
                   <div>
                     <div class="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
                       <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] flex items-center justify-center font-bold">2</span>
                       <span>Remisión Física Almacén</span>
+                      <i data-lucide="external-link" class="w-3 h-3 text-amber-500/60"></i>
                     </div>
                     <div id="triad-rem-desc" class="text-sm font-semibold text-amber-200 mt-1">80 pzas físicas (Faltante: 20 pzas)</div>
                   </div>
@@ -458,11 +634,12 @@
                 </div>
 
                 <!-- Box 3: Factura CFDI 4.0 XML -->
-                <div class="p-3 rounded-lg bg-cardNested border border-borderSubtle flex items-center justify-between">
+                <div onclick="cambiarTabDocumento('CFDI')" class="p-3 rounded-lg bg-cardNested border border-borderSubtle hover:border-emerald-500/50 flex items-center justify-between cursor-pointer transition-colors" title="Clic para inspeccionar la Factura CFDI XML">
                   <div>
                     <div class="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
                       <span class="w-4 h-4 rounded-full bg-zinc-800 text-zinc-300 font-mono text-[10px] flex items-center justify-center">3</span>
                       <span>Factura CFDI 4.0 (SAT XML)</span>
+                      <i data-lucide="external-link" class="w-3 h-3 text-zinc-500"></i>
                     </div>
                     <div id="triad-cfdi-desc" class="text-sm font-semibold text-white mt-1">100 pzas facturadas</div>
                   </div>
@@ -759,6 +936,70 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== CONTENEDOR TOAST FLOTANTE (ESTILO SONNER/SHADCN) ==================== -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- ==================== MODAL DE DIÁLOGO IN-APP (SHADCN UI DIALOG) ==================== -->
+  <div id="app-dialog-backdrop" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 transition-opacity duration-200 opacity-0 select-none">
+    <div id="app-dialog-card" class="bg-[#121316] border border-borderSubtle rounded-xl max-w-md w-full shadow-2xl p-6 transform scale-95 transition-transform duration-200 select-text">
+      <div class="flex items-start gap-3.5">
+        <div id="app-dialog-icon-wrapper" class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
+          <i id="app-dialog-icon" data-lucide="info" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 id="app-dialog-title" class="text-sm font-bold text-white tracking-tight">Título del Diálogo</h3>
+          <p id="app-dialog-desc" class="text-xs text-zinc-400 mt-1.5 leading-relaxed">Descripción del evento o regla de negocio.</p>
+          <div id="app-dialog-extra" class="hidden mt-3 p-3 rounded-lg bg-zinc-900/90 border border-borderSubtle text-xs font-mono text-zinc-300 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto"></div>
+        </div>
+      </div>
+      <div class="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-borderSubtle">
+        <button id="app-dialog-btn-secondary" type="button" onclick="cerrarAppDialog()" class="hidden px-4 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors">
+          Cancelar
+        </button>
+        <button id="app-dialog-btn-primary" type="button" onclick="cerrarAppDialog()" class="px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs active-press transition-colors shadow-sm">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL VISOR DETALLADO DE DOCUMENTOS ==================== -->
+  <div id="modal-doc-inspector" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-opacity duration-200 opacity-0 select-none">
+    <div id="modal-doc-card" class="bg-[#121316] border border-borderSubtle rounded-xl max-w-2xl w-full shadow-2xl p-6 flex flex-col max-h-[85vh] select-text transform scale-95 transition-transform duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-borderSubtle">
+        <div class="flex items-center gap-2.5">
+          <div id="modal-doc-icon-wrapper" class="w-8 h-8 rounded-lg bg-zinc-800 text-zinc-300 flex items-center justify-center">
+            <i id="modal-doc-icon" data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div>
+            <h3 id="modal-doc-title" class="text-sm font-bold text-white tracking-tight">Inspección de Documento</h3>
+            <p id="modal-doc-subtitle" class="text-[11px] text-zinc-400 font-mono">Expediente: OC-001</p>
+          </div>
+        </div>
+        <button onclick="cerrarModalInspeccionDocumento()" class="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Contenedor de Contenido -->
+      <div id="modal-doc-body" class="my-4 overflow-y-auto max-h-[55vh] text-xs font-mono text-zinc-300 space-y-3 pr-1"></div>
+
+      <!-- Footer con Acciones -->
+      <div class="pt-3 border-t border-borderSubtle flex items-center justify-between">
+        <div id="modal-doc-footer-meta" class="text-[11px] text-zinc-500 font-mono">Documento oficial cotejado</div>
+        <div class="flex items-center gap-2">
+          <button id="modal-doc-btn-copy" onclick="copiarContenidoDocumento()" class="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium border border-zinc-700 flex items-center gap-1.5 active-press">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar</span>
+          </button>
+          <button onclick="cerrarModalInspeccionDocumento()" class="px-4 py-1.5 rounded bg-emerald-500 hover:bg-emerald-600 text-zinc-950 text-xs font-bold active-press transition-colors">
+            Cerrar
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

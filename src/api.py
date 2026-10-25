@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -198,6 +198,11 @@ def api_case_detail(case_id: str):
             for c in cfdi["conceptos"]
         ],
     }
+    xml_path = DATASETS / cid / "cfdi.xml"
+    if not xml_path.exists():
+        xml_path = DATASETS / cid / "factura.xml"
+    raw_xml = xml_path.read_text(encoding="utf-8") if xml_path.exists() else ""
+
     return {
         "ok": True,
         "case_id": cid,
@@ -207,6 +212,7 @@ def api_case_detail(case_id: str):
         "oc": oc,
         "remision": rem,
         "cfdi": cfdi_serializable,
+        "raw_xml": raw_xml,
         "cotejo": cotejo,
         "registro_db": guardados.get(cid),
         "acciones_idempotentes": listar_acciones_db(cid),
@@ -221,6 +227,17 @@ def api_case_image(case_id: str):
     if not ruta.exists():
         raise HTTPException(status_code=404, detail=f"El caso {cid} no tiene imagen remision.png")
     return FileResponse(str(ruta), media_type="image/png")
+
+
+@app.get("/api/cases/{case_id}/xml")
+def api_case_xml(case_id: str):
+    cid = case_id.upper()
+    ruta = DATASETS / cid / "cfdi.xml"
+    if not ruta.exists():
+        ruta = DATASETS / cid / "factura.xml"
+    if not ruta.exists():
+        raise HTTPException(status_code=404, detail=f"El caso {cid} no tiene archivo CFDI XML")
+    return Response(content=ruta.read_text(encoding="utf-8"), media_type="application/xml")
 
 
 @app.post("/api/cases/{case_id}/upload-remision")
