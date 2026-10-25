@@ -1,16 +1,16 @@
-"""Renderizador de Video MP4 fluido (1920x1080, 30 fps) para CotejAI S2.
+"""Renderizador de Video MP4 fluido (1920x1080, 24 fps) para CotejAI S2.
 
-Combina las capturas reales de la aplicación web en vivo (http://localhost:8000),
-las imágenes reales de remisiones físicas (OC-004 y OC-005), animaciones fluidas
-a 30 fps de la mascota oficial Kótek (flotación sinusoidal, anillos de voz,
-ecualizador dinámico, escáner láser cian y tarjetas de herramientas en vivo)
+Combina las capturas reales de la nueva interfaz web en vivo (http://localhost:8000),
+el modelo 3D oficial de Kótek generado en Tripo Studio (tripo-showcase),
+las imágenes reales de remisiones físicas (OC-004 y OC-005), tarjetas de herramientas
+con ajuste automático de texto por píxeles (cero desbordes) y posiciones dinámicas,
 y las 6 locuciones masculinas reales generadas con ElevenLabs.
 """
 import math
 import shutil
 import subprocess
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
@@ -23,7 +23,7 @@ FFMPEG = str(FFMPEG_BIN / "ffmpeg.exe")
 FFPROBE = str(FFMPEG_BIN / "ffprobe.exe")
 
 W, H = 1920, 1080
-FPS = 24  # 24 fps cinematográfico para render rápido y movimiento fluido
+FPS = 24  # 24 fps cinematográfico para movimiento fluido
 
 
 def cargar_fuente(size: int, bold: bool = False, mono: bool = False):
@@ -45,12 +45,12 @@ def cargar_fuente(size: int, bold: bool = False, mono: bool = False):
 
 
 FONT_H1 = cargar_fuente(46, bold=True)
-FONT_H2 = cargar_fuente(30, bold=True)
-FONT_BODY = cargar_fuente(22, bold=False)
-FONT_BODY_B = cargar_fuente(22, bold=True)
-FONT_SUB = cargar_fuente(23, bold=False)
-FONT_MONO_B = cargar_fuente(22, bold=True, mono=True)
-FONT_MONO_S = cargar_fuente(18, bold=True, mono=True)
+FONT_H2 = cargar_fuente(28, bold=True)
+FONT_BODY = cargar_fuente(19, bold=False)
+FONT_BODY_B = cargar_fuente(19, bold=True)
+FONT_SUB = cargar_fuente(22, bold=False)
+FONT_MONO_B = cargar_fuente(19, bold=True, mono=True)
+FONT_MONO_S = cargar_fuente(17, bold=True, mono=True)
 
 
 def duracion_mp3(ruta: Path) -> float:
@@ -70,6 +70,27 @@ def duracion_mp3(ruta: Path) -> float:
     return float(out)
 
 
+def envolver_texto_px(draw: ImageDraw.ImageDraw, texto: str, font, max_width_px: int, indent: str = "") -> list[str]:
+    """Envuelve un texto por palabras garantizando que ninguna línea supere max_width_px."""
+    palabras = texto.split(" ")
+    lineas: list[str] = []
+    actual = ""
+    for pal in palabras:
+        candidato = pal if not actual else f"{actual} {pal}"
+        if draw.textlength(candidato, font=font) <= max_width_px:
+            actual = candidato
+        else:
+            if actual:
+                lineas.append(actual)
+                actual = f"{indent}{pal}"
+            else:
+                lineas.append(pal)
+                actual = ""
+    if actual:
+        lineas.append(actual)
+    return lineas or [texto]
+
+
 def crear_avatar_circular(img_src: Image.Image, size: int, border_color=(16, 185, 129)) -> Image.Image:
     im = img_src.resize((size, size), Image.Resampling.LANCZOS).convert("RGBA")
     mask = Image.new("L", (size, size), 0)
@@ -82,7 +103,7 @@ def crear_avatar_circular(img_src: Image.Image, size: int, border_color=(16, 185
     return out
 
 
-def crear_mascot_hero(img_src: Image.Image, size: int) -> Image.Image:
+def crear_mascot_hero(img_src: Image.Image, size: int, border_color=(6, 182, 212, 255)) -> Image.Image:
     im = img_src.resize((size, size), Image.Resampling.LANCZOS).convert("RGBA")
     mask = Image.new("L", (size, size), 0)
     d = ImageDraw.Draw(mask)
@@ -90,8 +111,16 @@ def crear_mascot_hero(img_src: Image.Image, size: int) -> Image.Image:
     out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     out.paste(im, (0, 0), mask)
     d_out = ImageDraw.Draw(out)
-    d_out.rounded_rectangle((2, 2, size - 3, size - 3), radius=36, outline=(6, 182, 212, 255), width=5)
+    d_out.rounded_rectangle((2, 2, size - 3, size - 3), radius=36, outline=border_color, width=5)
     return out
+
+
+def indice_ping_pong(f_idx: int, total: int) -> int:
+    if total <= 1:
+        return 0
+    ciclo = 2 * total - 2
+    pos = f_idx % ciclo
+    return pos if pos < total else ciclo - pos
 
 
 def dibujar_dock_kotek(
@@ -103,42 +132,41 @@ def dibujar_dock_kotek(
     subtitulo: str,
     progreso_global: float,
 ):
-    """Dibuja a Kótek en la parte inferior con movimiento flotante, ondas de voz y subtítulos."""
+    """Dibuja a Kótek 3D en la barra inferior con movimiento flotante, ondas de voz y subtítulos ajustados."""
     draw = ImageDraw.Draw(frame, "RGBA")
 
-    # Barra contenedora inferior translúcida
     box_x1, box_y1, box_x2, box_y2 = 40, 885, 1880, 1052
     draw.rounded_rectangle(
         (box_x1, box_y1, box_x2, box_y2),
         radius=22,
-        fill=(9, 13, 22, 238),
-        outline=(6, 182, 212, 185),
+        fill=(9, 13, 22, 242),
+        outline=(6, 182, 212, 195),
         width=3,
     )
 
-    # Movimiento natural sinusoidal de Kótek (flota y respira)
-    dy = int(math.sin(t_global * 3.4) * 7)
+    # Movimiento natural sinusoidal de Kótek 3D
+    dy = int(math.sin(t_global * 3.4) * 6)
     ax, ay = 64, 898 + dy
 
-    # Anillos de voz pulsantes detrás de Kótek
+    # Anillos de voz pulsantes detrás del avatar 3D
     pulso = int((math.sin(t_global * 8.0) + 1.0) * 6)
     cx, cy = ax + 68, ay + 68
     draw.ellipse(
         (cx - 72 - pulso, cy - 72 - pulso, cx + 72 + pulso, cy + 72 + pulso),
-        outline=(16, 185, 129, 120),
+        outline=(16, 185, 129, 130),
         width=3,
     )
     draw.ellipse(
         (cx - 66 - pulso // 2, cy - 66 - pulso // 2, cx + 66 + pulso // 2, cy + 66 + pulso // 2),
-        outline=(6, 182, 212, 180),
+        outline=(6, 182, 212, 185),
         width=2,
     )
     frame.paste(avatar_pip, (ax, ay), avatar_pip)
 
-    # Etiqueta y ecualizador de voz masculino en vivo
+    # Etiqueta y título de escena
     draw.rounded_rectangle((222, 902, 480, 936), radius=8, fill=(16, 185, 129, 45), outline=(16, 185, 129, 180), width=1)
-    draw.text((236, 907), f"KÓTEK AUDITOR · ESCENA {escena_num}/6", font=FONT_MONO_S, fill=(52, 211, 153))
-    draw.text((500, 903), titulo_escena, font=FONT_H2, fill=(255, 255, 255))
+    draw.text((236, 908), f"KÓTEK 3D · ESCENA {escena_num}/6", font=FONT_MONO_S, fill=(52, 211, 153))
+    draw.text((498, 903), titulo_escena, font=FONT_H2, fill=(255, 255, 255))
 
     # Ecualizador animado de 18 barras a la derecha del encabezado
     eq_x = 1560
@@ -151,10 +179,12 @@ def dibujar_dock_kotek(
         col = (6, 182, 212, 235) if i % 2 == 0 else (16, 185, 129, 235)
         draw.rounded_rectangle((bx, by_top, bx + 8, by_bot), radius=3, fill=col)
 
-    # Subtítulo sincronizado
-    draw.text((222, 952), subtitulo[:118], font=FONT_SUB, fill=(235, 242, 250))
-    if len(subtitulo) > 118:
-        draw.text((222, 984), subtitulo[118:236], font=FONT_SUB, fill=(203, 213, 225))
+    # Subtítulo sincronizado envuelto por ancho en píxeles (nunca se sale del recuadro)
+    max_sub_w = box_x2 - 222 - 36
+    lineas_sub = envolver_texto_px(draw, subtitulo, FONT_SUB, max_sub_w)
+    for idx, l_sub in enumerate(lineas_sub[:2]):
+        color_txt = (235, 242, 250) if idx == 0 else (203, 213, 225)
+        draw.text((222, 950 + idx * 32), l_sub, font=FONT_SUB, fill=color_txt)
 
     # Barra de progreso inferior
     bar_w = int((box_x2 - 222 - 30) * max(0.02, min(1.0, progreso_global)))
@@ -169,22 +199,53 @@ def dibujar_tarjeta_herramienta(
     titulo: str,
     lineas: list[str],
     color_borde=(16, 185, 129),
-    x=1140,
+    x=1100,
     y=95,
+    max_w=680,
 ):
+    """Dibuja una tarjeta de herramienta midiendo cada línea en píxeles para evitar cualquier desborde."""
     if t_local < t_aparicion:
         return
     progreso = min(1.0, (t_local - t_aparicion) / 0.45)
-    # Ease out cubic
     ease = 1.0 - (1.0 - progreso) ** 3
-    offset_y = int((1.0 - ease) * 35)
-    alpha = int(ease * 245)
+    offset_y = int((1.0 - ease) * 30)
+    alpha = int(ease * 246)
 
     draw = ImageDraw.Draw(frame, "RGBA")
-    w_box, h_box = 735, 62 + len(lineas) * 34
-    bx1, by1 = x, y + offset_y
+    pad_x = 24
+    pad_top = 16
+    pad_bot = 16
+    max_text_w = max_w - (pad_x * 2)
+
+    # Envolver título y viñetas garantizando cero texto fuera del recuadro
+    titulo_env = envolver_texto_px(draw, titulo, FONT_MONO_B, max_text_w)
+    cuerpo_env: list[str] = []
+    for lin in lineas:
+        cuerpo_env.extend(envolver_texto_px(draw, lin, FONT_BODY, max_text_w, indent="  "))
+
+    # Calcular ancho real exacto según las líneas medidas
+    anchos_medidos = [draw.textlength(t_l, font=FONT_MONO_B) for t_l in titulo_env] + [
+        draw.textlength(c_l, font=FONT_BODY) for c_l in cuerpo_env
+    ]
+    w_box = int(max(anchos_medidos, default=420)) + (pad_x * 2) + 8
+    w_box = max(460, min(w_box, max_w + 16))
+
+    line_h_title = 27
+    line_h_body = 28
+    sep_gap = 10
+    h_box = pad_top + len(titulo_env) * line_h_title + sep_gap + len(cuerpo_env) * line_h_body + pad_bot
+
+    # Asegurar que las coordenadas nunca se salgan de la pantalla ni pisen el dock inferior
+    bx1 = max(36, min(x, W - w_box - 36))
+    by1 = max(56, min(y + offset_y, 870 - h_box))
     bx2, by2 = bx1 + w_box, by1 + h_box
 
+    # Sombra suave detrás de la tarjeta para legibilidad
+    draw.rounded_rectangle(
+        (bx1 + 4, by1 + 6, bx2 + 4, by2 + 6),
+        radius=16,
+        fill=(0, 0, 0, int(alpha * 0.55)),
+    )
     draw.rounded_rectangle(
         (bx1, by1, bx2, by2),
         radius=16,
@@ -192,28 +253,40 @@ def dibujar_tarjeta_herramienta(
         outline=(*color_borde, min(255, alpha)),
         width=3,
     )
-    draw.text((bx1 + 22, by1 + 14), titulo, font=FONT_MONO_B, fill=(*color_borde, alpha))
-    for idx, lin in enumerate(lineas):
-        draw.text((bx1 + 22, by1 + 52 + idx * 32), lin, font=FONT_BODY, fill=(241, 245, 249, alpha))
+
+    curr_y = by1 + pad_top
+    for t_l in titulo_env:
+        draw.text((bx1 + pad_x, curr_y), t_l, font=FONT_MONO_B, fill=(*color_borde, alpha))
+        curr_y += line_h_title
+
+    curr_y += sep_gap // 2
+    draw.line((bx1 + pad_x, curr_y, bx2 - pad_x, curr_y), fill=(*color_borde, int(alpha * 0.35)), width=1)
+    curr_y += sep_gap // 2 + 2
+
+    for c_l in cuerpo_env:
+        draw.text((bx1 + pad_x, curr_y), c_l, font=FONT_BODY, fill=(241, 245, 249, alpha))
+        curr_y += line_h_body
 
 
 def main():
-    print("Cargando cuadros 3D articulados de Kótek y audios de ElevenLabs...")
+    print("Cargando cuadros 3D de Tripo Studio (Kótek) y audios de ElevenLabs...")
     dir_frames = ASSETS / "frames_3d"
-    frames_hero_raw = sorted((dir_frames / "hero").glob("*.png"))
-    frames_pres_raw = sorted((dir_frames / "presenter").glob("*.png"))
-    frames_scan_raw = sorted((dir_frames / "scanning").glob("*.png"))
-    frames_alert_raw = sorted((dir_frames / "alert").glob("*.png"))
+    # Omitimos los primeros 38 cuadros (1.5s) donde el fondo de Tripo aún está vacío antes de entrar el búho 3D
+    frames_hero_raw = sorted((dir_frames / "hero").glob("*.png"))[38:]
+    frames_pres_raw = sorted((dir_frames / "presenter").glob("*.png"))[72:]
+    frames_scan_raw = sorted((dir_frames / "scanning").glob("*.png"))[38:]
+    frames_alert_raw = sorted((dir_frames / "alert").glob("*.png"))[72:]
 
-    print(f"Cuadros 3D encontrados: Hero ({len(frames_hero_raw)}), Presenter ({len(frames_pres_raw)}), Scanning ({len(frames_scan_raw)}), Alert ({len(frames_alert_raw)})")
+    print(
+        f"Cuadros 3D Tripo encontrados: Hero ({len(frames_hero_raw)}), "
+        f"Presenter ({len(frames_pres_raw)}), Scanning ({len(frames_scan_raw)}), Alert ({len(frames_alert_raw)})"
+    )
 
-    # Cargar secuencias 3D en memoria con canal alfa transparente
-    frames_hero_3d = [Image.open(f).convert("RGBA").resize((470, 470), Image.Resampling.LANCZOS) for f in frames_hero_raw]
+    frames_hero_3d = [crear_mascot_hero(Image.open(f), 470, border_color=(6, 182, 212, 255)) for f in frames_hero_raw]
     frames_pres_3d = [crear_avatar_circular(Image.open(f), 136, border_color=(16, 185, 129)) for f in frames_pres_raw]
     frames_scan_3d = [crear_avatar_circular(Image.open(f), 136, border_color=(6, 182, 212)) for f in frames_scan_raw]
     frames_alert_3d = [crear_avatar_circular(Image.open(f), 136, border_color=(239, 68, 68)) for f in frames_alert_raw]
 
-    # Fallback si alguna carpeta estuviera vacía
     if not frames_hero_3d:
         mascota_raw = Image.open(ASSETS / "mascota_cotejai.jpg").convert("RGB")
         frames_hero_3d = [crear_mascot_hero(mascota_raw, 470)]
@@ -230,10 +303,9 @@ def main():
     scr_oc010 = Image.open(ASSETS / "screen_oc010.png").convert("RGB").resize((W, H), Image.Resampling.LANCZOS)
     scr_exp = Image.open(ASSETS / "screen_expedientes.png").convert("RGB").resize((W, H), Image.Resampling.LANCZOS)
 
-    rem_004 = Image.open(ASSETS / "remision-oc004.png").convert("RGB").resize((660, 440), Image.Resampling.LANCZOS)
-    rem_005 = Image.open(ASSETS / "remision-oc005.png").convert("RGB").resize((660, 440), Image.Resampling.LANCZOS)
+    rem_004 = Image.open(ASSETS / "remision-oc004.png").convert("RGB").resize((620, 415), Image.Resampling.LANCZOS)
+    rem_005 = Image.open(ASSETS / "remision-oc005.png").convert("RGB").resize((620, 415), Image.Resampling.LANCZOS)
 
-    # Concatenar los 6 audios de ElevenLabs en una pista maestra continua
     audios = [
         AUDIO_DIR / "escena_1_intro.mp3",
         AUDIO_DIR / "escena_2_arquitectura_divisas.mp3",
@@ -271,19 +343,17 @@ def main():
         stderr=subprocess.DEVNULL,
     )
 
-    # Preparar placa base para Escena 1 (Intro Hero + Preview Dashboard)
+    # Preparar placa base para Escena 1 (Intro Hero 3D + Preview nueva interfaz)
     bg_s1 = Image.new("RGB", (W, H), (9, 13, 22))
     d_s1 = ImageDraw.Draw(bg_s1, "RGBA")
-    # Mini preview del dashboard real a la derecha
-    dash_mini = scr_oc004.resize((980, 550), Image.Resampling.LANCZOS)
-    bg_s1.paste(dash_mini, (860, 140))
-    d_s1.rounded_rectangle((858, 138, 1842, 692), radius=14, outline=(16, 185, 129, 200), width=3)
+    dash_mini = scr_oc004.resize((980, 540), Image.Resampling.LANCZOS)
+    bg_s1.paste(dash_mini, (860, 130))
+    d_s1.rounded_rectangle((858, 128, 1842, 672), radius=14, outline=(16, 185, 129, 200), width=3)
     d_s1.rounded_rectangle((70, 55, 790, 110), radius=12, fill=(16, 185, 129, 35), outline=(16, 185, 129, 180), width=2)
     d_s1.text((92, 68), "PLATICA MAGIA 2026 · HITO S2 (HERRAMIENTAS Y RESILIENCIA)", font=FONT_MONO_S, fill=(52, 211, 153))
     d_s1.text((70, 130), "CotejAI: Auditor Autónomo", font=FONT_H1, fill=(255, 255, 255))
     d_s1.text((70, 190), "Three-Way Matching con Grok 4.6 + PostgreSQL 16", font=FONT_H2, fill=(6, 182, 212))
 
-    # Límites acumulados de tiempo por escena
     limites = []
     acum = 0.0
     for d in duraciones:
@@ -334,7 +404,6 @@ def main():
         t = f_idx / FPS
         progreso_global = t / dur_total
 
-        # Determinar en qué escena estamos
         s_idx = 0
         t_local = t
         for i, (ini, fin) in enumerate(limites):
@@ -343,29 +412,33 @@ def main():
                 t_local = t - ini
                 break
 
+        idx_hero = indice_ping_pong(f_idx, len(frames_hero_3d))
+        idx_pres = indice_ping_pong(f_idx, len(frames_pres_3d))
+        idx_scan = indice_ping_pong(f_idx, len(frames_scan_3d))
+        idx_alert = indice_ping_pong(f_idx, len(frames_alert_3d))
+
         if s_idx == 0:
-            # ESCENA 1: Intro Hero con Kótek 3D animado en grande (aleteo, pico, lentes)
+            # ESCENA 1: Intro Hero con Kótek 3D de Tripo Studio en grande + Tarjeta inferior derecha
             frame = bg_s1.copy()
             draw = ImageDraw.Draw(frame, "RGBA")
-            dy_hero = int(math.sin(t * 2.8) * 12)
+            dy_hero = int(math.sin(t * 2.8) * 10)
             hx, hy = 160, 265 + dy_hero
 
-            # Halo pulsante detrás de Kótek Hero 3D
-            pulso = int((math.sin(t * 6.5) + 1.0) * 10)
+            pulso = int((math.sin(t * 6.5) + 1.0) * 9)
             draw.rounded_rectangle(
-                (hx - 12 - pulso, hy - 12 - pulso, hx + 482 + pulso, hy + 482 + pulso),
-                radius=44,
-                outline=(6, 182, 212, 150),
+                (hx - 10 - pulso, hy - 10 - pulso, hx + 480 + pulso, hy + 480 + pulso),
+                radius=42,
+                outline=(6, 182, 212, 160),
                 width=4,
             )
-            hero_3d = frames_hero_3d[f_idx % len(frames_hero_3d)]
+            hero_3d = frames_hero_3d[idx_hero]
             frame.paste(hero_3d, (hx, hy), hero_3d)
 
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
-                1.2,
-                "🦉 ARQUITECTURA HÍBRIDA COTEJAI (S2)",
+                1.0,
+                "ARQUITECTURA HÍBRIDA COTEJAI (S2)",
                 [
                     "• 1. Ojos LED Cian: Grok Vision 4.6 lee remisiones físicas y notas a mano.",
                     "• 2. Tercer Lente Esmeralda: Motor Determinista 3-Way Matching en centavos.",
@@ -373,16 +446,16 @@ def main():
                 ],
                 color_borde=(16, 185, 129),
                 x=860,
-                y=708,
+                y=684,
+                max_w=980,
             )
             sub = (
                 "¡Hola! Soy Kótek, el búho auditor de tres lentes de CotejAI. Nacimos para detener la fuga de capital en cuentas por pagar "
                 "combinando el razonamiento multimodal de Grok 4.6 con un motor determinista y PostgreSQL 16."
             )
-            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_3d,
+                frames_pres_3d[idx_pres],
                 t,
                 1,
                 "Introducción: ¿Qué es CotejAI y por qué nace?",
@@ -391,13 +464,13 @@ def main():
             )
 
         elif s_idx == 1:
-            # ESCENA 2: 180 Divisas ISO 4217 / SAT Anexo 20 + Sobrecargo Cambiario en OC-006
+            # ESCENA 2: 180 Divisas ISO 4217 / SAT Anexo 20 (OC-006)
+            # Posición de la tarjeta: ABAJO-IZQUIERDA (x=340, y=545) para dejar libre el selector TC BANXICO y Copiloto Grok
             frame = scr_oc006.copy()
             draw = ImageDraw.Draw(frame, "RGBA")
-            # Resaltar el selector de 180 divisas en la barra superior
             pulso = int((math.sin(t * 7.0) + 1.0) * 4)
             draw.rounded_rectangle(
-                (1175 - pulso, 8 - pulso, 1465 + pulso, 48 + pulso),
+                (920 - pulso, 6 - pulso, 1625 + pulso, 52 + pulso),
                 radius=10,
                 outline=(6, 182, 212, 240),
                 width=3,
@@ -405,26 +478,26 @@ def main():
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
-                1.0,
-                '💱 HERRAMIENTA EN VIVO: consultar_tipo_cambio_real("USD", "21.85")',
+                0.8,
+                'HERRAMIENTA EN VIVO: consultar_tipo_cambio_real("USD", "21.85")',
                 [
                     "• Catálogo conectado: 180 Divisas ISO 4217 / SAT Anexo 20 en tiempo real",
-                    "• Tipo de cambio en CFDI (OC-006): $21.85 MXN/USD vs Oficial: $18.69 MXN/USD",
+                    "• TC en CFDI (OC-006): $21.85 MXN/USD vs Oficial Banxico: $18.69 MXN/USD",
                     "• Código detectado: FX_OVERCHARGE · Fuga retenida: $19,230.39 MXN",
                     "• Resiliencia: Caché automático en PostgreSQL 16 (fx_rates_cache)",
                 ],
                 color_borde=(6, 182, 212),
-                x=1120,
-                y=88,
+                x=340,
+                y=540,
+                max_w=760,
             )
             sub = (
                 "Conectamos en tiempo real las 180 divisas oficiales del Anexo 20 del SAT contra el peso mexicano. "
                 "En OC-006 invoco consultar_tipo_cambio_real, detecto un dólar inflado a $21.85 y retengo $19,230.39 MXN."
             )
-            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_3d,
+                frames_pres_3d[idx_pres],
                 t,
                 2,
                 "API Financiera en Vivo (180 Divisas) · Caso OC-006",
@@ -433,44 +506,41 @@ def main():
             )
 
         elif s_idx == 2:
-            # ESCENA 3: Caso Completo OC-004 + Grok Vision escaneando la remisión física con rayo láser
+            # ESCENA 3: Caso Completo OC-004 + Grok Vision escaneando la remisión física
+            # Posición de la tarjeta: ARRIBA-IZQUIERDA (x=340, y=90) mientras la remisión escaneada está a la derecha
             frame = scr_oc004.copy()
             draw = ImageDraw.Draw(frame, "RGBA")
-            # Superponer zoom de la remisión física OC-004 con escáner láser animado
-            rx, ry = 1160, 82
+            rx, ry = 1210, 88
             frame.paste(rem_004, (rx, ry))
-            draw.rounded_rectangle((rx - 3, ry - 3, rx + 663, ry + 443), radius=12, outline=(6, 182, 212, 255), width=4)
+            draw.rounded_rectangle((rx - 3, ry - 3, rx + 623, ry + 418), radius=12, outline=(6, 182, 212, 255), width=4)
 
-            # Línea láser cian barriendo de arriba a abajo
-            scan_y = ry + int(((math.sin(t_local * 2.6) + 1.0) / 2.0) * 420)
-            draw.line((rx + 4, scan_y, rx + 656, scan_y), fill=(6, 182, 212, 255), width=4)
-            draw.rectangle((rx + 4, max(ry, scan_y - 22), rx + 656, scan_y), fill=(6, 182, 212, 55))
-
-            # Recuadro resaltando la nota manuscrita en la foto
-            draw.rounded_rectangle((rx + 28, ry + 225, rx + 632, ry + 290), radius=8, outline=(245, 158, 11, 255), width=3)
+            scan_y = ry + int(((math.sin(t_local * 2.6) + 1.0) / 2.0) * 395)
+            draw.line((rx + 4, scan_y, rx + 616, scan_y), fill=(6, 182, 212, 255), width=4)
+            draw.rectangle((rx + 4, max(ry, scan_y - 22), rx + 616, scan_y), fill=(6, 182, 212, 55))
+            draw.rounded_rectangle((rx + 26, ry + 210, rx + 594, ry + 275), radius=8, outline=(245, 158, 11, 255), width=3)
 
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
-                1.0,
-                '👁️ HERRAMIENTA: leer_remision_imagen("OC-004") — Grok Vision 4.6',
+                0.8,
+                'HERRAMIENTA: leer_remision_imagen("OC-004") — Grok Vision 4.6',
                 [
-                    "• Nitidez óptica: 95.38 (Legible >= 28.0) · Sello y Firma: Verificados",
-                    '• Nota manuscrita leída: "Se reciben 80 pzas de TORN-001; faltaron 20 por merma"',
+                    "• Nitidez óptica: 41.89 (Legible >= 28.0) · Sello y Firma: Verificados",
+                    '• Nota manuscrita: "Se reciben 80 pzas de TORN-001; faltaron 20 por merma"',
                     "• Motor Determinista (cotejar_caso): Retiene $290.00 MXN (20 pzas + IVA 16%)",
                 ],
                 color_borde=(6, 182, 212),
-                x=1140,
-                y=540,
+                x=340,
+                y=88,
+                max_w=760,
             )
             sub = (
                 "En el expediente OC-004 el proveedor facturó 100 piezas, pero al invocar leer_remision_imagen con Grok Vision "
                 "sobre la foto física del almacén, leo la nota escrita a mano que reporta solo 80 piezas y retengo $290.00 MXN."
             )
-            avatar_3d = frames_scan_3d[f_idx % len(frames_scan_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_3d,
+                frames_scan_3d[idx_scan],
                 t,
                 3,
                 "Grok Vision Multimodal & Three-Way Matching · Caso OC-004",
@@ -480,43 +550,45 @@ def main():
 
         elif s_idx == 3:
             # ESCENA 4: Webhook en Vivo + Bloqueo de Idempotencia en PostgreSQL 16
+            # Tarjetas escalonadas en dos columnas distintas (Izquierda Superior y Derecha Media-Baja)
             frame = scr_oc004.copy() if t_local < 11.0 else scr_exp.copy()
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
                 0.5,
-                '🚀 1er DISPARO: enviar_alerta_reclamo_real("OC-004")',
+                '1er DISPARO: enviar_alerta_reclamo_real("OC-004")',
                 [
                     "• Compuerta Policy Gate: Fuga $290.00 MXN <= $5,000 MXN (Autorizado)",
-                    "• Webhook HTTP POST enviado en vivo al proveedor solicitando Nota de Crédito",
-                    "• Llave guardada en PostgreSQL 16: reclamo_OC-004_00000004..._290.00",
+                    "• Webhook HTTP POST enviado en vivo solicitando Nota de Crédito CFDI",
+                    "• Llave registrada en PostgreSQL 16: OC-004:nota_credito:v1",
                 ],
                 color_borde=(16, 185, 129),
-                x=1120,
-                y=95,
+                x=340,
+                y=92,
+                max_w=730,
             )
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
-                5.8,
-                "🛡️ 2do DISPARO BLOQUEADO: IDEMPOTENCIA EN POSTGRESQL 16",
+                5.5,
+                "2do DISPARO BLOQUEADO: IDEMPOTENCIA EN POSTGRESQL 16",
                 [
-                    "• idempotencia_bloqueada: true (Tabla transaccional actions)",
-                    "• La llave primaria ya existe en PostgreSQL 16 desde el primer envío",
-                    "• Resultado: Cero correos o notas de crédito duplicadas hacia el proveedor",
+                    "• idempotencia_bloqueada: true (Tabla transaccional acciones_idempotentes)",
+                    "• La llave única ya existe en PostgreSQL 16 desde el primer envío",
+                    "• Resultado: Cero correos o notas de crédito duplicadas al proveedor",
                 ],
                 color_borde=(245, 158, 11),
-                x=1120,
-                y=330,
+                x=1100,
+                y=520,
+                max_w=730,
             )
             sub = (
                 "Como la diferencia es menor a $5,000 MXN, policy_gate autoriza invocar enviar_alerta_reclamo_real por webhook. "
                 "Si se intenta enviar por segunda vez, nuestra llave de idempotencia en PostgreSQL 16 bloquea el duplicado."
             )
-            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_3d,
+                frames_pres_3d[idx_pres],
                 t,
                 4,
                 "Webhook en Vivo & Idempotencia Transaccional en PostgreSQL 16",
@@ -525,52 +597,53 @@ def main():
             )
 
         elif s_idx == 4:
-            # ESCENA 5: Qué hace cuando algo falla: Foto Borrosa (OC-005) y Lista Negra 69-B (OC-007)
+            # ESCENA 5: Fallos: Foto Borrosa (OC-005) y Lista Negra 69-B (OC-007)
             if t_local < 12.2:
                 frame = scr_oc005.copy()
                 draw = ImageDraw.Draw(frame, "RGBA")
-                rx, ry = 1160, 85
+                rx, ry = 1210, 88
                 frame.paste(rem_005, (rx, ry))
-                draw.rounded_rectangle((rx - 3, ry - 3, rx + 663, ry + 443), radius=12, outline=(239, 68, 68, 255), width=4)
+                draw.rounded_rectangle((rx - 3, ry - 3, rx + 623, ry + 418), radius=12, outline=(239, 68, 68, 255), width=4)
                 dibujar_tarjeta_herramienta(
                     frame,
                     t_local,
                     0.6,
-                    "⚠️ FALLO ÓPTICO (OC-005): BARRERA ANTI-ALUCINACIÓN",
+                    "FALLO ÓPTICO (OC-005): BARRERA ANTI-ALUCINACIÓN",
                     [
                         "• Nitidez medida: 14.82 < 28.0 (Fotografía desenfocada / ilegible)",
                         "• Código activado: RECEIPT_UNREADABLE · Estado: ESCALADO",
                         "• Grok Vision se niega a inventar números y protege la auditoría",
                     ],
                     color_borde=(239, 68, 68),
-                    x=1140,
-                    y=550,
+                    x=1130,
+                    y=535,
+                    max_w=710,
                 )
             else:
                 frame = scr_oc007.copy()
+                # Ubicada al centro-izquierda para dejar libre el panel derecho de Validación Regulatoria SAT
                 dibujar_tarjeta_herramienta(
                     frame,
                     t_local,
                     12.4,
-                    '⛔ ALERTA FISCAL SAT 69-B (OC-007): consultar_sat_en_vivo("OC-007")',
+                    'ALERTA FISCAL SAT 69-B (OC-007): consultar_sat_en_vivo("OC-007")',
                     [
                         "• RFC Emisor: AAA080808AAA detectado en tabla sat_69b (PostgreSQL 16)",
                         "• Situación SAT: EFOS Definitivo (Art. 69-B CFF — Operaciones Simuladas)",
                         "• Código: SUPPLIER_69B · Bloqueo del 100% ($6,090.00 MXN retenidos)",
                     ],
                     color_borde=(239, 68, 68),
-                    x=1120,
-                    y=110,
+                    x=340,
+                    y=535,
+                    max_w=750,
                 )
             sub = (
                 "¿Y qué hago cuando algo falla? En OC-005 la foto está borrosa: activo RECEIPT_UNREADABLE sin alucinar cifras. "
                 "Y en OC-007 cruzo el padrón oficial 69-B del SAT y bloqueo el 100% del pago por ser un proveedor EFOS."
             )
-            # En escena de alerta/fraude, Kótek activa modo alerta 3D (lentes rojos y cabeza diciendo no)
-            avatar_3d = frames_alert_3d[f_idx % len(frames_alert_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_3d,
+                frames_alert_3d[idx_alert],
                 t,
                 5,
                 "Manejo de Fallos: Foto Borrosa (OC-005) y Lista 69-B SAT (OC-007)",
@@ -580,43 +653,45 @@ def main():
 
         else:
             # ESCENA 6: Caída del SAT SOAP (Circuit Breaker) + Policy Gate $5,000 MXN (OC-010)
+            # Posiciones alternadas: Arriba-Derecha y Abajo-Izquierda
             frame = scr_oc010.copy()
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
                 0.8,
-                "🔌 CIRCUIT BREAKER SAT SOAP: OPEN (OC-010)",
+                "CIRCUIT BREAKER SAT SOAP: OPEN (OC-010)",
                 [
                     "• Webservice SOAP del SAT sin respuesta tras 3 intentos consecutivos",
                     "• Circuit Breaker abre el circuito por 600s y emite SAT_NO_VERIFICADO",
                     "• El agente no se cuelga: degrada con elegancia y continúa la auditoría",
                 ],
                 color_borde=(245, 158, 11),
-                x=1120,
-                y=95,
+                x=1110,
+                y=88,
+                max_w=730,
             )
             dibujar_tarjeta_herramienta(
                 frame,
                 t_local,
-                7.5,
-                "🔒 COMPUERTA POLICY GATE ($5,000 MXN) EN ACCIÓN",
+                7.2,
+                "COMPUERTA POLICY GATE ($5,000 MXN) EN ACCIÓN",
                 [
                     "• Faltante en almacén en OC-010: 100 rollos -> Fuga de $9,280.00 MXN",
                     "• Supera el umbral autónomo ($9,280.00 > $5,000.00 MXN)",
-                    "• Policy Gate bloquea el reclamo automático y escala a Gerencia de Tesorería",
+                    "• Policy Gate bloquea el reclamo automático y escala a Tesorería",
                 ],
                 color_borde=(239, 68, 68),
-                x=1120,
-                y=335,
+                x=340,
+                y=545,
+                max_w=730,
             )
             sub = (
                 "En OC-010, ante la caída del SOAP del SAT, nuestro Circuit Breaker abre el circuito marcando SAT_NO_VERIFICADO sin colgarse, "
                 "y como la fuga supera $5,000 MXN, el Policy Gate bloquea el reclamo autónomo y lo escala a gerencia."
             )
-            avatar_3d = frames_pres_3d[f_idx % len(frames_pres_3d)]
             dibujar_dock_kotek(
                 frame,
-                avatar_3d,
+                frames_pres_3d[idx_pres],
                 t,
                 6,
                 "Circuit Breaker SAT SOAP & Compuerta Policy Gate ($5,000 MXN)",
