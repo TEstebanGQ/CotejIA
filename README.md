@@ -302,6 +302,14 @@ En la auditoría del lote completo S2 (10 expedientes), CotejAI arrojó los sigu
 
 ---
 
+## 🎬 Video Demo Programático (HyperFrames)
+
+El repositorio incluye una composición programática en **HyperFrames** (1920×1080, 30 fps) que demuestra la plataforma y sus flujos principales:
+- **Video MP4 renderizado:** [ideo-cotejai/cotejai-demo.mp4](video-cotejai/cotejai-demo.mp4)
+- **Especificación y revisión:** [ideo-cotejai/SPEC.md](video-cotejai/SPEC.md) · [ideo-cotejai/REVIEW.md](video-cotejai/REVIEW.md)
+
+---
+
 ## 👥 Equipo y Créditos
 
 Desarrollado para el **Torneo Platica MagIA 2026** por el equipo de ingeniería de **CotejAI**.

@@ -1,0 +1,146 @@
+<!doctype html>
+<html
+  lang="es"
+  data-composition-variables='[
+    {"id":"brandName","type":"string","label":"Nombre del Producto","default":"CotejAI"},
+    {"id":"brandTagline","type":"string","label":"Subtítulo Principal","default":"Three-Way Matching Autónomo para Cuentas por Pagar"},
+    {"id":"fugaTotal","type":"string","label":"Fuga de Capital Retenida","default":"$418,920.00"},
+    {"id":"accentColor","type":"color","label":"Color Acento Platica","default":"#10B981"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>CotejAI — Demo de Plataforma y Funcionalidades</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #090d16;
+        --surface: #0f172a;
+        --card: #131c2e;
+        --card-nested: #1a263d;
+        --ink: #f8fafc;
+        --muted: #94a3b8;
+        --accentColor: #10b981;
+        --amber: #f59e0b;
+        --cyan: #06b6d4;
+        --rose: #ef4444;
+        --font-display: 'Outfit', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #090d16;
+        color: #f8fafc;
+        font-family: 'Outfit', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-dxb8"
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="24"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div data-hf-id="hf-x1vq"
+        id="bg-plate"
+        style="position: absolute; inset: 0; background: #090d16; z-index: 0"
+        data-layout-ignore
+      ></div>
+
+      <div data-hf-id="hf-kci3"
+        id="s1-hook"
+        class="clip"
+        data-composition-id="s1-hook"
+        data-composition-src="compositions/s1-hook.html"
+        data-start="0"
+        data-duration="4.5"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 1"
+      ></div>
+
+      <div data-hf-id="hf-k687"
+        id="s2-vision"
+        class="clip"
+        data-composition-id="s2-vision"
+        data-composition-src="compositions/s2-vision.html"
+        data-start="4.5"
+        data-duration="5.0"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 2"
+      ></div>
+
+      <div data-hf-id="hf-snz2"
+        id="s3-sat-copilot"
+        class="clip"
+        data-composition-id="s3-sat-copilot"
+        data-composition-src="compositions/s3-sat-copilot.html"
+        data-start="9.5"
+        data-duration="5.5"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 3"
+      ></div>
+
+      <div data-hf-id="hf-a5xl"
+        id="s4-dashboard-kpis"
+        class="clip"
+        data-composition-id="s4-dashboard-kpis"
+        data-composition-src="compositions/s4-dashboard-kpis.html"
+        data-start="15.0"
+        data-duration="4.8"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 4"
+      ></div>
+
+      <div data-hf-id="hf-b7yk"
+        id="s5-endcard"
+        class="clip"
+        data-composition-id="s5-endcard"
+        data-composition-src="compositions/s5-endcard.html"
+        data-start="19.8"
+        data-duration="4.2"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 5"
+      ></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

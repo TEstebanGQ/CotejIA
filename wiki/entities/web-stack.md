@@ -35,7 +35,20 @@ sources:
 | **Validación y Resiliencia** | **Pydantic v2** + **Tenacity** + **HTTPX** | Compuerta `policy_gate`, reintentos con *exponential backoff + jitter* y *Circuit Breaker* para servicios externos. |
 | **Herramientas Reales Externas** | **SOAP SAT WebService**, **Lista 69-B Oficial**, **ExchangeRate-API (USD/MXN)**, **Webhooks HTTP** | Consultas en vivo en tiempo real sin mocks estáticos. |
 
+## 3. Funcionalidades Implementadas en el Dashboard SPA (`web/index.html` + `web/app.js`)
+
+1. **Arquitectura de Dos Vistas SPA con Sidebar Fija:**
+   - **Vista 1 (`DASHBOARD`):** Centro de control con 4 KPIs Bento superiores (`Fuga de Capital Retenida`, `Casos Auditados`, `Resolución Autónoma 94.8%`, `Costo Operativo / Factura`), visor de expediente activo (66% ancho) con imagen física de remisión + **Three-Way Matching Triad** y panel lateral derecho (34% ancho) con **Copiloto Forense Grok 4.6** y checklist regulatorio SAT en vivo.
+   - **Vista 2 (`EXPEDIENTES`):** Tabla dedicada de ancho completo con filtros por pestaña (`Todos`, `Lote Inicial (1-10)`, `Cargas Manuales`, `En Reclamo`, `Aprobados`, `Escalados`) y buscador instantáneo (`⌘K`) por UUID, RFC o Folio.
+   - **Footer de Salud Permanente:** Muestra en la esquina inferior izquierda el motor de persistencia activo (`PostgreSQL 16` o `SQLite WAL`) y el modelo (`Grok 4.6`).
+2. **Catálogo Interactivo de 180 Divisas (ISO 4217 / Anexo 20 SAT):**
+   - Selector en la barra superior (`GET /api/currencies` + `POST /api/tools/fx`) que consulta en tiempo real la paridad contra `MXN` de cualquiera de las 180 divisas oficiales del mundo.
+3. **Auditoría en Vivo con Grok 4.6 y Carga Manual Multimodal:**
+   - Botones **Auditar con Grok** (`POST /api/audit/{case_id}`) y **Auditar Lote** (`POST /api/audit-all`) que ejecutan el ciclo completo de agente + herramientas y persisten en PostgreSQL 16.
+   - Modal **+ Nuevo Cotejo** (`POST /api/cases/upload`) con *Drag & Drop* para subir un XML `CFDI 4.0` y una foto/PDF de remisión física para análisis inmediato con Grok Vision.
+
 ## Páginas Relacionadas
 - [[grok-vision]]
 - [[sqlite-wal]]
 - [[s2-roadmap]]
+- [[hyperframes-video]]

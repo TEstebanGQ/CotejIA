@@ -1,6 +1,7 @@
 {
   "oc": "OC-009",
   "proveedor_rfc": "AAA010101AAA",
+  "proveedor_nombre": "Ferretería Industrial del Bajío S.A. de C.V.",
   "moneda": "MXN",
   "simular_caida_sat": false,
   "lineas": [

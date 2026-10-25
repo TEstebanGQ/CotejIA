@@ -59,3 +59,20 @@ Bitácora cronológica append-only de modificaciones, ingestas y linteos del gra
   - `src/api.py` y `docs/CONTRATO_API_FRONTEND.md`: Servidor FastAPI y contrato completo de endpoints para la integración del frontend de Leo (`web/`).
   - `datasets/generate.py`: Generación de los 10 casos (`OC-001` a `OC-010`) e imágenes PNG de remisiones físicas.
 - **Verificación:** `41 passed` en `pytest` y ejecución en vivo de `OC-004` con Grok 4.6 invocando autónomamente `['leer_remision_imagen', 'consultar_sat_en_vivo', 'cotejar_caso', 'enviar_alerta_reclamo_real', 'cerrar_caso']`.
+
+
+## [2026-10-24] build | Dashboard Web SPA Completo, 180 Divisas ISO y Persistencia PostgreSQL 16
+- **Módulos actualizados (`web/index.html`, `web/app.js`, `src/api.py`, `src/external_tools.py`):**
+  - Interfaz SPA en dos vistas (`DASHBOARD` y `EXPEDIENTES`) bajo las directrices de `DESIGN.md` con sidebar fija y footer de salud mostrando `PostgreSQL 16` y `Grok 4.6`.
+  - Integración del catálogo de **180 divisas mundiales (ISO 4217 / Anexo 20 SAT)** en tiempo real contra MXN (`GET /api/currencies` y `POST /api/tools/fx`).
+  - Modal de carga manual (`POST /api/cases/upload`) para subir XML CFDI 4.0 e imagen/PDF de remisión física con lectura inmediata por Grok Vision.
+  - Botones de auditoría en vivo (`Auditar con Grok` y `Auditar Lote`), formateo limpio de hallazgos sin `[object Object]` y renderizado Markdown en el Copiloto Grok 4.6.
+- **Páginas actualizadas:** [[web-stack]], [[index]].
+
+## [2026-10-24] build | Instalación de HyperFrames y Renderizado de Video Demo (`cotejai-demo.mp4`)
+- **Herramienta instalada:** Skill oficial `heygen-com/hyperframes` en `.agents/skills/hyperframes/` y `Gyan.FFmpeg` 9.0.2 en el sistema.
+- **Proyecto creado (`video-cotejai/`):**
+  - `video-cotejai/SPEC.md` y `video-cotejai/REVIEW.md`: Especificación numérica y auditoría de calidad (`0 errores` de lint, runtime y layout; `104/104` en contraste WCAG).
+  - `video-cotejai/index.html` y 5 sub-composiciones en `video-cotejai/compositions/` (`s1-hook.html`, `s2-vision.html`, `s3-sat-copilot.html`, `s4-dashboard-kpis.html`, `s5-endcard.html`).
+  - **Video MP4 renderizado:** `video-cotejai/cotejai-demo.mp4` (`1920×1080`, `30 fps`, `24.0 s`, `2.7 MB`).
+- **Páginas creadas/actualizadas:** [[hyperframes-video]], [[s2-demo-script]], [[index]].

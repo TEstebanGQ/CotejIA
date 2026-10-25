@@ -2,7 +2,7 @@
   "oc_referencia": "OC-003",
   "tiene_sello_almacen": true,
   "tiene_firma_recepcion": true,
-  "requiere_vision": false,
+  "requiere_vision": true,
   "lineas": [
     {
       "sku": "TORN-001",
@@ -12,5 +12,6 @@
       "sku": "CABL-010",
       "cantidad_recibida": 50
     }
-  ]
+  ],
+  "observaciones_manuales": "Recepcion fisica completa (100 TORN-001 y 50 CABL-010). Verificar tarifa en factura."
 }

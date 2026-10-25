@@ -1,0 +1,163 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #090d16;
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      overflow: hidden;
+    }
+    .s5-stage {
+      position: absolute;
+      inset: 0;
+      padding: 84px 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+    }
+    .s5-lockup {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-top: 24px;
+    }
+    .s5-emblem {
+      width: 96px;
+      height: 96px;
+      border-radius: 24px;
+      background: rgba(16, 185, 129, 0.16);
+      border: 2px solid #10b981;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 54px;
+      font-weight: 800;
+      color: #10b981;
+    }
+    .s5-wordmark {
+      font-size: 84px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #f8fafc;
+    }
+    .s5-claim {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+      max-width: 1380px;
+    }
+    .s5-pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      width: 100%;
+    }
+    .s5-pillar {
+      background: #131c2e;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 26px 28px;
+      text-align: left;
+    }
+    .s5-pillar-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #10b981;
+      margin-bottom: 8px;
+    }
+    .s5-pillar-title {
+      font-size: 30px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .s5-cta-bar {
+      background: #10b981;
+      color: #090d16;
+      padding: 22px 48px;
+      border-radius: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+    }
+  </style>
+
+  <div data-hf-id="hf-5ish" id="root" data-composition-id="s5-endcard" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-y7s2" id="s5-clip-main" class="clip" data-start="0" data-duration="4.2" data-track-index="1">
+      <div data-hf-id="hf-uvmz" id="s5-stage-wrap" class="s5-stage" data-beat="endcard-lockup">
+        <div data-hf-id="hf-spr0" id="s5-brand-lockup" class="s5-lockup">
+          <div data-hf-id="hf-nouk" class="s5-emblem">C</div>
+          <span data-hf-id="hf-prhb" class="s5-wordmark" data-var-text="brandName">CotejAI</span>
+        </div>
+
+        <h1 data-hf-id="hf-ej6c" id="s5-claim-line" class="s5-claim">
+          El código calcula en centavos.<br data-hf-id="hf-x5px" />
+          <span data-hf-id="hf-0ins" style="color: #10b981">Grok 4.6</span> decide y protege tu tesorería.
+        </h1>
+
+        <div data-hf-id="hf-qleo" class="s5-pillars">
+          <div data-hf-id="hf-vr79" id="s5-pil-1" class="s5-pillar">
+            <div data-hf-id="hf-ecel" class="s5-pillar-mono">CFDI 4.0 + DECIMAL</div>
+            <div data-hf-id="hf-r46r" class="s5-pillar-title">Parseo determinista sin alucinaciones</div>
+          </div>
+          <div data-hf-id="hf-zpba" id="s5-pil-2" class="s5-pillar">
+            <div data-hf-id="hf-ufqk" class="s5-pillar-mono" style="color: #22d3ee">GROK VISION 99.4%</div>
+            <div data-hf-id="hf-pizz" class="s5-pillar-title">Lectura de sellos y merma manuscrita</div>
+          </div>
+          <div data-hf-id="hf-3nfb" id="s5-pil-3" class="s5-pillar">
+            <div data-hf-id="hf-7rh8" class="s5-pillar-mono" style="color: #fbbf24">SAT 69-B &amp; SOAP</div>
+            <div data-hf-id="hf-dgty" class="s5-pillar-title">Blindaje EFOS en PostgreSQL 16</div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-attn" id="s5-cta" class="s5-cta-bar" data-hold="true">
+          <span data-hf-id="hf-4o40">Platica.mx × Grok 4.6 · Auditar Lote en Vivo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo(
+      "#s5-brand-lockup",
+      { scale: 0.86, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.42, ease: "back.out(1.5)" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s5-claim-line",
+      { y: 24, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.44, ease: "power4.out" },
+      0.24,
+    );
+
+    tl.fromTo(
+      ["#s5-pil-1", "#s5-pil-2", "#s5-pil-3"],
+      { y: 26, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.36, stagger: 0.12, ease: "power3.out" },
+      0.55,
+    );
+
+    tl.fromTo(
+      "#s5-cta",
+      { scale: 0.92, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.42, ease: "expo.out" },
+      0.98,
+    );
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["s5-endcard"] = tl;
+  </script>
+</template>

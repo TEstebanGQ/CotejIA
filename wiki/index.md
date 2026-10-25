@@ -17,7 +17,9 @@
 | Página | Resumen de una línea | Tags |
 | :--- | :--- | :--- |
 | [[grok-vision]] | Motor multimodal Grok 4.6 para lectura de remisiones físicas, sellos y notas manuscritas. | `grok`, `vision`, `ocr` |
-| [[web-stack]] | Stack oficial unificado: FastAPI, Tailwind CSS (esmeralda/zinc Bento), Alpine.js/ES6+, Lucide Icons, Chart.js y PostgreSQL. | `stack`, `fastapi`, `web` |
+| [[mascota-kotek]] | Mascota oficial Kótek (Búho Auditor de 3 Lentes) integrada en web y narrador con voz ElevenLabs para el video de 2 minutos. | `mascota`, `branding`, `voz` |
+| [[web-stack]] | Stack oficial unificado: FastAPI, Tailwind CSS (esmeralda/zinc Bento), SPA de 2 vistas, 180 divisas ISO, carga manual y PostgreSQL 16. | `stack`, `fastapi`, `web` |
+| [[hyperframes-video]] | Proyecto y video programático (`video-cotejai/cotejai-demo.mp4`, 1920×1080, 30 fps) de la plataforma y sus 5 escenas funcionales. | `hyperframes`, `video`, `demo` |
 | [[sat-soap-and-69b]] | Webservice SOAP oficial del SAT para CFDI y lista negra definitiva de EFOS (Art. 69-B). | `sat`, `fiscal`, `69b` |
 | [[sqlite-wal]] | Capa de persistencia local en modo WAL para concurrencia, idempotencia y auditoría. | `sqlite`, `wal`, `db` |
 | [[cfdi-40]] | Estructura de comprobantes fiscales digitales por internet en México e impuestos desglosados. | `cfdi`, `xml`, `sat` |

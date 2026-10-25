@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Kótek 3D Animation Engine — Three.js</title>
+  <style>
+    body { margin: 0; background: transparent; overflow: hidden; }
+    #canvas-container { width: 512px; height: 512px; }
+  </style>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/examples/js/exporters/GLTFExporter.js"></script>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="c" width="512" height="512"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(512, 512);
+    renderer.setPixelRatio(1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(0, 0.4, 4.2);
+    camera.lookAt(0, 0.1, 0);
+
+    // Luces de estudio (Key light cálida + Rim light cian + Luz de relleno esmeralda)
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    keyLight.position.set(2.5, 4.0, 3.0);
+    scene.add(keyLight);
+
+    const rimCyan = new THREE.DirectionalLight(0x06b6d4, 3.2);
+    rimCyan.position.set(-3.5, 2.0, -2.5);
+    scene.add(rimCyan);
+
+    const rimEmerald = new THREE.DirectionalLight(0x10b981, 2.2);
+    rimEmerald.position.set(3.5, -1.0, -2.0);
+    scene.add(rimEmerald);
+
+    const ambientLight = new THREE.AmbientLight(0x1e293b, 1.6);
+    scene.add(ambientLight);
+
+    // =========================================================================
+    // CONSTRUCCIÓN DEL MODELO 3D DE KÓTEK (BÚHO AUDITOR ROBÓTICO DE 3 LENTES)
+    // =========================================================================
+    const kotek = new THREE.Group();
+    scene.add(kotek);
+
+    // Materiales PBR
+    const matArmorDark = new THREE.MeshStandardMaterial({
+      color: 0x111827,
+      metalness: 0.85,
+      roughness: 0.28,
+    });
+
+    const matArmorSlate = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      metalness: 0.75,
+      roughness: 0.35,
+    });
+
+    const matGoldTrim = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      metalness: 0.90,
+      roughness: 0.22,
+    });
+
+    const matLensCyan = new THREE.MeshStandardMaterial({
+      color: 0x06b6d4,
+      emissive: 0x06b6d4,
+      emissiveIntensity: 1.8,
+      roughness: 0.1,
+      metalness: 0.9,
+    });
+
+    const matLensEmerald = new THREE.MeshStandardMaterial({
+      color: 0x10b981,
+      emissive: 0x10b981,
+      emissiveIntensity: 1.5,
+      roughness: 0.1,
+      metalness: 0.9,
+    });
+
+    const matLensAmber = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 1.5,
+      roughness: 0.1,
+      metalness: 0.9,
+    });
+
+    // 1. Torso Robótico
+    const torsoGeo = new THREE.CylinderGeometry(0.55, 0.45, 1.1, 24);
+    const torso = new THREE.Mesh(torsoGeo, matArmorDark);
+    torso.position.y = -0.2;
+    kotek.add(torso);
+
+    // Pechera con placas de plumas metálicas superpuestas
+    for (let r = 0; r < 4; r++) {
+      for (let c = -2; c <= 2; c++) {
+        const plateGeo = new THREE.ConeGeometry(0.12, 0.26, 4);
+        const plate = new THREE.Mesh(plateGeo, matArmorSlate);
+        const yOffset = 0.18 - r * 0.22;
+        const xOffset = c * 0.14;
+        const zOffset = 0.52 - (r * 0.03);
+        plate.position.set(xOffset, yOffset, zOffset);
+        plate.rotation.x = Math.PI - 0.25;
+        plate.rotation.z = c * 0.08;
+        torso.add(plate);
+      }
+    }
+
+    // 2. Cabeza y Cuello (Pivot Articulado)
+    const neckPivot = new THREE.Group();
+    neckPivot.position.set(0, 0.45, 0);
+    kotek.add(neckPivot);
+
+    const headGeo = new THREE.SphereGeometry(0.68, 24, 20);
+    headGeo.scale(1.0, 0.88, 0.95);
+    const head = new THREE.Mesh(headGeo, matArmorDark);
+    neckPivot.add(head);
+
+    // Cresta de cejas / Plumas de la cabeza
+    const browL = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 4), matGoldTrim);
+    browL.position.set(-0.35, 0.58, 0.25);
+    browL.rotation.set(-0.3, 0.4, -0.6);
+    neckPivot.add(browL);
+
+    const browR = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 4), matGoldTrim);
+    browR.position.set(0.35, 0.58, 0.25);
+    browR.rotation.set(-0.3, -0.4, 0.6);
+    neckPivot.add(browR);
+
+    // 3. Los 3 Lentes Cibernéticos Frontales (Visor de Auditoría)
+    // Lente Central (Grok 4.6 Vision) - Más grande y cian
+    const frameCenterGeo = new THREE.CylinderGeometry(0.24, 0.26, 0.18, 24);
+    frameCenterGeo.rotateX(Math.PI / 2);
+    const frameCenter = new THREE.Mesh(frameCenterGeo, matArmorSlate);
+    frameCenter.position.set(0, 0.16, 0.66);
+    neckPivot.add(frameCenter);
+
+    const lensCenterGeo = new THREE.CylinderGeometry(0.19, 0.19, 0.06, 24);
+    lensCenterGeo.rotateX(Math.PI / 2);
+    const lensCenter = new THREE.Mesh(lensCenterGeo, matLensCyan);
+    lensCenter.position.set(0, 0.16, 0.74);
+    neckPivot.add(lensCenter);
+
+    // Lente Izquierdo (Three-Way Match - Esmeralda)
+    const frameLeftGeo = new THREE.CylinderGeometry(0.18, 0.20, 0.16, 20);
+    frameLeftGeo.rotateX(Math.PI / 2);
+    const frameLeft = new THREE.Mesh(frameLeftGeo, matArmorSlate);
+    frameLeft.position.set(-0.36, 0.02, 0.60);
+    frameLeft.rotation.y = -0.22;
+    neckPivot.add(frameLeft);
+
+    const lensLeftGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.05, 20);
+    lensLeftGeo.rotateX(Math.PI / 2);
+    const lensLeft = new THREE.Mesh(lensLeftGeo, matLensEmerald);
+    lensLeft.position.set(-0.38, 0.02, 0.67);
+    lensLeft.rotation.y = -0.22;
+    neckPivot.add(lensLeft);
+
+    // Lente Derecho (Auditor SAT / Circuit Breaker - Ámbar)
+    const frameRightGeo = new THREE.CylinderGeometry(0.18, 0.20, 0.16, 20);
+    frameRightGeo.rotateX(Math.PI / 2);
+    const frameRight = new THREE.Mesh(frameRightGeo, matArmorSlate);
+    frameRight.position.set(0.36, 0.02, 0.60);
+    frameRight.rotation.y = 0.22;
+    neckPivot.add(frameRight);
+
+    const lensRightGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.05, 20);
+    lensRightGeo.rotateX(Math.PI / 2);
+    const lensRight = new THREE.Mesh(lensRightGeo, matLensAmber);
+    lensRight.position.set(0.38, 0.02, 0.67);
+    lensRight.rotation.y = 0.22;
+    neckPivot.add(lensRight);
+
+    // 4. Pico Articulado (Gesticulación al hablar)
+    const beakUpperGeo = new THREE.ConeGeometry(0.14, 0.35, 4);
+    beakUpperGeo.rotateX(Math.PI / 2 + 0.3);
+    const beakUpper = new THREE.Mesh(beakUpperGeo, matGoldTrim);
+    beakUpper.position.set(0, -0.12, 0.72);
+    neckPivot.add(beakUpper);
+
+    // Mandíbula inferior móvil
+    const beakJawPivot = new THREE.Group();
+    beakJawPivot.position.set(0, -0.22, 0.64);
+    neckPivot.add(beakJawPivot);
+
+    const beakLowerGeo = new THREE.ConeGeometry(0.10, 0.26, 4);
+    beakLowerGeo.rotateX(Math.PI / 2 + 0.15);
+    const beakLower = new THREE.Mesh(beakLowerGeo, matGoldTrim);
+    beakLower.position.set(0, 0, 0.08);
+    beakJawPivot.add(beakLower);
+
+    // 5. Alas Articuladas (Hombros, Huesos y Plumas)
+    function crearAla(esDerecha) {
+      const shoulderPivot = new THREE.Group();
+      const sign = esDerecha ? 1 : -1;
+      shoulderPivot.position.set(sign * 0.58, 0.22, 0);
+
+      // Brazo superior
+      const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.12, 0.18), matArmorSlate);
+      upperArm.position.set(sign * 0.18, 0, 0);
+      shoulderPivot.add(upperArm);
+
+      // Codo
+      const elbowPivot = new THREE.Group();
+      elbowPivot.position.set(sign * 0.35, 0, 0);
+      shoulderPivot.add(elbowPivot);
+
+      // Abanico de 5 plumas primarias articuladas
+      for (let f = 0; f < 5; f++) {
+        const featherGeo = new THREE.BoxGeometry(0.14, 0.75 - f * 0.08, 0.03);
+        const feather = new THREE.Mesh(featherGeo, f % 2 === 0 ? matArmorDark : matArmorSlate);
+        feather.position.set(sign * (0.08 + f * 0.07), -0.32 - f * 0.05, f * 0.02);
+        feather.rotation.z = sign * (0.2 + f * 0.12);
+        feather.rotation.y = sign * (f * 0.05);
+        elbowPivot.add(feather);
+      }
+
+      return { shoulder: shoulderPivot, elbow: elbowPivot };
+    }
+
+    const wingL = crearAla(false);
+    kotek.add(wingL.shoulder);
+
+    const wingR = crearAla(true);
+    kotek.add(wingR.shoulder);
+
+    // Patas mecánicas
+    const legGeo = new THREE.CylinderGeometry(0.06, 0.08, 0.32, 8);
+    const legL = new THREE.Mesh(legGeo, matGoldTrim);
+    legL.position.set(-0.25, -0.85, 0);
+    kotek.add(legL);
+
+    const legR = new THREE.Mesh(legGeo, matGoldTrim);
+    legR.position.set(0.25, -0.85, 0);
+    kotek.add(legR);
+
+    // Percha / Base cibernética
+    const perchGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.6, 16);
+    perchGeo.rotateZ(Math.PI / 2);
+    const perch = new THREE.Mesh(perchGeo, matArmorSlate);
+    perch.position.set(0, -1.02, 0);
+    kotek.add(perch);
+
+    // Cono de escaneo láser volumétrico (para escenas de visión)
+    const scanConeGeo = new THREE.ConeGeometry(0.8, 2.5, 32, 1, true);
+    scanConeGeo.rotateX(-Math.PI / 2);
+    const matScan = new THREE.MeshBasicMaterial({
+      color: 0x06b6d4,
+      transparent: true,
+      opacity: 0.0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const scanCone = new THREE.Mesh(scanConeGeo, matScan);
+    scanCone.position.set(0, 0.16, 2.0);
+    neckPivot.add(scanCone);
+
+    // =========================================================================
+    // CONTROLADOR DE ANIMACIONES CINEMÁTICAS POR ESTADO Y TIEMPO
+    // =========================================================================
+    window.setAnimationState = function(state, t) {
+      // 1. Respiración y flotación suave del cuerpo
+      kotek.position.y = Math.sin(t * 2.8) * 0.08;
+      torso.rotation.x = Math.sin(t * 2.8) * 0.03;
+
+      if (state === 'HERO_TALK') {
+        // Modo Hero (Primer plano: aleteo suave, gesticulación de pico y giro de cabeza)
+        kotek.position.set(0, 0.1 + Math.sin(t * 3.0) * 0.08, 0.8);
+        kotek.rotation.y = Math.sin(t * 1.4) * 0.15;
+        neckPivot.rotation.y = Math.sin(t * 1.8) * 0.22;
+        neckPivot.rotation.x = -0.05 + Math.sin(t * 2.5) * 0.08;
+
+        // Aleteo fluido
+        const flap = Math.sin(t * 4.5);
+        wingL.shoulder.rotation.z = -0.3 + flap * 0.45;
+        wingL.elbow.rotation.z = 0.2 + flap * 0.25;
+
+        wingR.shoulder.rotation.z = 0.3 - flap * 0.45;
+        wingR.elbow.rotation.z = -0.2 - flap * 0.25;
+
+        // Pico gesticulando al hablar
+        const talk = Math.max(0, Math.sin(t * 14.0)) * 0.38 + Math.max(0, Math.sin(t * 7.5)) * 0.2;
+        beakJawPivot.rotation.x = talk;
+
+        // Pulsación de lentes
+        matLensCyan.emissiveIntensity = 1.6 + Math.sin(t * 6.0) * 0.8;
+        matLensEmerald.emissiveIntensity = 1.4 + Math.sin(t * 5.0) * 0.6;
+        matLensAmber.emissiveIntensity = 1.4 + Math.sin(t * 4.0) * 0.6;
+        matScan.opacity = 0.0;
+
+      } else if (state === 'PRESENTER_TALK') {
+        // Modo Presentador Picture-in-Picture
+        kotek.position.set(0, -0.05 + Math.sin(t * 3.2) * 0.07, 0.3);
+        kotek.rotation.y = 0.25 + Math.sin(t * 1.2) * 0.12;
+        neckPivot.rotation.y = Math.sin(t * 1.6) * 0.18;
+        neckPivot.rotation.x = Math.sin(t * 2.0) * 0.06;
+
+        // Aleteo coordinado
+        const flap = Math.sin(t * 3.8);
+        wingL.shoulder.rotation.z = -0.2 + flap * 0.32;
+        wingR.shoulder.rotation.z = 0.2 - flap * 0.32;
+
+        // Pico hablando
+        beakJawPivot.rotation.x = Math.max(0, Math.sin(t * 15.0)) * 0.35;
+        matScan.opacity = 0.0;
+
+      } else if (state === 'SCANNING') {
+        // Modo Escaneo Láser (Visión de remisión en OC-004)
+        kotek.position.set(0, -0.02, 0.3);
+        neckPivot.rotation.y = -0.15 + Math.sin(t * 3.0) * 0.25;
+        neckPivot.rotation.x = 0.12;
+
+        // Alas plegadas en inspección
+        wingL.shoulder.rotation.z = -0.15;
+        wingR.shoulder.rotation.z = 0.15;
+
+        // Pico hablando suave
+        beakJawPivot.rotation.x = Math.max(0, Math.sin(t * 12.0)) * 0.25;
+
+        // Haz láser activo pulsando
+        matScan.opacity = 0.22 + Math.sin(t * 10.0) * 0.12;
+        matLensCyan.emissiveIntensity = 3.2 + Math.sin(t * 12.0) * 1.2;
+
+      } else if (state === 'ALERT') {
+        // Modo Alerta / Fallo (OC-005 foto borrosa y OC-007 lista 69-B)
+        kotek.position.set(0, Math.sin(t * 6.0) * 0.04, 0.3);
+        // Cabeza diciendo "no"
+        neckPivot.rotation.y = Math.sin(t * 8.0) * 0.32;
+        neckPivot.rotation.x = 0.1;
+
+        // Alas en posición defensiva
+        wingL.shoulder.rotation.z = -0.55;
+        wingR.shoulder.rotation.z = 0.55;
+
+        // Lentes cambian a rojo de advertencia
+        matLensAmber.color.setHex(0xef4444);
+        matLensAmber.emissive.setHex(0xef4444);
+        matLensAmber.emissiveIntensity = 3.0 + Math.sin(t * 12.0) * 1.5;
+        matLensCyan.emissiveIntensity = 0.8;
+        matScan.opacity = 0.0;
+        beakJawPivot.rotation.x = Math.max(0, Math.sin(t * 14.0)) * 0.3;
+      }
+
+      renderer.render(scene, camera);
+      return canvas.toDataURL('image/png');
+    };
+
+    window.exportToGLB = function() {
+      return new Promise((resolve, reject) => {
+        if (!THREE.GLTFExporter) {
+          reject(new Error("GLTFExporter no disponible"));
+          return;
+        }
+        const exporter = new THREE.GLTFExporter();
+        exporter.parse(
+          kotek,
+          (gltf) => {
+            const blob = new Blob([gltf], { type: 'application/octet-stream' });
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          },
+          (err) => reject(err),
+          { binary: true }
+        );
+      });
+    };
+
+    window.__ready = true;
+  </script>
+</body>
+</html>

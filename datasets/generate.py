@@ -46,16 +46,25 @@ OC_LINEAS_ALTO_MONTO = [
 ]
 
 
-def dibujar_remision_png(ruta_destino: Path, case_id: str, cant_torn: int, cant_cabl: int, nota: str, borrosa: bool = False):
+def dibujar_remision_png(
+    ruta_destino: Path,
+    case_id: str,
+    cant_torn: int,
+    cant_cabl: int,
+    nota: str,
+    borrosa: bool = False,
+    emisor_rfc: str = EMISOR_NORMAL,
+    proveedor_nombre: str = "PROVEEDOR INDUSTRIAL",
+):
     """Dibuja una imagen PNG realista de remisión de almacén con tabla, sello, firma y nota a mano."""
     img = Image.new("RGB", (780, 520), color=(252, 251, 247))
     draw = ImageDraw.Draw(img)
 
     # Marco exterior y encabezado
     draw.rectangle([20, 20, 760, 500], outline=(40, 40, 40), width=2)
-    draw.rectangle([20, 20, 760, 85], fill=(24, 52, 74), outline=(40, 40, 40), width=2)
-    draw.text((40, 35), f"REMISION DE ALMACEN  |  FOLIO: REM-{case_id[-3:]}", fill=(255, 255, 255))
-    draw.text((40, 58), f"ORDEN DE COMPRA REF: {case_id}   |   FECHA: 2026-10-24   |   RFC: {EMISOR_NORMAL}", fill=(210, 230, 245))
+    draw.rectangle([20, 20, 760, 88], fill=(24, 52, 74), outline=(40, 40, 40), width=2)
+    draw.text((40, 32), f"REMISION DE ALMACEN  |  FOLIO: REM-{case_id[-3:]}  |  {proveedor_nombre[:38]}", fill=(255, 255, 255))
+    draw.text((40, 58), f"ORDEN DE COMPRA REF: {case_id}   |   FECHA: 2026-10-24   |   RFC: {emisor_rfc}", fill=(210, 230, 245))
 
     # Encabezado de tabla
     draw.rectangle([40, 110, 740, 145], fill=(230, 234, 240), outline=(80, 80, 80), width=1)
@@ -137,32 +146,39 @@ def generar_xml(
 
 
 CASOS = {
-    # S1 Base (Intactos para los 35 tests existentes)
+    # S1 Base + Imágenes físicas de remisión para todos los casos (OC-001 a OC-010)
     "OC-001": {
         "uuid": "00000001-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Ferretería Industrial del Bajío S.A. de C.V.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
+        "imagen": {"borrosa": False, "nota": "Recepcion completa conforme a OC-001: 100 TORN-001 y 50 CABL-010. Sin merma."},
     },
     "OC-002": {
         "uuid": "00000002-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Aceros y Fijaciones Monterrey S.A. de C.V.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 80, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
+        "imagen": {"borrosa": False, "nota": "Se reciben 80 pzas de TORN-001 (faltaron 20 pzas en caja) y 50 rollos CABL-010."},
     },
     "OC-003": {
         "uuid": "00000003-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Conductores Eléctricos del Centro S.A. de C.V.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "88.00")},
+        "imagen": {"borrosa": False, "nota": "Recepcion fisica completa (100 TORN-001 y 50 CABL-010). Verificar tarifa en factura."},
     },
     # S2 Nuevos escenarios con herramientas reales
     "OC-004": {
         "uuid": "00000004-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Metales & Manufacturas de Toluca S.A. de C.V.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 80, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
@@ -171,6 +187,7 @@ CASOS = {
     "OC-005": {
         "uuid": "00000005-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Suministros Industriales de Occidente S.A.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
@@ -179,41 +196,51 @@ CASOS = {
     "OC-006": {
         "uuid": "00000006-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Global Wire & Fasteners Corp (USD)",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
         "moneda": "USD",
         "tipo_cambio": "21.85",  # Tipo de cambio inflado frente al oficial (~18.69 MXN/USD)
+        "imagen": {"borrosa": False, "nota": "Recibidos 100 TORN-001 y 50 CABL-010 completos. Factura emitida en USD."},
     },
     "OC-007": {
         "uuid": "00000007-0000-4000-8000-000000000000",
         "emisor": EMISOR_69B_REAL,  # Proveedor EFOS Definitivo en Lista 69-B oficial del SAT
+        "proveedor_nombre": "Comercializadora Fantasma del Sur S.A. (EFOS 69-B)",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
+        "imagen": {"borrosa": False, "nota": "Mercancia ingresada a almacen. Pendiente validacion fiscal RFC AAA080808AAA."},
     },
     "OC-008": {
         "uuid": "00000008-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Distribuidora Fronteriza de Insumos S.A. de C.V.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
         "tasa_iva_cfdi": Decimal("0.08"),  # Discrepancia de tasa de IVA (8% vs 16% pactado en OC)
+        "imagen": {"borrosa": False, "nota": "100 TORN-001 y 50 CABL-010 recibidos conformes. Revisar tasa IVA en CFDI."},
     },
     "OC-009": {
         "uuid": "00000001-0000-4000-8000-000000000000",  # UUID duplicado idéntico al de OC-001
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Ferretería Industrial del Bajío S.A. de C.V.",
         "oc_lineas": OC_LINEAS_BASE,
         "recibido": {"TORN-001": 100, "CABL-010": 50},
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("50", "80.00")},
+        "imagen": {"borrosa": False, "nota": "Mercancia recibida. ATENCION: proveedor adjunto UUID ya registrado en OC-001."},
     },
     "OC-010": {
         "uuid": "00000010-0000-4000-8000-000000000000",
         "emisor": EMISOR_NORMAL,
+        "proveedor_nombre": "Consorcio Mayorista de Cableado Pesado S.A.",
         "oc_lineas": OC_LINEAS_ALTO_MONTO,
         "recibido": {"TORN-001": 100, "CABL-010": 50},  # Faltan 100 rollos -> Fuga $9,280 MXN (> $5,000 límite)
         "facturado": {"TORN-001": ("100", "12.50"), "CABL-010": ("150", "80.00")},
         "simular_caida_sat": True,  # Dispara el Circuit Breaker del SAT (SAT_NO_VERIFICADO)
+        "imagen": {"borrosa": False, "nota": "FALTANTE CRITICO: Solo llegaron 50 rollos CABL-010 de 150 pedidos (-100 rollos)."},
     },
 }
 
@@ -225,6 +252,7 @@ def generar_todos():
         oc_data = {
             "oc": caso,
             "proveedor_rfc": d["emisor"],
+            "proveedor_nombre": d.get("proveedor_nombre", f"Proveedor {caso}"),
             "moneda": d.get("moneda", "MXN"),
             "simular_caida_sat": d.get("simular_caida_sat", False),
             "lineas": d["oc_lineas"],
@@ -247,6 +275,8 @@ def generar_todos():
                 cant_cabl=d["recibido"]["CABL-010"],
                 nota=d["imagen"]["nota"],
                 borrosa=d["imagen"]["borrosa"],
+                emisor_rfc=d["emisor"],
+                proveedor_nombre=d.get("proveedor_nombre", f"Proveedor {caso}"),
             )
         (p / "remision.json").write_text(json.dumps(rem_data, indent=2, ensure_ascii=False), encoding="utf-8")
 

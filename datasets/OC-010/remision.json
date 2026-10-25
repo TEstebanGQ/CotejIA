@@ -2,7 +2,7 @@
   "oc_referencia": "OC-010",
   "tiene_sello_almacen": true,
   "tiene_firma_recepcion": true,
-  "requiere_vision": false,
+  "requiere_vision": true,
   "lineas": [
     {
       "sku": "TORN-001",
@@ -12,5 +12,6 @@
       "sku": "CABL-010",
       "cantidad_recibida": 50
     }
-  ]
+  ],
+  "observaciones_manuales": "FALTANTE CRITICO: Solo llegaron 50 rollos CABL-010 de 150 pedidos (-100 rollos)."
 }

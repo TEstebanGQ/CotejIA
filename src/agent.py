@@ -523,18 +523,22 @@ def ejecutar_caso(case_id: str, client: OpenAI | None = None) -> dict:
     return {"veredicto": veredicto_esc, "uso": uso}
 
 
-SYSTEM_PROMPT_CHAT = f"""Eres CotejAI, copiloto inteligente de cuentas por pagar y auditoría fiscal CFDI 4.0 para empresas mexicanas en Platica.
+SYSTEM_PROMPT_CHAT = f"""Eres CotejAI, el Agente Auditor Forense de Cuentas por Pagar y Fiscalización CFDI 4.0 de Platica.
 
-Reglas de Comportamiento y Velocidad:
-1. Si el usuario saluda (ej. "hola", "buenos días"), hace preguntas de cortesía o dudas generales, responde DIRECTAMENTE de forma inmediata, amable y concisa SIN llamar herramientas.
-2. Si te pide explícitamente auditar, re-cotejar o verificar en vivo contra el SAT o la remisión, puedes llamar a las herramientas correspondientes.
-3. Formato y Presentación de Respuestas:
-   - Responde SIEMPRE con formato Markdown limpio, estructurado y visualmente ordenado.
-   - Usa párrafos breves y listas con viñetas (- o •) para desglosar hallazgos.
-   - Resalta siempre las cifras monetarias en negrita con moneda (ej. **$5,800.00 MXN**).
-   - Resalta los estados fiscales y códigos (ej. **EN_RECLAMO**, **APROBADO**, **ESCALADO**).
-   - NUNCA generes un solo bloque masivo de texto sin saltos de línea ni estructura.
-4. Sé ágil, preciso y profesional para asistir eficientemente al analista de tesorería."""
+REGLAS ESTRICTAS DE IDENTIDAD, ALCANCE Y SEGURIDAD (GUARDRAILS):
+1. **Conciencia de Auditoría Ejecutada**: NUNCA digas "No he hecho nada todavía" ni "este es el primer mensaje". Cuando el usuario consulta un expediente, tú YA ejecutaste sobre ese expediente:
+   - El **Three-Way Matching determinista** (`cotejar_caso`: Orden de Compra vs. Remisión Física vs. Factura CFDI 4.0 XML).
+   - La **inspección óptica con Grok Vision** (`leer_remision_imagen`) sobre la fotografía de la remisión de almacén (`remision.png`), leyendo sellos, firmas, cantidades y notas manuscritas.
+   - La **validación cambiaria en vivo** (`consultar_tipo_cambio_real`) contra las 180 divisas ISO 4217 / SAT Anexo 20 cuando aplica moneda extranjera.
+   - La **validación fiscal ante el SAT** (`consultar_sat_en_vivo`: timbre SOAP con Circuit Breaker, Lista Negra 69-B de EFOS definitivos y control de UUID duplicado).
+2. **Guardrail Estricto de Dominio (Prohibido Off-Topic / Código Ajeno)**:
+   - Tu único propósito es **Auditoría de Cuentas por Pagar, Conciliación 3-Way Matching, Fiscalización SAT (CFDI 4.0 / 69-B), Divisas/Tipo de Cambio y Tesorería**.
+   - Si el usuario pide cosas ajenas a tu rol (ej. escribir scripts de programación como `"Hola mundo"`, recetas, chistes, tareas escolares o temas generales), **NIEGA amablemente esa solicitud** diciendo: *"Por política de seguridad de CotejAI, soy un agente especializado exclusivamente en auditoría de cuentas por pagar y fiscalización CFDI 4.0, por lo que no genero scripts de programación ni contenido ajeno a tesorería."*
+   - Si en el mismo mensaje el usuario también preguntó algo del expediente (ej. qué has hecho o en qué divisa está), responde detalladamente esa parte financiera/fiscal.
+3. **Claridad en Divisas**:
+   - Indica siempre con exactitud la **moneda original de emisión del CFDI** (ej. `USD` con el Tipo de Cambio facturado vs. el Tipo de Cambio oficial en vivo) y los **montos convertidos a `MXN`** para tesorería.
+4. **Formato de Respuesta**:
+   - Usa Markdown limpio con viñetas (`-`), negritas para montos (**$19,230.39 MXN**) y códigos en formato código (`FX_OVERCHARGE`, `EN_RECLAMO`, `ESCALADO`, `APROBADO`)."""
 
 
 def tiene_llave_configurada() -> bool:
@@ -606,40 +610,67 @@ def conversar(
     """Permite conversar en lenguaje natural con CotejAI manteniendo contexto y herramientas."""
     client = client or crear_cliente()
     model = os.environ.get("MODEL", "grok-4.6")
-    
-    if historial is None:
-        historial = [{"role": "system", "content": SYSTEM_PROMPT_CHAT}]
+    historial = list(historial) if historial else []
 
     contexto_str = ""
     if case_id:
         cid = case_id.upper()
         try:
             cotejo_info = tool_cotejar_caso(cid)
-            oc_info, _, cfdi_info = cargar_caso(cid)
+            oc_info, rem_info, cfdi_info = cargar_caso(cid)
             prov = oc_info.get("proveedor_nombre") or (cfdi_info.get("rfc_emisor") or "Proveedor")
             codigos_txt = ", ".join(cotejo_info.get("codigos", []))
             fuga_val = cotejo_info.get("fuga_detectada_mxn", "0.00")
             pagar_val = cotejo_info.get("monto_a_pagar_mxn", "0.00")
             total_val = cotejo_info.get("total_cfdi_mxn", "0.00")
-            detalles_txt = "; ".join([d.get("problema", "") for d in cotejo_info.get("detalle", []) if d.get("problema")])
-            
+            moneda_orig = cfdi_info.get("moneda", oc_info.get("moneda", "MXN"))
+            tc_orig = str(cfdi_info.get("tipo_cambio", oc_info.get("tipo_cambio", "1.00")))
+            nota_rem = rem_info.get("observaciones_manuales", "Sin observaciones manuscritas")
+
+            detalles_formateados = []
+            for d in cotejo_info.get("detalle", []):
+                partes = [d.get("problema", "Hallazgo")]
+                if "sku" in d:
+                    partes.insert(0, f"[{d['sku']}]")
+                if "facturada" in d and "recibida" in d:
+                    partes.append(f"(Facturado: {d['facturada']}, Recibido en almacén: {d['recibida']})")
+                if "precio_oc" in d and "precio_facturado" in d:
+                    partes.append(f"(Precio OC: ${d['precio_oc']}, Precio CFDI: ${d['precio_facturado']})")
+                if "tipo_cambio_cfdi" in d and "tipo_cambio_oficial" in d:
+                    partes.append(f"(TC CFDI: ${d['tipo_cambio_cfdi']} MXN/{d.get('moneda','USD')} vs TC Oficial en vivo: ${d['tipo_cambio_oficial']} MXN/{d.get('moneda','USD')})")
+                if "tasa_oc" in d and "tasa_cfdi" in d:
+                    partes.append(f"(Tasa IVA OC: {d['tasa_oc']} vs CFDI: {d['tasa_cfdi']})")
+                detalles_formateados.append(" ".join(partes))
+            detalles_txt = " | ".join(detalles_formateados)
+
             contexto_str = (
-                f"[EXPEDIENTE EN PANTALLA: {cid}]\n"
+                f"[AUDITORÍA EJECUTADA POR COTEJAI SOBRE EL EXPEDIENTE EN PANTALLA: {cid}]\n"
+                f"- Herramientas ya ejecutadas sobre {cid}: `cotejar_caso` (3-Way Matching), `leer_remision_imagen` (Grok Vision sobre remision.png), `consultar_sat_en_vivo` (SOAP SAT + Lista 69-B)"
+                + (", `consultar_tipo_cambio_real` (API FX en vivo)" if moneda_orig != "MXN" else "") + "\n"
                 f"- Proveedor: {prov} (RFC: {cfdi_info.get('rfc_emisor', 'N/A')})\n"
-                f"- UUID: {cfdi_info.get('uuid', 'N/A')}\n"
-                f"- Facturado CFDI: ${total_val} MXN\n"
-                f"- Monto a Pagar: ${pagar_val} MXN\n"
-                f"- Retención Preventiva: ${fuga_val} MXN\n"
-                f"- Códigos: {codigos_txt}\n"
-                f"- Hallazgos: {detalles_txt or 'Sin anomalías'}\n"
-                f"REGLA: El usuario está viendo ESTE expediente. Si pide información de 'este informe' o 'redactar un reclamo', "
-                f"responde DIRECTAMENTE sobre {cid} usando estos datos. NUNCA le preguntes cuál es el case_id."
+                f"- UUID Fiscal: {cfdi_info.get('uuid', 'N/A')}\n"
+                f"- Divisa de emisión del CFDI: {moneda_orig} (Tipo de Cambio en CFDI: ${tc_orig} MXN/{moneda_orig}) | Divisa de liquidación en tesorería: MXN\n"
+                f"- Total Facturado (convertido a MXN): ${total_val} MXN\n"
+                f"- Monto Autorizado a Pagar: ${pagar_val} MXN\n"
+                f"- Fuga / Retención Preventiva: ${fuga_val} MXN\n"
+                f"- Códigos Deterministas: {codigos_txt}\n"
+                f"- Nota Manuscrita en Remisión Física (Grok Vision): {nota_rem}\n"
+                f"- Desglose de Hallazgos: {detalles_txt or 'Conciliación exacta sin anomalías (MATCH_OK)'}\n"
+                f"INSTRUCCIÓN: Si el usuario pregunta 'qué has hecho', explicale este análisis forense que acabas de realizar sobre {cid}. "
+                f"Si pide código de programación ajeno (ej. 'hola mundo'), niégalo por política de dominio y responde únicamente lo relativo a la auditoría y divisa de {cid}."
             )
         except Exception:
             contexto_str = f"[Expediente actual en pantalla: {cid}. Asume este caso por defecto.]"
 
-    mensaje_final = f"{contexto_str}\n\nPregunta: {mensaje_usuario}" if contexto_str else mensaje_usuario
-    historial.append({"role": "user", "content": mensaje_final})
+    system_completo = f"{SYSTEM_PROMPT_CHAT}\n\n{contexto_str}" if contexto_str else SYSTEM_PROMPT_CHAT
+    if not historial:
+        historial = [{"role": "system", "content": system_completo}]
+    elif historial[0].get("role") == "system":
+        historial[0]["content"] = system_completo
+    else:
+        historial.insert(0, {"role": "system", "content": system_completo})
+
+    historial.append({"role": "user", "content": mensaje_usuario})
     uso = {"prompt_tokens": 0, "completion_tokens": 0, "llamadas": 0, "segundos": 0.0}
 
     # Optimización de latencia: si ya tenemos el contexto o es saludo/pregunta directa, responder sin iterar herramientas
@@ -648,7 +679,15 @@ def conversar(
         "hola", "hola!", "hola.", "¿hola?", "buenas", "buenos dias", "buenos días", 
         "buenas tardes", "buenas noches", "saludos", "hey", "hi", "que tal", "qué tal"
     }
-    pide_auditar_manual = any(w in msg_clean for w in ["auditar", "re-auditar", "consultar sat en vivo", "correr herramientas"])
+    pide_auditar_manual = any(
+        w in msg_clean
+        for w in [
+            "auditar", "re-auditar", "consultar sat", "correr herramientas",
+            "leer remision", "leer remisión", "vision", "visión",
+            "tipo de cambio", "tasa de cambio", "enviar reclamo", "enviar alerta",
+            "verificar en vivo", "cotejar",
+        ]
+    )
     
     herramientas_chat = [t for t in TOOLS if t["function"]["name"] != "cerrar_caso"] if pide_auditar_manual else None
 
@@ -679,7 +718,7 @@ def conversar(
         for tc in msg.tool_calls:
             try:
                 args = json.loads(tc.function.arguments or "{}")
-                cid = args.get("case_id", "OC-001").upper()
+                cid = args.get("case_id", case_id or "OC-001").upper()
                 if tc.function.name == "cotejar_caso":
                     cotejo = tool_cotejar_caso(cid)
                     resultado = {"ok": True, "case_id": cid, **cotejo}
@@ -699,6 +738,16 @@ def conversar(
                         rfc_receptor=cfdi_d.get("rfc_receptor") or "",
                         total=str(cfdi_d.get("total") or "0.00"),
                         simular_caida_sat=bool(oc_d.get("simular_caida_sat", False)),
+                    )
+                elif tc.function.name == "enviar_alerta_reclamo_real":
+                    _, _, cfdi_d = cargar_caso(cid)
+                    cotejo_c = tool_cotejar_caso(cid)
+                    resultado = enviar_alerta_reclamo_real(
+                        case_id=cid,
+                        rfc_proveedor=cfdi_d.get("rfc_emisor") or "AAA010101AAA",
+                        uuid_factura=cfdi_d.get("uuid") or "",
+                        monto_nota_credito_mxn=args.get("monto_nota_credito_mxn") or cotejo_c["fuga_detectada_mxn"],
+                        motivo=args.get("motivo") or f"Reclamo formal de nota de crédito en {cid}",
                     )
                 else:
                     resultado = {"ok": False, "error": f"Herramienta no disponible: {tc.function.name}"}

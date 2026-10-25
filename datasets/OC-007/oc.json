@@ -1,6 +1,7 @@
 {
   "oc": "OC-007",
   "proveedor_rfc": "AAA080808AAA",
+  "proveedor_nombre": "Comercializadora Fantasma del Sur S.A. (EFOS 69-B)",
   "moneda": "MXN",
   "simular_caida_sat": false,
   "lineas": [
