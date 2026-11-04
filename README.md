@@ -323,11 +323,19 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ---
 
-## 🎬 Video Demo Programático (HyperFrames)
+## 🎬 Videos Demo y Grabación de Pantalla en Vivo
 
-El repositorio incluye una composición programática en **HyperFrames** (1920×1080, 30 fps) que demuestra la plataforma y sus flujos principales:
-- **Video MP4 renderizado:** [ideo-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)
-- **Especificación y revisión:** [ideo-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [ideo-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
+El repositorio incluye dos demostraciones audiovisuales en alta fidelidad (1080p, 30 fps) que exhiben la plataforma, el agente autónomo y sus casos de uso reales:
+
+1. **Grabación de Pantalla en Vivo del Agente (`1080p`, 1m 50s):**  
+   [`docs/videos/demo_cotejai_agente.mp4`](docs/videos/demo_cotejai_agente.mp4)  
+   *Recorrido dinámico con cursor visual simulado operando la UI, inspeccionando remisiones con Grok Vision (`OC-004`), auditando sobreprecios cambiarios Banxico (`OC-006`), validando contra el SAT/69-B, aprobando pagos parciales y filtrando la tabla de auditoría.*  
+   *Script de reproducción automática:* [`scripts/record_demo_walkthrough.py`](scripts/record_demo_walkthrough.py)
+
+2. **Video Demo Programático con HyperFrames y Mascota 3D Kotek (2 min):**  
+   [`video-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)  
+   *Composición programática en HyperFrames con locución master y render 3D.*  
+   *Especificación y revisión:* [`video-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [`video-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
 
 ---
 
@@ -340,6 +348,7 @@ Para atender con máxima transparencia y detalle técnico cada observación del 
 3. **[Reporte Técnico Formal en PDF (S2)](docs/Reporte_Tecnico_S2_CotejAI.pdf):** Documento de entrega para el torneo con diseño editorial, diagramas de arquitectura, tablas de costos y capturas de pantalla de la UI.
 4. **[Telemetría de Producción Real en JSONL](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
 5. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
+6. **[Video Walkthrough Operativo (1080p MP4)](docs/videos/demo_cotejai_agente.mp4):** Grabación continua de la interacción con el sistema en tiempo real.
 
 ---
 
