@@ -8,8 +8,7 @@ from playwright.async_api import async_playwright
 ROOT = Path(__file__).resolve().parent.parent
 VIDEOS_DIR = ROOT / "docs" / "videos"
 TEMP_DIR = VIDEOS_DIR / "temp_record"
-TEMP_WEBM = TEMP_DIR / "screen_capture.webm"
-VOICEOVER_MP3 = ROOT / "video-cotejai" / "assets" / "audio" / "master_voiceover.mp3"
+VOICEOVER_MP3 = VIDEOS_DIR / "voiceover_cotejai_walkthrough.mp3"
 OUTPUT_MP4 = VIDEOS_DIR / "demo_cotejai_agente.mp4"
 
 CURSOR_AND_SUBTITLES_JS = """
@@ -28,7 +27,7 @@ CURSOR_AND_SUBTITLES_JS = """
             z-index: 9999999;
             transform: translate(-100px, -100px);
             transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.45));
         ">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="#10b981" stroke="#ffffff" stroke-width="1.6">
                 <path d="M3 3l7 18 3-7 7-3L3 3z"/>
@@ -37,34 +36,34 @@ CURSOR_AND_SUBTITLES_JS = """
     `;
     document.body.appendChild(container);
 
-    // Contenedor Subtítulos
+    // Contenedor Subtítulos Flotantes Broadcast
     const sub = document.createElement('div');
     sub.id = 'v-subtitle';
     sub.style.cssText = `
         position: fixed;
-        bottom: 28px;
+        bottom: 26px;
         left: 50%;
         transform: translateX(-50%) translateY(20px);
-        background: rgba(14, 15, 18, 0.94);
-        backdrop-filter: blur(12px);
+        background: rgba(12, 13, 16, 0.94);
+        backdrop-filter: blur(14px);
         border: 1px solid rgba(16, 185, 129, 0.45);
         color: #f4f4f5;
-        padding: 9px 24px;
+        padding: 9px 26px;
         border-radius: 9999px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 13.5px;
         font-weight: 500;
         z-index: 9999990;
-        box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.65);
+        box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.7);
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         opacity: 0;
         transition: opacity 0.35s ease, transform 0.35s ease;
-        max-width: 82%;
+        max-width: 84%;
         text-align: center;
         pointer-events: none;
-        line-height: 1.35;
+        line-height: 1.4;
     `;
     document.body.appendChild(sub);
 
@@ -104,7 +103,7 @@ CURSOR_AND_SUBTITLES_JS = """
             el.style.opacity = '0';
             el.style.transform = 'translateX(-50%) translateY(20px)';
         } else {
-            el.innerHTML = `<span style="background: rgba(16,185,129,0.15); color: #34d399; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; border: 1px solid rgba(16,185,129,0.3);">Kótek 🦉</span> <span>${text}</span>`;
+            el.innerHTML = `<span style="background: rgba(16,185,129,0.18); color: #34d399; font-weight: 700; padding: 2px 10px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(16,185,129,0.35); text-transform: uppercase; letter-spacing: 0.5px;">CotejAI Audio</span> <span>${text}</span>`;
             el.style.opacity = '1';
             el.style.transform = 'translateX(-50%) translateY(0)';
         }
@@ -150,7 +149,7 @@ async def record_walkthrough():
     for f in TEMP_DIR.glob("*.webm"):
         f.unlink()
 
-    print("🚀 [1/4] Iniciando Chromium 1080p con motor de video y sincronización de voz...")
+    print("🚀 [1/4] Iniciando Chromium 1080p para grabación técnica sincronizada...")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
@@ -160,7 +159,7 @@ async def record_walkthrough():
         )
         page = await context.new_page()
 
-        print("🎬 [2/4] Grabando recorrido sincronizado con la locución de Kótek...")
+        print("🎬 [2/4] Ejecutando recorrido de pantalla al compás del audio generado...")
         await page.goto("http://localhost:8000", wait_until="networkidle")
         await page.wait_for_timeout(1000)
         await page.evaluate(CURSOR_AND_SUBTITLES_JS)
@@ -169,133 +168,170 @@ async def record_walkthrough():
         start_time = time.time()
 
         # ==========================================
-        # ESCENA 1 (0.0s – 20.5s): Introducción CotejAI, 3 Lentes, Arquitectura y KPIs
+        # ESCENA 1 (0.00s – 21.00s): Dashboard General y KPIs
         # ==========================================
-        print("  ▶ [0:00 - 0:20] Escena 1: Introducción y Dashboard")
-        await page.evaluate("window.setSubtitle('¡Hola! Soy Kótek, el búho auditor de 3 lentes de CotejAI. Nacimos para resolver la fuga de capital en cuentas por pagar.')")
+        print("  ▶ [0:00 - 0:21] Escena 1: Introducción Técnica y Métricas Clave")
+        await page.evaluate("window.setSubtitle('Plataforma CotejAI operando sobre un lote real de cuentas por pagar.')")
         await page.evaluate("seleccionarCaso('OC-004')")
-        await smooth_move_to_element(page, '#kpi-fuga-retenida')
-        await page.wait_for_timeout(1500)
-        await smooth_move_to_element(page, '#kpi-casos-auditados')
-        await page.wait_for_timeout(1500)
-
-        await page.evaluate("window.setSubtitle('Combino el razonamiento multimodal de Grok 4.6 con un motor determinista y persistencia en PostgreSQL 16.')")
-        await smooth_move_to_element(page, '#kpi-resolucion-autonoma')
-        await page.wait_for_timeout(1600)
-        await smooth_move_to_element(page, '#kpi-costo-promedio')
-        await page.wait_for_timeout(1600)
-        await smooth_move_to_element(page, '#label-motor-db')
-        await wait_until_target(page, start_time, 20.5)
-
-        # ==========================================
-        # ESCENA 2 (20.5s – 41.5s): 180 Divisas en Vivo + OC-006 (FX_OVERCHARGE)
-        # ==========================================
-        print("  ▶ [0:20 - 0:41] Escena 2: 180 Divisas y Sobreprecio Cambiario Banxico")
-        await page.evaluate("window.setSubtitle('En nuestra barra conectamos en tiempo real las 180 divisas oficiales del SAT (Anexo 20) contra el peso mexicano.')")
-        await smooth_move_to_element(page, '#select-fx-moneda')
-        await page.wait_for_timeout(800)
-        await page.select_option('#select-fx-moneda', 'EUR')
-        await page.wait_for_timeout(1800)
-        await page.select_option('#select-fx-moneda', 'USD')
-        await page.wait_for_timeout(1500)
-
-        await page.evaluate("window.setSubtitle('En OC-006 detecto un tipo de cambio inflado de $21.85 vs $18.69 y retengo $19,230 MXN por sobrecargo cambiario.')")
-        await page.evaluate("inspeccionarYIrADashboard('OC-006')")
-        await page.wait_for_timeout(1500)
-        await smooth_move_to_element(page, '#badge-status-dashboard')
-        await page.wait_for_timeout(2000)
-        await smooth_move_to_element(page, 'div:has-text("FX_OVERCHARGE")')
-        await wait_until_target(page, start_time, 41.5)
-
-        # ==========================================
-        # ESCENA 3 (41.5s – 62.5s): Caso Real OC-004: Grok Vision y Merma Manuscrita
-        # ==========================================
-        print("  ▶ [0:41 - 1:02] Escena 3: Grok Vision sobre Remisión Física con Merma")
-        await page.evaluate("window.setSubtitle('En OC-004, invoco leer_remision_imagen con Grok Vision sobre la foto física de almacén...')")
-        await page.evaluate("inspeccionarYIrADashboard('OC-004')")
         await page.wait_for_timeout(1000)
-        await smooth_move_to_element(page, '#pane-doc-remision')
-        await page.wait_for_timeout(800)
-        await smooth_click(page, '#pane-doc-remision #view-remision-activa button:has-text("Datos")')
-        await page.wait_for_timeout(2200)
 
-        await page.evaluate("window.setSubtitle('Detecto el sello, firma y nota manuscrita: solo 80 pzas por merma. Mi motor retiene exactamente $5,800 MXN.')")
+        await smooth_move_to_element(page, '#kpi-fuga-retenida')
+        await page.wait_for_timeout(1800)
+        await smooth_move_to_element(page, '#kpi-casos-auditados')
+        await page.wait_for_timeout(1800)
+
+        await page.evaluate("window.setSubtitle('Fuga retenida de más de $42,000 MXN con 94% de resolución autónoma a $0.53 MXN por factura.')")
+        await smooth_move_to_element(page, '#kpi-resolucion-autonoma')
+        await page.wait_for_timeout(1800)
+        await smooth_move_to_element(page, '#kpi-costo-promedio')
+        await page.wait_for_timeout(1800)
+        await smooth_move_to_element(page, '#label-motor-db')
+        await wait_until_target(page, start_time, 21.00)
+
+        # ==========================================
+        # ESCENA 2 (21.00s – 44.86s): Caso OC-004 y Remisión Física con Merma
+        # ==========================================
+        print("  ▶ [0:21 - 0:44] Escena 2: Remisión Física y Lectura de Merma con Grok Vision")
+        await page.evaluate("window.setSubtitle('Expediente OC-004: fotografía física de la remisión escaneada en almacén.')")
+        await smooth_move_to_element(page, '#pane-doc-remision')
+        await page.wait_for_timeout(1400)
+        await smooth_click(page, '#pane-doc-remision #view-remision-activa button:has-text("Datos")')
+        await page.wait_for_timeout(2500)
+
+        await page.evaluate("window.setSubtitle('Grok Vision identifica sello oficial, firma y nota manuscrita: solo 80 piezas recibidas por merma.')")
+        await page.wait_for_timeout(3500)
+        await smooth_click(page, '#modal-doc-inspector button:has-text("Cerrar")')
+        await wait_until_target(page, start_time, 44.86)
+
+        # ==========================================
+        # ESCENA 3 (44.86s – 64.18s): Tríada de Conciliación a Tres Vías
+        # ==========================================
+        print("  ▶ [0:44 - 1:04] Escena 3: Tríada de 3 Vías (OC 100 vs Remisión 80 vs Factura 100)")
+        await page.evaluate("window.setSubtitle('Conciliación a 3 vías: Orden por 100 pzas, Remisión física por 80 pzas y Factura CFDI por 100.')")
+        await smooth_move_to_element(page, 'div[onclick*="\'OC\'"]')
+        await page.wait_for_timeout(1500)
+        await smooth_move_to_element(page, '#box-remision-triad')
+        await page.wait_for_timeout(1500)
+        await smooth_move_to_element(page, 'div[onclick*="\'CFDI\'"]')
+        await page.wait_for_timeout(1500)
+
+        await page.evaluate("window.setSubtitle('Retención preventiva calculada de $5,800.00 MXN con IVA incluido antes del pago.')")
+        await smooth_move_to_element(page, 'div:has-text("Fuga Retenida")')
+        await wait_until_target(page, start_time, 64.18)
+
+        # ==========================================
+        # ESCENA 4 (64.18s – 84.63s): Pestañas CFDI 4.0 XML y Orden ERP
+        # ==========================================
+        print("  ▶ [1:04 - 1:24] Escena 4: Pestaña Factura XML SAT y Pestaña Orden ERP")
+        await page.evaluate("window.setSubtitle('Pestaña CFDI 4.0 XML: comprobación de Folio Fiscal UUID, RFC de emisor y sello digital SAT.')")
+        await smooth_click(page, '#tab-doc-btn-cfdi')
+        await page.wait_for_timeout(1200)
+        await smooth_click(page, '#pane-doc-cfdi button:has-text("Inspeccionar XML SAT")')
+        await page.wait_for_timeout(2500)
         await smooth_click(page, '#modal-doc-inspector button:has-text("Cerrar")')
         await page.wait_for_timeout(800)
 
-        # Tríada
-        await smooth_move_to_element(page, 'div[onclick*="\'OC\'"]')
-        await page.wait_for_timeout(1000)
-        await smooth_move_to_element(page, '#box-remision-triad')
-        await page.wait_for_timeout(1000)
-        await smooth_move_to_element(page, 'div[onclick*="\'CFDI\'"]')
-        await wait_until_target(page, start_time, 62.5)
+        await page.evaluate("window.setSubtitle('Pestaña Orden ERP: verificación de precios unitarios pactados contractualmente.')")
+        await smooth_click(page, '#tab-doc-btn-oc')
+        await page.wait_for_timeout(1200)
+        await smooth_click(page, '#pane-doc-oc button:has-text("Revisar Partidas de OC")')
+        await page.wait_for_timeout(2000)
+        await smooth_click(page, '#modal-doc-inspector button:has-text("Cerrar")')
+        await wait_until_target(page, start_time, 84.63)
 
         # ==========================================
-        # ESCENA 4 (62.5s – 80.5s): Webhook de Reclamo y Bloqueo de Idempotencia en DB
+        # ESCENA 5 (84.63s – 109.57s): Caso OC-006 y Auditoría Cambiaria Banxico (180 Divisas)
         # ==========================================
-        print("  ▶ [1:02 - 1:20] Escena 4: Policy Gate, Webhook e Idempotencia")
-        await page.evaluate("window.setSubtitle('Como la diferencia es menor a $5,000 MXN, Policy Gate autoriza disparar el webhook de solicitud de nota de crédito.')")
+        print("  ▶ [1:24 - 1:49] Escena 5: Caso OC-006 y Catálogo Oficial de 180 Divisas Banxico")
+        await page.evaluate("window.setSubtitle('Caso OC-006 facturado en dólares: conexión en tiempo real con 180 divisas del SAT y Banxico.')")
+        await page.evaluate("inspeccionarYIrADashboard('OC-006')")
+        await page.wait_for_timeout(1200)
+
+        await smooth_move_to_element(page, '#select-fx-moneda')
+        await page.wait_for_timeout(800)
+        await page.select_option('#select-fx-moneda', 'EUR')
+        await page.wait_for_timeout(2000)
+        await page.select_option('#select-fx-moneda', 'USD')
+        await page.wait_for_timeout(1600)
+
+        await page.evaluate("window.setSubtitle('Tipo de cambio inflado detectado a $21.85: congelando $19,707 MXN por sobrecargo cambiario.')")
+        await smooth_move_to_element(page, '#badge-status-dashboard')
+        await page.wait_for_timeout(2200)
+        await smooth_move_to_element(page, 'div:has-text("FX_OVERCHARGE")')
+        await wait_until_target(page, start_time, 109.57)
+
+        # ==========================================
+        # ESCENA 6 (109.57s – 129.32s): Seguridad Fiscal SAT y Lista Negra 69-B
+        # ==========================================
+        print("  ▶ [1:49 - 2:09] Escena 6: Consulta SOAP del SAT y Verificación Anti-EFOS 69-B")
+        await page.evaluate("window.setSubtitle('Consulta SOAP del SAT: comprobación de vigencia del CFDI y estatus ante la autoridad fiscal.')")
+        await smooth_click(page, 'button:has-text("Conciliación SAT 4.0")')
+        await page.wait_for_timeout(2800)
+        await smooth_click(page, '#app-dialog-btn-primary')
+        await page.wait_for_timeout(1000)
+
+        await page.evaluate("window.setSubtitle('Auditoría automática contra el Art. 69-B del CFF descartando empresas facturadoras simuladas (EFOS).')")
+        await smooth_click(page, 'button:has-text("Lista 69-B (EFOS)")')
+        await page.wait_for_timeout(2800)
+        await smooth_click(page, '#app-dialog-btn-primary')
+        await wait_until_target(page, start_time, 129.32)
+
+        # ==========================================
+        # ESCENA 7 (129.32s – 150.32s): Aprobación Parcial, Nota de Crédito y Policy Gate
+        # ==========================================
+        print("  ▶ [2:09 - 2:30] Escena 7: Autorización de Pago Parcial y Policy Gate (< $5,000 MXN)")
+        await page.evaluate("window.setSubtitle('Autorización de pago parcial de las piezas recibidas y solicitud formal de Nota de Crédito.')")
+        await page.evaluate("inspeccionarYIrADashboard('OC-004')")
+        await page.wait_for_timeout(1000)
+
         await smooth_click(page, '#btn-aprobar-parcial')
         await page.wait_for_timeout(1400)
         await smooth_click(page, '#btn-solicitar-nc')
-        await page.wait_for_timeout(1800)
+        await page.wait_for_timeout(2200)
         await smooth_click(page, '#app-dialog-btn-primary')
         await page.wait_for_timeout(1200)
 
-        await page.evaluate("window.setSubtitle('Nuestra llave de idempotencia en base de datos bloquea duplicados para nunca reclamar dos veces la misma factura.')")
+        await page.evaluate("window.setSubtitle('Policy Gate verifica el umbral de $5,000 MXN y registra la acción de forma idempotente en la base de datos.')")
         await smooth_click(page, 'button:has-text("Acta Circunstanciada")')
-        await wait_until_target(page, start_time, 80.5)
+        await wait_until_target(page, start_time, 150.32)
 
         # ==========================================
-        # ESCENA 5 (80.5s – 105.1s): Manejo de Fallos: Foto Borrosa (OC-005) y Lista 69-B (OC-007)
+        # ESCENA 8 (150.32s – 169.30s): Tabla de Expedientes y Buscador Instantáneo ⌘K
         # ==========================================
-        print("  ▶ [1:20 - 1:45] Escena 5: Foto Borrosa (RECEIPT_UNREADABLE) y Lista 69-B SAT")
-        await page.evaluate("window.setSubtitle('En OC-005, la foto está borrosa. Sin alucinar cantidades, activo RECEIPT_UNREADABLE y escalo a revisión humana.')")
-        await page.evaluate("inspeccionarYIrADashboard('OC-005')")
+        print("  ▶ [2:30 - 2:49] Escena 8: Registro Central de Expedientes y Filtrado ⌘K")
+        await page.evaluate("window.setSubtitle('Registro central de expedientes con filtrado instantáneo por En Reclamo, Escalados o Aprobados.')")
+        await smooth_click(page, '#nav-expedientes')
         await page.wait_for_timeout(1500)
-        await smooth_move_to_element(page, 'span:has-text("RECEIPT_UNREADABLE")')
-        await page.wait_for_timeout(2500)
-
-        await page.evaluate("window.setSubtitle('En OC-007, al cruzar el RFC contra el Art. 69-B del SAT, bloqueo el 100% por ser una empresa EFOS facturadora.')")
-        await page.evaluate("inspeccionarYIrADashboard('OC-007')")
-        await page.wait_for_timeout(1800)
-        await smooth_click(page, 'button:has-text("Lista 69-B (EFOS)")')
-        await page.wait_for_timeout(2400)
-        await smooth_click(page, '#app-dialog-btn-primary')
-        await wait_until_target(page, start_time, 105.1)
-
-        # ==========================================
-        # ESCENA 6 (105.1s – 131.8s): Circuit Breaker SAT SOAP, Policy Gate > $5,000 y Cierre
-        # ==========================================
-        print("  ▶ [1:45 - 2:11] Escena 6: Circuit Breaker SAT, Tabla General y Cierre")
-        await page.evaluate("window.setSubtitle('En OC-010, ante caídas del SAT, el Circuit Breaker abre el circuito tras 3 fallos sin colgar el sistema...')")
-        await page.evaluate("inspeccionarYIrADashboard('OC-010')")
-        await page.wait_for_timeout(1500)
-        await smooth_click(page, 'button:has-text("Conciliación SAT 4.0")')
-        await page.wait_for_timeout(2200)
-        await smooth_click(page, '#app-dialog-btn-primary')
+        await smooth_click(page, 'button[data-tab="EN_RECLAMO"]')
+        await page.wait_for_timeout(1200)
+        await smooth_click(page, 'button[data-tab="ESCALADO"]')
+        await page.wait_for_timeout(1200)
+        await smooth_click(page, 'button[data-tab="TODOS"]')
         await page.wait_for_timeout(1000)
 
-        await page.evaluate("window.setSubtitle('Superando el umbral de $5,000, Policy Gate escala a gerencia. CotejAI: la IA razona y la matemática gobierna.')")
-        await smooth_click(page, '#nav-expedientes')
-        await page.wait_for_timeout(1800)
+        await page.evaluate("window.setSubtitle('Buscador inteligente con atajo ⌘K localizando cualquier folio, expediente o proveedor al instante.')")
         await smooth_move_to_element(page, '#buscador-expediente')
         await page.fill('#buscador-expediente', 'OC-006')
         await page.wait_for_timeout(1800)
         await page.fill('#buscador-expediente', '')
-        await page.wait_for_timeout(1200)
+        await wait_until_target(page, start_time, 169.30)
 
+        # ==========================================
+        # ESCENA 9 (169.30s – 180.12s): Cierre de Demostración
+        # ==========================================
+        print("  ▶ [2:49 - 3:00] Escena 9: Cierre de Demostración")
+        await page.evaluate("window.setSubtitle('CotejAI: la IA razona con visión multimodal y las matemáticas blindan la tesorería.')")
         await smooth_click(page, '#nav-dashboard')
-        await page.evaluate("window.setSubtitle('CotejAI · Platica.mx × Campuslands 🦉')")
-        await wait_until_target(page, start_time, 131.8)
+        await page.wait_for_timeout(1500)
+        await smooth_move_to_element(page, '#kpi-fuga-retenida')
+        await wait_until_target(page, start_time, 180.12)
 
         video_path = await page.video.path()
         await context.close()
         await browser.close()
 
     print(f"📦 [3/4] Video capturado en: {video_path}")
-    print(f"🎙️ [4/4] Muxing de audio oficial ({VOICEOVER_MP3.name}) y renderizado final en 1080p MP4...")
+    print(f"🎙️ [4/4] Muxing de nueva locución oficial técnica ({VOICEOVER_MP3.name}) y renderizado final en 1080p MP4...")
 
     if video_path and os.path.exists(video_path) and VOICEOVER_MP3.exists():
         ffmpeg_cmd = [
@@ -315,7 +351,7 @@ async def record_walkthrough():
         res = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
         if res.returncode == 0:
             size_mb = os.path.getsize(OUTPUT_MP4) / (1024 * 1024)
-            print(f"🎉 ¡VIDEO CON AUDIO NARRADO GENERADO EXITOSAMENTE!")
+            print(f"🎉 ¡VIDEO 100% PERSONALIZADO CON NUEVA LOCUCIÓN TÉCNICA GENERADO!")
             print(f"   Destino: {OUTPUT_MP4}")
             print(f"   Tamaño: {size_mb:.2f} MB")
             print(f"   Resolución: 1080p (1920x1080, 30fps) con audio estéreo AAC 192k")
