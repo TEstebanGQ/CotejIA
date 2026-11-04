@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="6400.92" Total="7489.12">
+  <cfdi:Emisor Rfc="DIP120930T55"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="TUER-002" Descripcion="Tuerca hexagonal 1/2" Cantidad="287" ValorUnitario="19.39" Importe="5564.93" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="5564.93" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="954.44"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="BROC-019" Descripcion="Broca para concreto 3/8" Cantidad="41" ValorUnitario="20.39" Importe="835.99" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="835.99" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="133.76"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="1088.20"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="958ca9ba-0cd6-40c2-8ea2-622b504867ba"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

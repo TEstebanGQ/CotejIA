@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-004",
+  "tipo_caso": "MATCH_OK",
+  "estado_final": "APROBADO",
+  "codigos": [
+    "MATCH_OK"
+  ],
+  "monto_a_pagar_mxn": "29415.47",
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "29415.47",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "GUAN-009",
+        "cantidad_recibida": 196
+      },
+      {
+        "sku": "PEGA-015",
+        "cantidad_recibida": 93
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-012",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "PEGA-015",
+      "cantidad_recibida": 129
+    },
+    {
+      "sku": "LIJA-017",
+      "cantidad_recibida": 15
+    },
+    {
+      "sku": "GUAN-009",
+      "cantidad_recibida": 68
+    }
+  ]
+}

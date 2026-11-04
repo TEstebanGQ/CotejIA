@@ -1,0 +1,17 @@
+{
+  "oc": "S3-009",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "FRIJ-024",
+      "descripcion": "Frijol para comedor",
+      "unidad": "kg",
+      "cantidad": 297,
+      "precio_unitario": "147.46",
+      "tasa_iva": "0"
+    }
+  ]
+}

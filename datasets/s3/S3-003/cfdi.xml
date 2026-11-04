@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="66286.71" Total="71289.52">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="PINT-007" Descripcion="Pintura vinilica blanca" Cantidad="33" ValorUnitario="70.17" Importe="2315.61" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="2315.61" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="370.50"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="ARRO-023" Descripcion="Arroz en grano para comedor" Cantidad="126" ValorUnitario="277.93" Importe="35019.18" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="35019.18" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.000000" Importe="0.00"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="ROND-003" Descripcion="Rondana plana 1/2" Cantidad="158" ValorUnitario="183.24" Importe="28951.92" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="28951.92" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="4632.31"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="5002.81"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="19db3ad0-ddd1-4fb2-bb98-2ef8daf61a26"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

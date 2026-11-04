@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-025",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "THIN-008",
+      "cantidad_recibida": 48
+    },
+    {
+      "sku": "SEMF-028",
+      "cantidad_recibida": 236
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-025",
+  "tipo_caso": "UNAGREED_CHARGE",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "SKU_UNMAPPED"
+  ],
+  "monto_a_pagar_mxn": "21915.51",
+  "fuga_detectada_mxn": "995.92",
+  "total_cfdi_mxn": "22911.43",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "THIN-008",
+        "cantidad_recibida": 48
+      },
+      {
+        "sku": "SEMF-028",
+        "cantidad_recibida": 236
+      }
+    ]
+  }
+}

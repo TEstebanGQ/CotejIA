@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-008",
+  "tipo_caso": "MATCH_OK",
+  "estado_final": "APROBADO",
+  "codigos": [
+    "MATCH_OK"
+  ],
+  "monto_a_pagar_mxn": "155088.89",
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "155088.89",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "LIBR-029",
+        "cantidad_recibida": 118
+      },
+      {
+        "sku": "ARRO-023",
+        "cantidad_recibida": 265
+      },
+      {
+        "sku": "LENT-011",
+        "cantidad_recibida": 212
+      }
+    ]
+  }
+}

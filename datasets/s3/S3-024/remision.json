@@ -1,0 +1,12 @@
+{
+  "oc_referencia": "S3-024",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "PINT-007",
+      "cantidad_recibida": 107
+    }
+  ]
+}

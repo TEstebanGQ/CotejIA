@@ -1,0 +1,12 @@
+{
+  "oc_referencia": "S3-031",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "ROND-003",
+      "cantidad_recibida": 44
+    }
+  ]
+}

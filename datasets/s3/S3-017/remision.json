@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-017",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "SELL-016",
+      "cantidad_recibida": 282
+    },
+    {
+      "sku": "FRON-027",
+      "cantidad_recibida": 74
+    },
+    {
+      "sku": "ROND-003",
+      "cantidad_recibida": 75
+    }
+  ]
+}

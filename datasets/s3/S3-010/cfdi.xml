@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="102660.42" Total="119086.09">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="TUBO-013" Descripcion="Tubo PVC 2 pulgadas" Cantidad="80" ValorUnitario="22.52" Importe="1801.60" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="1801.60" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="288.26"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="TAPO-012" Descripcion="Tapon auditivo (caja 100)" Cantidad="270" ValorUnitario="23.82" Importe="6431.40" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="6431.40" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1029.02"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="THIN-008" Descripcion="Thinner estandar" Cantidad="262" ValorUnitario="360.41" Importe="94427.42" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="94427.42" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="15108.39"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="16425.67"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="1c11f735-dc71-4d96-8c0f-d195c17af08a"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

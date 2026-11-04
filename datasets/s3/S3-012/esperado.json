@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-012",
+  "tipo_caso": "QTY_SHORT",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "QTY_SHORT"
+  ],
+  "monto_a_pagar_mxn": "32434.50",
+  "fuga_detectada_mxn": "27828.31",
+  "total_cfdi_mxn": "60262.81",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "PEGA-015",
+        "cantidad_recibida": 129
+      },
+      {
+        "sku": "LIJA-017",
+        "cantidad_recibida": 15
+      },
+      {
+        "sku": "GUAN-009",
+        "cantidad_recibida": 68
+      }
+    ]
+  }
+}

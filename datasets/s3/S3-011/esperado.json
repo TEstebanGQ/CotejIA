@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-011",
+  "tipo_caso": "QTY_SHORT",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "QTY_SHORT"
+  ],
+  "monto_a_pagar_mxn": "8659.82",
+  "fuga_detectada_mxn": "5412.38",
+  "total_cfdi_mxn": "14072.20",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "ALAM-021",
+        "cantidad_recibida": 56
+      }
+    ]
+  }
+}

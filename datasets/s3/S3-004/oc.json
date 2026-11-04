@@ -1,0 +1,25 @@
+{
+  "oc": "S3-004",
+  "proveedor_rfc": "CMS090715QX2",
+  "proveedor": "Cableados y Materiales del Sur SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "GUAN-009",
+      "descripcion": "Guantes de carnaza",
+      "unidad": "pza",
+      "cantidad": 196,
+      "precio_unitario": "59.97",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "PEGA-015",
+      "descripcion": "Pegamento PVC",
+      "unidad": "litro",
+      "cantidad": 93,
+      "precio_unitario": "146.28",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

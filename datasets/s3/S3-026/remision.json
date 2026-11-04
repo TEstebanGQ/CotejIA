@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-026",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "FOCO-020",
+      "cantidad_recibida": 32
+    },
+    {
+      "sku": "GUAN-009",
+      "cantidad_recibida": 245
+    }
+  ]
+}

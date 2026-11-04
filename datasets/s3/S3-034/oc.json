@@ -1,0 +1,25 @@
+{
+  "oc": "S3-034",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "ROND-003",
+      "descripcion": "Rondana plana 1/2",
+      "unidad": "pza",
+      "cantidad": 244,
+      "precio_unitario": "183.24",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "TORN-001",
+      "descripcion": "Tornillo hexagonal 1/2",
+      "unidad": "pza",
+      "cantidad": 298,
+      "precio_unitario": "75.96",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

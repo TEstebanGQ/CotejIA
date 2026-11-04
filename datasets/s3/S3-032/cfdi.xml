@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="139616.53" Total="161955.18">
+  <cfdi:Emisor Rfc="AAA080808AAA"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="FOCO-020" Descripcion="Foco LED 12W" Cantidad="224" ValorUnitario="370.81" Importe="83061.44" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="83061.44" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="13289.83"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="TUER-002" Descripcion="Tuerca hexagonal 1/2" Cantidad="299" ValorUnitario="19.39" Importe="5797.61" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="5797.61" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="927.62"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="ROND-003" Descripcion="Rondana plana 1/2" Cantidad="277" ValorUnitario="183.24" Importe="50757.48" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="50757.48" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="8121.20"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="22338.65"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="ab73295b-344a-44b8-82c1-8a62ef48e8d5"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

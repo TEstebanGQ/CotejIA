@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-026",
+  "tipo_caso": "DUPLICATE",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "DUPLICATE"
+  ],
+  "monto_a_pagar_mxn": "0.00",
+  "fuga_detectada_mxn": "30808.31",
+  "total_cfdi_mxn": "30808.31",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "FOCO-020",
+        "cantidad_recibida": 32
+      },
+      {
+        "sku": "GUAN-009",
+        "cantidad_recibida": 245
+      }
+    ]
+  }
+}

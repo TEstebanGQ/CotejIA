@@ -1,0 +1,26 @@
+{
+  "oc": "S3-006",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "MANU-030",
+      "descripcion": "Manual de capacitacion impreso",
+      "unidad": "pza",
+      "cantidad": 295,
+      "precio_unitario": "279.96",
+      "tasa_iva": "0",
+      "exento": true
+    },
+    {
+      "sku": "ALAM-021",
+      "descripcion": "Alambre galvanizado",
+      "unidad": "kg",
+      "cantidad": 122,
+      "precio_unitario": "133.31",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

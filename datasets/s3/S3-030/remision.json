@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-030",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "LIJA-017",
+      "cantidad_recibida": 281
+    },
+    {
+      "sku": "MANU-030",
+      "cantidad_recibida": 90
+    }
+  ]
+}

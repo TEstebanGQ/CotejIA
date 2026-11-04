@@ -1,0 +1,34 @@
+{
+  "oc": "S3-005",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "MANU-030",
+      "descripcion": "Manual de capacitacion impreso",
+      "unidad": "pza",
+      "cantidad": 46,
+      "precio_unitario": "279.96",
+      "tasa_iva": "0",
+      "exento": true
+    },
+    {
+      "sku": "ARNE-022",
+      "descripcion": "Arnes de seguridad",
+      "unidad": "pza",
+      "cantidad": 97,
+      "precio_unitario": "360.13",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "ALAM-021",
+      "descripcion": "Alambre galvanizado",
+      "unidad": "kg",
+      "cantidad": 283,
+      "precio_unitario": "133.31",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "oc": "S3-029",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "TUER-002",
+      "descripcion": "Tuerca hexagonal 1/2",
+      "unidad": "pza",
+      "cantidad": 287,
+      "precio_unitario": "19.39",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "BROC-019",
+      "descripcion": "Broca para concreto 3/8",
+      "unidad": "pza",
+      "cantidad": 41,
+      "precio_unitario": "20.39",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "oc": "S3-035",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "GUAN-009",
+      "descripcion": "Guantes de carnaza",
+      "unidad": "pza",
+      "cantidad": 188,
+      "precio_unitario": "59.97",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "CABL-005",
+      "descripcion": "Cable calibre 10 (rollo)",
+      "unidad": "pza",
+      "cantidad": 45,
+      "precio_unitario": "149.28",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

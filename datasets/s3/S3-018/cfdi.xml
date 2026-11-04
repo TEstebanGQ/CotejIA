@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="74690.52" Total="79070.88">
+  <cfdi:Emisor Rfc="CMS090715QX2"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="CODO-014" Descripcion="Codo PVC 2 pulgadas" Cantidad="286" ValorUnitario="64.40" Importe="18418.40" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="18418.40" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="2946.94"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="PINT-007" Descripcion="Pintura vinilica blanca" Cantidad="112" ValorUnitario="79.99" Importe="8958.88" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="8958.88" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1433.42"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="MANU-030" Descripcion="Manual de capacitacion impreso" Cantidad="169" ValorUnitario="279.96" Importe="47313.24" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="47313.24" Impuesto="002" TipoFactor="Exento"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="4380.36"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="5f987c71-a65e-488e-abf3-ad39fec21bbe"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

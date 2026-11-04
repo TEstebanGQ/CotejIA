@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="98852.02" Total="101454.23">
+  <cfdi:Emisor Rfc="DIP120930T55"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="MANU-030" Descripcion="Manual de capacitacion impreso" Cantidad="295" ValorUnitario="279.96" Importe="82588.20" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="82588.20" Impuesto="002" TipoFactor="Exento"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="ALAM-021" Descripcion="Alambre galvanizado" Cantidad="122" ValorUnitario="133.31" Importe="16263.82" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="16263.82" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="2602.21"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="2602.21"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="c6a7ee39-c4b0-42cc-97c5-24a55304317f"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

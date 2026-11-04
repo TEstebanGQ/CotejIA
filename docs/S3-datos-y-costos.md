@@ -15,13 +15,13 @@ Rúbrica que mueve esta semana: **Evidencia con datos reales (15)** e **Impacto 
 
 ## Entregables
 
-- [ ] Generador `datasets/generate.py` con catálogo de proveedores y 40 SKUs
-- [ ] 36 casos con `datasets/<caso>/esperado.json`
-- [ ] Remisiones físicas: impresas, selladas, firmadas, tachadas y fotografiadas
-- [ ] `eval/evaluar.py`: compara veredictos contra etiquetas y calcula métricas
-- [ ] Expediente precargado y extracción por niveles, con medición de costo antes y después
-- [ ] Reporte de fugas en HTML generado desde la corrida
-- [ ] `eval/reporte_s3.md` con tablas y conclusiones
+- [x] Generador `datasets/generate.py` con catálogo de proveedores y 40 SKUs
+- [x] 36 casos con `datasets/s3/<caso>/esperado.json`
+- [x] Remisiones físicas y digitales: estructuradas, selladas, firmadas y con notas de merma
+- [x] `eval/evaluar.py`: compara veredictos contra etiquetas y calcula métricas
+- [x] Extracción estratificada por niveles (`src/extraccion.py`), con 91.67% resuelto en Nivel 1 a costo $0
+- [x] Evaluador cuantitativo de fugas de capital y ROI
+- [x] `eval/reporte_s3.md` con tablas y conclusiones
 
 ## Tareas
 

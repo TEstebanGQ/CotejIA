@@ -1,0 +1,17 @@
+{
+  "oc_referencia": "S3-035",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": false,
+  "requiere_vision": true,
+  "lineas": [
+    {
+      "sku": "GUAN-009",
+      "cantidad_recibida": 188
+    },
+    {
+      "sku": "CABL-005",
+      "cantidad_recibida": 45
+    }
+  ],
+  "observaciones_manuales": "Recibido sin firma del jefe de almacen."
+}

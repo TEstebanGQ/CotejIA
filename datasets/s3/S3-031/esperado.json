@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-031",
+  "tipo_caso": "TAX_MISMATCH",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "TAX_MISMATCH"
+  ],
+  "monto_a_pagar_mxn": "9352.57",
+  "fuga_detectada_mxn": "70.33",
+  "total_cfdi_mxn": "9422.90",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "ROND-003",
+        "cantidad_recibida": 44
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-029",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "TUER-002",
+      "cantidad_recibida": 287
+    },
+    {
+      "sku": "BROC-019",
+      "cantidad_recibida": 41
+    }
+  ]
+}

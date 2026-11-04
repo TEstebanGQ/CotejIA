@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-014",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "AGUA-025",
+      "cantidad_recibida": 48
+    },
+    {
+      "sku": "CINT-006",
+      "cantidad_recibida": 162
+    },
+    {
+      "sku": "LIJA-017",
+      "cantidad_recibida": 269
+    }
+  ]
+}

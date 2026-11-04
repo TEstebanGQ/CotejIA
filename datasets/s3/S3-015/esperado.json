@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-015",
+  "tipo_caso": "QTY_SHORT",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "QTY_SHORT"
+  ],
+  "monto_a_pagar_mxn": "151863.42",
+  "fuga_detectada_mxn": "892.17",
+  "total_cfdi_mxn": "152755.59",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "AGUA-025",
+        "cantidad_recibida": 7
+      },
+      {
+        "sku": "MANU-030",
+        "cantidad_recibida": 175
+      },
+      {
+        "sku": "LIJA-017",
+        "cantidad_recibida": 260
+      }
+    ]
+  }
+}

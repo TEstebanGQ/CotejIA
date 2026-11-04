@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-018",
+  "tipo_caso": "PRICE_UP",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "PRICE_UP"
+  ],
+  "monto_a_pagar_mxn": "77795.07",
+  "fuga_detectada_mxn": "1275.81",
+  "total_cfdi_mxn": "79070.88",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "CODO-014",
+        "cantidad_recibida": 286
+      },
+      {
+        "sku": "PINT-007",
+        "cantidad_recibida": 112
+      },
+      {
+        "sku": "MANU-030",
+        "cantidad_recibida": 169
+      }
+    ]
+  }
+}

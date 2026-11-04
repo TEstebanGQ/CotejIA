@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="26558.89" Total="30808.31">
+  <cfdi:Emisor Rfc="DIP120930T55"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="FOCO-020" Descripcion="Foco LED 12W" Cantidad="32" ValorUnitario="370.82" Importe="11866.24" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="11866.24" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1898.60"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="GUAN-009" Descripcion="Guantes de carnaza" Cantidad="245" ValorUnitario="59.97" Importe="14692.65" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="14692.65" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="2350.82"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="4249.42"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="60e7a113-ec1b-4ca1-b91e-1d4c1ff49b78"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

@@ -1,0 +1,33 @@
+{
+  "oc": "S3-003",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "PINT-007",
+      "descripcion": "Pintura vinilica blanca",
+      "unidad": "litro",
+      "cantidad": 33,
+      "precio_unitario": "70.17",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "ARRO-023",
+      "descripcion": "Arroz en grano para comedor",
+      "unidad": "kg",
+      "cantidad": 126,
+      "precio_unitario": "277.93",
+      "tasa_iva": "0"
+    },
+    {
+      "sku": "ROND-003",
+      "descripcion": "Rondana plana 1/2",
+      "unidad": "pza",
+      "cantidad": 158,
+      "precio_unitario": "183.24",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

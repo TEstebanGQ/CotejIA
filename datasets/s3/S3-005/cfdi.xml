@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="85537.50" Total="97163.00">
+  <cfdi:Emisor Rfc="DIP120930T55"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="MANU-030" Descripcion="Manual de capacitacion impreso" Cantidad="46" ValorUnitario="279.96" Importe="12878.16" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="12878.16" Impuesto="002" TipoFactor="Exento"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="ARNE-022" Descripcion="Arnes de seguridad" Cantidad="97" ValorUnitario="360.13" Importe="34932.61" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="34932.61" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="5589.22"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="ALAM-021" Descripcion="Alambre galvanizado" Cantidad="283" ValorUnitario="133.31" Importe="37726.73" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="37726.73" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="6036.28"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="11625.50"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="6123fdf7-7656-4f72-a9d4-beef3eabedcb"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

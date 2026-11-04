@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-020",
+  "tipo_caso": "PRICE_UP",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "PRICE_UP"
+  ],
+  "monto_a_pagar_mxn": "11117.20",
+  "fuga_detectada_mxn": "778.40",
+  "total_cfdi_mxn": "11895.60",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "ARRO-023",
+        "cantidad_recibida": 40
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 883 >>
+stream
+BT /F2 15 Tf 50 737 Td (REMISION DE ALMACEN) Tj ET
+BT /F1 10 Tf 50 714 Td (Folio: REM-S3-016    OC: S3-016    Fecha: 2026-10-24) Tj ET
+BT /F1 10 Tf 50 700 Td (Proveedor: Ferretera Herrera del Norte SA de CV    RFC: FHN150312K41) Tj ET
+BT /F2 10 Tf 50 657 Td (SKU) Tj ET
+BT /F2 10 Tf 135 657 Td (DESCRIPCION) Tj ET
+BT /F2 10 Tf 385 657 Td (UNIDAD) Tj ET
+BT /F2 10 Tf 455 657 Td (CANT. RECIBIDA) Tj ET
+BT /F1 10 Tf 50 634 Td (MOTO-034) Tj ET
+BT /F1 10 Tf 135 634 Td (Motor electrico 5HP) Tj ET
+BT /F1 10 Tf 385 634 Td (pza) Tj ET
+BT /F1 10 Tf 455 634 Td (7) Tj ET
+BT /F2 10 Tf 60 152 Td (ALMACEN CENTRAL) Tj ET
+BT /F2 10 Tf 60 137 Td (RECIBIDO CONFORME) Tj ET
+BT /F1 9 Tf 350 92 Td (Firma Jefe de Almacen) Tj ET
+2 w 360 102 m 390 127 l S
+2 w 390 127 m 410 104 l S
+2 w 410 104 m 440 130 l S
+2 w 440 130 m 480 108 l S
+1 w 340 97 m 520 97 l S
+1 w 50 122 170 45 re S
+1 w 40 606 532 66 re S
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000261 00000 n 
+0000001195 00000 n 
+0000001292 00000 n 
+0000001394 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+1497
+%%EOF

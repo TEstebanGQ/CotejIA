@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-010",
+  "tipo_caso": "MATCH_OK",
+  "estado_final": "APROBADO",
+  "codigos": [
+    "MATCH_OK"
+  ],
+  "monto_a_pagar_mxn": "119086.09",
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "119086.09",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "TUBO-013",
+        "cantidad_recibida": 80
+      },
+      {
+        "sku": "TAPO-012",
+        "cantidad_recibida": 270
+      },
+      {
+        "sku": "THIN-008",
+        "cantidad_recibida": 262
+      }
+    ]
+  }
+}

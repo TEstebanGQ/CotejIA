@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-007",
+  "tipo_caso": "MATCH_OK",
+  "estado_final": "APROBADO",
+  "codigos": [
+    "MATCH_OK"
+  ],
+  "monto_a_pagar_mxn": "10869.97",
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "10869.97",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "THIN-008",
+        "cantidad_recibida": 26
+      }
+    ]
+  }
+}

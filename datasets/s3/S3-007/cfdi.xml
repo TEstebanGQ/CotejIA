@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="9370.66" Total="10869.97">
+  <cfdi:Emisor Rfc="CMS090715QX2"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="THIN-008" Descripcion="Thinner estandar" Cantidad="26" ValorUnitario="360.41" Importe="9370.66" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="9370.66" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1499.31"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="1499.31"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="3602f8ac-10f1-4c81-848a-aa9e66b2bc5b"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>
