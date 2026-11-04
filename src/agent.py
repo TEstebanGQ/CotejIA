@@ -25,6 +25,7 @@ from .external_tools import (
     consultar_tipo_cambio_real,
     enviar_alerta_reclamo_real,
 )
+from .extraccion import extraer_remision_local
 from .matching import _q, cotejar
 from .vision import calcular_nitidez_imagen, leer_remision_imagen, UMBRAL_NITIDEZ_IMAGEN
 
@@ -196,6 +197,13 @@ def tool_cotejar_caso(case_id: str, vision_res: dict | None = None) -> dict:
     """Ejecuta el cotejo determinista e integra validaciones de Visión, FX, SAT 69-B y Duplicados."""
     oc, remision, cfdi = cargar_caso(case_id)
 
+    # Extracción Nivel 1 (local, sin red): si hay PDF digital y todas las líneas son confiables, se usan
+    # sus cantidades; si no, el caso queda para Nivel 2 (Grok Visión) y se conserva la remisión estructurada.
+    extraccion = extraer_remision_local(DATASETS / case_id)
+    if extraccion and extraccion["resuelto"]:
+        remision = {**remision, "lineas": [{"sku": l["sku"], "cantidad_recibida": l["cantidad_recibida"]}
+                                           for l in extraccion["lineas"]]}
+
     # Si el caso tiene remisión en imagen y se le pasó o requiere verificación de nitidez
     ruta_img = DATASETS / case_id / "remision.png"
     alerta_vision = False
@@ -309,6 +317,8 @@ def tool_cotejar_caso(case_id: str, vision_res: dict | None = None) -> dict:
         "rfc_emisor": cfdi.get("rfc_emisor"),
         "uuid": cfdi.get("uuid"),
         "tiene_imagen_remision": ruta_img.exists(),
+        "extraccion_nivel": extraccion["nivel"] if extraccion else 2,
+        "remision_usada": [{"sku": l["sku"], "cantidad_recibida": l["cantidad_recibida"]} for l in remision["lineas"]],
         "detalle": detalle,
     }
 

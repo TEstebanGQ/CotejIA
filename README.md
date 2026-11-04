@@ -291,14 +291,47 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ---
 
-## 📈 Resultados de Telemetría e Impacto Financiero
+## 📈 Resultados de Telemetría Real e Impacto Financiero
 
-En la auditoría del lote completo S2 (10 expedientes), CotejAI arrojó los siguientes resultados:
+> **Exportación automática de corrida oficial:** Registrada en [`runs/lote_s2_telemetria.jsonl`](file:///home/Papi_Leo/VSCODE/CotejIA/runs/lote_s2_telemetria.jsonl).  
+> **Tarifas oficiales Inferencia:** Input: $2.00 USD / 1M tokens · Output: $10.00 USD / 1M tokens · Tipo de Cambio: $18.70 MXN/USD.
 
-- **Fuga de Capital Retenida:** **$64,844.39 MXN** retenidos preventivamente en tesorería antes de la dispersión de fondos.
-- **Resolución Autónoma:** **90.0%** de los casos resueltos sin intervención manual (dentro del umbral de $5,000 MXN y reglas deterministas).
-- **Costo Operativo por Expediente:** **$0.038 MXN** (~$0.002 USD en tokens de Grok 4.6), representando una **reducción del 99.2%** frente al costo de revisión manual por analistas de cuentas por pagar (~$5.00 USD/factura).
+### Tabla de Telemetría Real por Expediente (10 Corridas Desatendidas con Grok 4.6)
+
+| Expediente | Estado Final | Códigos SAT / Regla | Llamadas | Tokens In | Tokens Out | Latencia (s) | Costo (USD) | Costo (MXN) | Fuga Retenida | Monto Autorizado |
+| :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **OC-001** | `APROBADO` | `MATCH_OK` | 4 | 13,139 | 422 | 32.57s | $0.0305 | $0.5703 | $0.00 MXN | $6,090.00 MXN |
+| **OC-002** | `EN_RECLAMO` | `QTY_SHORT` | 5 | 18,690 | 435 | 37.77s | $0.0417 | $0.7804 | $290.00 MXN | $5,800.00 MXN |
+| **OC-003** | `EN_RECLAMO` | `PRICE_UP` | 5 | 19,477 | 617 | 40.50s | $0.0451 | $0.8438 | $464.00 MXN | $6,090.00 MXN |
+| **OC-004** | `EN_RECLAMO` | `QTY_SHORT` | 5 | 15,931 | 399 | 25.69s | $0.0359 | $0.6704 | $290.00 MXN | $5,800.00 MXN |
+| **OC-005** | `ESCALADO` | `RECEIPT_UNREADABLE` | 4 | 11,268 | 282 | 22.92s | $0.0254 | $0.4742 | $0.00 MXN | $6,090.00 MXN |
+| **OC-006** | `ESCALADO` | `FX_OVERCHARGE` | 4 | 11,668 | 213 | 22.07s | $0.0255 | $0.4762 | $19,707.24 MXN | $113,359.26 MXN |
+| **OC-007** | `ESCALADO` | `SUPPLIER_69B` | 3 | 8,659 | 287 | 21.48s | $0.0202 | $0.3775 | $6,090.00 MXN | $0.00 MXN |
+| **OC-008** | `ESCALADO` | `TAX_MISMATCH` | 3 | 9,389 | 268 | 30.75s | $0.0215 | $0.4013 | $0.00 MXN | $5,670.00 MXN |
+| **OC-009** | `ESCALADO` | `DUPLICATE` | 3 | 9,066 | 240 | 25.85s | $0.0205 | $0.3839 | $6,090.00 MXN | $0.00 MXN |
+| **OC-010** | `ESCALADO` | `QTY_SHORT`, `SAT_NO_VERIFICADO` | 3 | 8,529 | 297 | 19.42s | $0.0200 | $0.3745 | $9,280.00 MXN | $6,090.00 MXN |
+| **TOTALES** | **10 CASOS** | — | **39** | **125,816** | **3,460** | **279.02s** | **$0.2862 USD** | **$5.3525 MXN** | **$42,211.24 MXN** | **$154,989.26 MXN** |
+
+### Métricas de Rendimiento Financiero y Eficiencia
+- **Fuga Total Retenida:** **$42,211.24 MXN** protegidos preventivamente en tesorería antes de la dispersión de fondos.
+- **Costo Total de Inferencia LLM:** **$0.2862 USD** (**$5.35 MXN**) para auditar los 10 expedientes de inicio a fin.
+- **Costo Promedio por Expediente:** **$0.0286 USD** (**$0.535 MXN** por factura auditada).
+- **Retorno de Inversión (ROI Directo):** **7,886x** ($42,211.24 MXN retenidos vs $5.35 MXN invertidos en LLM).
+- **Ahorro Operativo vs Analista Humano:** Un analista de CxP promedia ~$5.00 USD ($93.50 MXN) por expediente manual. CotejAI reduce el costo en un **99.4%**.
+- **Latencia Promedio:** **27.9 segundos** por caso con ejecución multi-herramienta autónoma (SAT SOAP, Lista 69-B, Banxico FIX, Grok Vision y Three-Way Matching).
 - **Tasa de Acierto de Reglas Fiscales:** **100% de cumplimiento** ante las especificaciones del Anexo 20 del SAT (CFDI 4.0) y Art. 69-B del CFF.
+
+---
+
+## 📚 Documentación Técnica y Subsanación de Evaluaciones
+
+Para atender con máxima transparencia y detalle técnico cada observación del comité evaluador, se publicaron los siguientes documentos oficiales:
+
+1. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
+2. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).
+3. **[Reporte Técnico Formal en PDF (S2)](docs/Reporte_Tecnico_S2_CotejAI.pdf):** Documento de entrega para el torneo con diseño editorial, diagramas de arquitectura, tablas de costos y capturas de pantalla de la UI.
+4. **[Telemetría de Producción Real en JSONL](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
+5. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
 
 ---
 
