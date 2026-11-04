@@ -1,0 +1,314 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #090d16;
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      overflow: hidden;
+    }
+    .s3-stage {
+      position: absolute;
+      inset: 0;
+      padding: 64px 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s3-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 16px;
+      padding: 20px 32px;
+    }
+    .s3-tag {
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #10b981;
+    }
+    .s3-title {
+      font-size: 38px;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-left: 18px;
+    }
+    .s3-db-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #10b981;
+      background: #131c2e;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .s3-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 34px;
+      flex: 1;
+      margin: 24px 0;
+    }
+    .s3-sat-card {
+      background: #131c2e;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s3-card-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+    .s3-check-row {
+      background: #1a263d;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s3-check-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    .s3-check-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #10b981;
+    }
+    .s3-copilot-card {
+      background: #0f172a;
+      border: 1px solid rgba(6, 182, 212, 0.38);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s3-chat-bubble-user {
+      align-self: flex-end;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 16px 24px;
+      font-size: 28px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .s3-chat-bubble-bot {
+      background: #131c2e;
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 14px;
+      padding: 22px 26px;
+      font-size: 28px;
+      line-height: 1.38;
+      color: #e2e8f0;
+    }
+    .s3-actions-bar {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .s3-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .s3-btn-emerald {
+      padding: 16px 28px;
+      border-radius: 12px;
+      background: #10b981;
+      color: #090d16;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .s3-btn-nc {
+      padding: 16px 28px;
+      border-radius: 12px;
+      background: #1a263d;
+      border: 2px solid #f59e0b;
+      color: #fbbf24;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .s3-idemp-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #22d3ee;
+    }
+  </style>
+
+  <div data-hf-id="hf-8ty1" id="root" data-composition-id="s3-sat-copilot" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-z7nu" id="s3-clip-main" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
+      <div data-hf-id="hf-eto3" id="s3-stage-wrap" class="s3-stage">
+        <div data-hf-id="hf-w9ur" id="s3-top" class="s3-header" data-beat="sat-and-copilot">
+          <div data-hf-id="hf-tebo" style="display: flex; align-items: center">
+            <span data-hf-id="hf-5lk3" class="s3-tag">BLINDAJE FISCAL SAT</span>
+            <span data-hf-id="hf-k4s2" class="s3-title">Copiloto Forense Grok 4.6 & Acciones 1-Clic</span>
+          </div>
+          <span data-hf-id="hf-fu9l" class="s3-db-pill">PostgreSQL 16 Activo</span>
+        </div>
+
+        <div data-hf-id="hf-ldlz" class="s3-grid">
+          <!-- Left: Live SAT Regulatory Validation -->
+          <div data-hf-id="hf-d96e" id="s3-sat-pane" class="s3-sat-card">
+            <div data-hf-id="hf-0xmy" class="s3-card-title">Validación Regulatoria SAT en Vivo</div>
+
+            <div data-hf-id="hf-qrtf" id="s3-chk-1" class="s3-check-row">
+              <span data-hf-id="hf-3c0m" class="s3-check-name">Lista Negra 69-B (EFOS)</span>
+              <span data-hf-id="hf-a347" class="s3-check-status">✓ Limpio (&lt;2ms)</span>
+            </div>
+
+            <div data-hf-id="hf-i3xk" id="s3-chk-2" class="s3-check-row">
+              <span data-hf-id="hf-memv" class="s3-check-name">Timbre Fiscal CFDI 4.0</span>
+              <span data-hf-id="hf-jfka" class="s3-check-status">✓ Válido y Vigente</span>
+            </div>
+
+            <div data-hf-id="hf-ivld" id="s3-chk-3" class="s3-check-row">
+              <span data-hf-id="hf-h6ta" class="s3-check-name">Circuit Breaker SOAP</span>
+              <span data-hf-id="hf-grfw" class="s3-check-status" style="color: #22d3ee">CLOSED (Normal)</span>
+            </div>
+
+            <div data-hf-id="hf-803q" id="s3-chk-4" class="s3-check-row">
+              <span data-hf-id="hf-j6cn" class="s3-check-name">Catálogo Anexo 20 FX</span>
+              <span data-hf-id="hf-idfg" class="s3-check-status">180 Divisas ISO</span>
+            </div>
+          </div>
+
+          <!-- Right: Grok 4.6 Copilot Conversation -->
+          <div data-hf-id="hf-vddq" id="s3-copilot-pane" class="s3-copilot-card">
+            <div data-hf-id="hf-wrwn" class="s3-card-title" style="color: #22d3ee">
+              Copiloto Grok 4.6 · Razonamiento Forense
+            </div>
+
+            <div data-hf-id="hf-4r8c" id="s3-msg-user" class="s3-chat-bubble-user">
+              ¿Por qué retener pago en OC-004?
+            </div>
+
+            <div data-hf-id="hf-puou" id="s3-msg-bot" class="s3-chat-bubble-bot">
+              <strong data-hf-id="hf-3dh0" style="color: #ffffff">Grok 4.6:</strong> <strong data-hf-id="hf-6b5r" style="color: #fbbf24">80 pzas recibidas</strong> vs 100 facturadas.<br data-hf-id="hf-x5px" />
+              Retener <strong data-hf-id="hf-k2pe" style="color: #10b981">$5,800.00 MXN</strong> (c/IVA 16%).
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Action Bar: 1-Click Partial Payment + Idempotent Credit Note -->
+        <div data-hf-id="hf-uu1y" id="s3-actions" class="s3-actions-bar">
+          <div data-hf-id="hf-x66v" class="s3-btn-group">
+            <div data-hf-id="hf-p5tg" id="s3-btn-pay" class="s3-btn-emerald">
+              ✓ Aprobar Pago Parcial ($23,200.00 MXN)
+            </div>
+            <div data-hf-id="hf-2k89" id="s3-btn-nc" class="s3-btn-nc">
+              Solicitar Nota de Crédito
+            </div>
+          </div>
+          <span data-hf-id="hf-njo5" id="s3-idemp-status" class="s3-idemp-tag">
+            ✓ Idempotencia activa · Policy Gate $5,000
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo(
+      "#s3-top",
+      { y: -28, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.36, ease: "power4.out" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s3-sat-pane",
+      { x: -36, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.42, ease: "power4.out" },
+      0.12,
+    );
+
+    tl.fromTo(
+      ["#s3-chk-1", "#s3-chk-2", "#s3-chk-3", "#s3-chk-4"],
+      { x: -20, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.3, stagger: 0.14, ease: "power3.out" },
+      0.32,
+    );
+
+    tl.fromTo(
+      "#s3-copilot-pane",
+      { x: 36, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.42, ease: "power4.out" },
+      0.22,
+    );
+
+    tl.fromTo(
+      "#s3-msg-user",
+      { y: 18, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" },
+      0.35,
+    );
+
+    tl.fromTo(
+      "#s3-msg-bot",
+      { y: 20, opacity: 0, scale: 0.97 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.36, ease: "back.out(1.3)" },
+      0.55,
+    );
+
+    tl.fromTo(
+      "#s3-actions",
+      { y: 26, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.38, ease: "expo.out" },
+      1.95,
+    );
+
+    tl.fromTo(
+      "#s3-btn-pay",
+      { scale: 1 },
+      { scale: 0.95, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.inOut" },
+      2.65,
+    );
+
+    tl.fromTo(
+      "#s3-idemp-status",
+      { opacity: 0.3 },
+      { opacity: 1, duration: 0.35, ease: "power2.out" },
+      2.85,
+    );
+
+    tl.to(
+      "#s3-stage-wrap",
+      { scale: 0.96, opacity: 0, duration: 0.28, ease: "power3.in" },
+      5.18,
+    );
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["s3-sat-copilot"] = tl;
+  </script>
+</template>

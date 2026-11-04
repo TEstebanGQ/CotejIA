@@ -36,7 +36,7 @@ from .external_tools import (
     enviar_alerta_reclamo_real,
     listar_divisas_real,
 )
-from .vision import leer_remision_imagen, calcular_nitidez_imagen, UMBRAL_NITIDEZ_IMAGEN
+from .vision import UMBRAL_NITIDEZ_IMAGEN, calcular_nitidez_imagen, leer_remision_imagen
 
 ROOT = Path(__file__).resolve().parent.parent
 WEB_DIR = ROOT / "web"
@@ -142,6 +142,7 @@ def api_list_cases():
         resultado.append({
             "case_id": cid,
             "proveedor_rfc": cfdi.get("rfc_emisor"),
+            "proveedor_nombre": oc.get("proveedor_nombre") or f"Proveedor {cid}",
             "uuid": cfdi.get("uuid"),
             "moneda": cfdi.get("moneda", "MXN"),
             "tipo_cambio": str(cfdi.get("tipo_cambio", "1")),
@@ -169,7 +170,9 @@ def api_case_detail(case_id: str):
     oc, rem, cfdi = cargar_caso(cid)
     cotejo = tool_cotejar_caso(cid)
     guardados = obtener_casos_db()
-    tiene_img = (DATASETS / cid / "remision.png").exists()
+    ruta_img = DATASETS / cid / "remision.png"
+    tiene_img = ruta_img.exists()
+    nitidez_img = calcular_nitidez_imagen(ruta_img) if tiene_img else None
     cfdi_serializable = {
         **cfdi,
         "tipo_cambio": str(cfdi.get("tipo_cambio", "1")),
@@ -204,6 +207,7 @@ def api_case_detail(case_id: str):
         "ok": True,
         "case_id": cid,
         "tiene_imagen_remision": tiene_img,
+        "nitidez_optica": nitidez_img,
         "imagen_url": f"/api/cases/{cid}/image" if tiene_img else None,
         "oc": oc,
         "remision": rem,

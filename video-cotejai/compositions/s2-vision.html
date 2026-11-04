@@ -1,0 +1,343 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #090d16;
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      overflow: hidden;
+    }
+    .s2-stage {
+      position: absolute;
+      inset: 0;
+      padding: 64px 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s2-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 16px;
+      padding: 20px 32px;
+    }
+    .s2-header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .s2-step-tag {
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: rgba(6, 182, 212, 0.14);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #22d3ee;
+    }
+    .s2-title {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+    }
+    .s2-conf-pill {
+      padding: 10px 22px;
+      border-radius: 10px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #22d3ee;
+    }
+    .s2-workspace {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 34px;
+      flex: 1;
+      margin: 24px 0;
+    }
+    .s2-vision-card {
+      background: #131c2e;
+      border: 1px solid rgba(6, 182, 212, 0.38);
+      border-radius: 20px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .s2-img-viewport {
+      position: relative;
+      flex: 1;
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .s2-remision-img {
+      max-width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .s2-bbox-overlay {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 20px;
+      background: rgba(8, 51, 68, 0.94);
+      border: 2px solid #06b6d4;
+      border-radius: 12px;
+      padding: 18px 22px;
+    }
+    .s2-bbox-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #22d3ee;
+      margin-bottom: 6px;
+    }
+    .s2-bbox-quote {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .s2-vision-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      color: #94a3b8;
+    }
+    .s2-triad-col {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s2-triad-heading {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+    .s2-triad-item {
+      background: #1a263d;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s2-triad-item.amber {
+      background: rgba(245, 158, 11, 0.08);
+      border: 2px solid rgba(245, 158, 11, 0.5);
+    }
+    .s2-item-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .s2-item-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .s2-item-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 30px;
+      font-weight: 800;
+      color: #f8fafc;
+      text-align: right;
+    }
+    .s2-banner-retencion {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      border-radius: 14px;
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s2-banner-left {
+      font-size: 29px;
+      font-weight: 700;
+      color: #fde68a;
+    }
+    .s2-banner-amount {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 34px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+  </style>
+
+  <div data-hf-id="hf-os1h" id="root" data-composition-id="s2-vision" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-y37a" id="s2-clip-main" class="clip" data-start="0" data-duration="5.0" data-track-index="1">
+      <div data-hf-id="hf-u4gr" id="s2-stage-wrap" class="s2-stage">
+        <div data-hf-id="hf-mstg" id="s2-top" class="s2-header" data-beat="vision-scan">
+          <div data-hf-id="hf-tpy7" class="s2-header-left">
+            <span data-hf-id="hf-f5xo" class="s2-step-tag">VISIÓN MULTIMODAL</span>
+            <span data-hf-id="hf-smff" class="s2-title">Lectura de Remisiones Escaneadas y Sellos</span>
+          </div>
+          <span data-hf-id="hf-3s1z" class="s2-conf-pill">Grok Vision 99.4%</span>
+        </div>
+
+        <div data-hf-id="hf-s0tv" class="s2-workspace">
+          <!-- Left: Real Remision Image + Cyan Bounding Box -->
+          <div data-hf-id="hf-0v0y" id="s2-vision-pane" class="s2-vision-card">
+            <div data-hf-id="hf-u5ms" class="s2-img-viewport">
+              <img data-hf-id="hf-svqz"
+                id="s2-doc-img"
+                class="s2-remision-img"
+                src="assets/remision-oc004.png"
+                alt="Remisión Física OC-004"
+              />
+              <div data-hf-id="hf-njsz" id="s2-cyan-bbox" class="s2-bbox-overlay">
+                <div data-hf-id="hf-wi39" class="s2-bbox-title">Nota manuscrita detectada (SKU TORN-001):</div>
+                <div data-hf-id="hf-wd6h" class="s2-bbox-quote">"Recibidos solo 80 pzas. Merma (-20)"</div>
+              </div>
+            </div>
+            <div data-hf-id="hf-6cay" class="s2-vision-meta">
+              <span data-hf-id="hf-8jby" style="color: #22d3ee">Sello de Almacén: Verificado</span>
+              <span data-hf-id="hf-ygay">Nitidez Óptica: 112.4</span>
+            </div>
+          </div>
+
+          <!-- Right: Three-Way Matching Triad -->
+          <div data-hf-id="hf-powa" id="s2-triad-pane" class="s2-triad-col">
+            <div data-hf-id="hf-td2j" class="s2-triad-heading">Cotejo Cruzado en Centavos (Decimal)</div>
+
+            <div data-hf-id="hf-9n68" id="s2-triad-1" class="s2-triad-item">
+              <div data-hf-id="hf-yeow">
+                <div data-hf-id="hf-r1gs" class="s2-item-title">1. Orden de Compra Pactada</div>
+                <div data-hf-id="hf-6bs1" class="s2-item-sub">100 pzas @ $250.00 MXN</div>
+              </div>
+              <div data-hf-id="hf-xkit" class="s2-item-right">$25,000.00</div>
+            </div>
+
+            <div data-hf-id="hf-vrjm" id="s2-triad-2" class="s2-triad-item amber">
+              <div data-hf-id="hf-y7yw">
+                <div data-hf-id="hf-7bek" class="s2-item-title" style="color: #fde68a">2. Remisión Física Almacén</div>
+                <div data-hf-id="hf-9t5u" class="s2-item-sub" style="color: #fcd34d">80 pzas recibidas (-20 pzas)</div>
+              </div>
+              <div data-hf-id="hf-4t9l" class="s2-item-right" style="color: #fbbf24">QTY_SHORT</div>
+            </div>
+
+            <div data-hf-id="hf-ecy2" id="s2-triad-3" class="s2-triad-item">
+              <div data-hf-id="hf-x11t">
+                <div data-hf-id="hf-vpmz" class="s2-item-title">3. Factura CFDI 4.0 (XML SAT)</div>
+                <div data-hf-id="hf-jgv5" class="s2-item-sub">100 pzas c/IVA 16%</div>
+              </div>
+              <div data-hf-id="hf-z4xl" class="s2-item-right">$29,000.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Preventive Retention Banner -->
+        <div data-hf-id="hf-qz6m" id="s2-retention-bar" class="s2-banner-retencion">
+          <span data-hf-id="hf-wxug" class="s2-banner-left">
+            Cálculo determinista: -20 pzas (-$5,000) + IVA 16% (-$800)
+          </span>
+          <span data-hf-id="hf-tyjh" class="s2-banner-amount">RETENCIÓN: $5,800.00 MXN</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo(
+      "#s2-top",
+      { y: -28, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.36, ease: "power4.out" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s2-vision-pane",
+      { x: -36, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.44, ease: "power4.out" },
+      0.12,
+    );
+
+    tl.fromTo(
+      "#s2-doc-img",
+      { scale: 0.92, opacity: 0 },
+      { scale: 1.0, opacity: 1, duration: 0.48, ease: "power3.out" },
+      0.24,
+    );
+
+    tl.fromTo(
+      "#s2-cyan-bbox",
+      { y: 24, opacity: 0, scale: 0.95 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.42, ease: "back.out(1.4)" },
+      0.78,
+    );
+
+    tl.fromTo(
+      "#s2-triad-pane",
+      { x: 36, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.44, ease: "power4.out" },
+      0.3,
+    );
+
+    tl.fromTo(
+      "#s2-triad-1",
+      { x: 24, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.32, ease: "power3.out" },
+      0.95,
+    );
+
+    tl.fromTo(
+      "#s2-triad-2",
+      { x: 24, opacity: 0, scale: 0.96 },
+      { x: 0, opacity: 1, scale: 1, duration: 0.38, ease: "back.out(1.4)" },
+      1.3,
+    );
+
+    tl.fromTo(
+      "#s2-triad-3",
+      { x: 24, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.32, ease: "power3.out" },
+      1.65,
+    );
+
+    tl.fromTo(
+      "#s2-retention-bar",
+      { y: 26, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+      2.1,
+    );
+
+    tl.to(
+      "#s2-stage-wrap",
+      { x: -60, opacity: 0, duration: 0.28, ease: "power3.in" },
+      4.68,
+    );
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["s2-vision"] = tl;
+  </script>
+</template>

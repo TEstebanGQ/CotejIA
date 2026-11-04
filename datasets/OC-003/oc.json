@@ -1,6 +1,7 @@
 {
   "oc": "OC-003",
   "proveedor_rfc": "AAA010101AAA",
+  "proveedor_nombre": "Conductores Eléctricos del Centro S.A. de C.V.",
   "moneda": "MXN",
   "simular_caida_sat": false,
   "lineas": [

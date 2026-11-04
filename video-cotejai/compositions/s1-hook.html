@@ -1,0 +1,339 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #090d16;
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      overflow: hidden;
+    }
+    .s1-stage {
+      position: absolute;
+      inset: 0;
+      padding: 68px 116px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s1-topbar {
+      height: 86px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s1-brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .s1-logo-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 30px;
+      font-weight: 700;
+      color: #10b981;
+    }
+    .s1-brand-title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+    }
+    .s1-pills {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .s1-pill {
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: #131c2e;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .s1-dot-green {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #10b981;
+    }
+    .s1-hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 36px;
+      align-items: stretch;
+      margin-top: 24px;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+    .s1-left-pane {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 20px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s1-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      align-self: flex-start;
+    }
+    .s1-headline {
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      color: #f8fafc;
+    }
+    .s1-subline {
+      font-size: 30px;
+      line-height: 1.38;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .s1-right-pane {
+      background: #131c2e;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 20px;
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s1-case-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .s1-folio {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 38px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .s1-badge-amber {
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .s1-compare-row {
+      background: #1a263d;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 22px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s1-compare-row.alert {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: rgba(245, 158, 11, 0.07);
+    }
+    .s1-label {
+      font-size: 28px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .s1-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 34px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .s1-val.amber {
+      color: #fbbf24;
+    }
+    .s1-footer-bar {
+      height: 82px;
+      background: #0f172a;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 14px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s1-footer-text {
+      font-size: 30px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .s1-footer-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: #10b981;
+    }
+  </style>
+
+  <div data-hf-id="hf-hv3x" id="root" data-composition-id="s1-hook" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-krwt" id="s1-clip-main" class="clip" data-start="0" data-duration="4.5" data-track-index="1">
+      <div data-hf-id="hf-pzz7" id="s1-stage-wrap" class="s1-stage">
+        <!-- Top Navigation Bar of CotejAI Web App -->
+        <div data-hf-id="hf-5hqs" id="s1-topbar" class="s1-topbar" data-beat="hook-open">
+          <div data-hf-id="hf-ix28" class="s1-brand">
+            <div data-hf-id="hf-f6bl" class="s1-logo-box">C</div>
+            <span data-hf-id="hf-uv4o" class="s1-brand-title" data-var-text="brandName">CotejAI</span>
+          </div>
+          <div data-hf-id="hf-g8wf" class="s1-pills">
+            <div data-hf-id="hf-7x5g" class="s1-pill">
+              <span data-hf-id="hf-9o7l" class="s1-dot-green"></span>
+              <span data-hf-id="hf-lqoq">SAT SOAP: En Línea</span>
+            </div>
+            <div data-hf-id="hf-5wvg" class="s1-pill">
+              <span data-hf-id="hf-yc11">USD/MXN: <strong data-hf-id="hf-g88g" style="color: #10b981">$18.69</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Split Hero: Value Prop + Real Case OC-004 Inspection -->
+        <div data-hf-id="hf-1kri" class="s1-hero-grid">
+          <div data-hf-id="hf-k0ay" id="s1-left-card" class="s1-left-pane">
+            <div data-hf-id="hf-q50l" class="s1-kicker">THREE-WAY MATCHING AUTÓNOMO</div>
+            <h1 data-hf-id="hf-yei8" id="s1-main-title" class="s1-headline">
+              La factura se parsea.<br data-hf-id="hf-x5px" />
+              <span data-hf-id="hf-0ins" style="color: #10b981">Grok 4.6</span> audita y decide.
+            </h1>
+            <p data-hf-id="hf-b07a" class="s1-subline">
+              Conciliación determinista OC + Remisión + CFDI 4.0 en centavos.
+            </p>
+          </div>
+
+          <div data-hf-id="hf-wsyq" id="s1-right-card" class="s1-right-pane">
+            <div data-hf-id="hf-tbnd" class="s1-case-header">
+              <span data-hf-id="hf-hy3j" class="s1-folio">EXPEDIENTE OC-004</span>
+              <span data-hf-id="hf-lvmv" id="s1-status-pill" class="s1-badge-amber">EN_RECLAMO</span>
+            </div>
+
+            <div data-hf-id="hf-52ae" id="s1-row-1" class="s1-compare-row">
+              <span data-hf-id="hf-dnuo" class="s1-label">1. Orden de Compra (ERP)</span>
+              <span data-hf-id="hf-8duy" class="s1-val">100 pzas · $25,000.00</span>
+            </div>
+
+            <div data-hf-id="hf-mwlr" id="s1-row-2" class="s1-compare-row alert">
+              <span data-hf-id="hf-kcnr" class="s1-label" style="color: #fde68a">2. Remisión Almacén (Física)</span>
+              <span data-hf-id="hf-nf1m" class="s1-val amber">80 pzas (-20 merma)</span>
+            </div>
+
+            <div data-hf-id="hf-0cik" id="s1-row-3" class="s1-compare-row">
+              <span data-hf-id="hf-mi7z" class="s1-label">3. Factura CFDI 4.0 (XML)</span>
+              <span data-hf-id="hf-f4ku" class="s1-val">100 pzas · $29,000.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Retention Readout -->
+        <div data-hf-id="hf-jju6" id="s1-footer" class="s1-footer-bar">
+          <span data-hf-id="hf-wtny" class="s1-footer-text">Fuga detectada en tesorería:</span>
+          <span data-hf-id="hf-0v23" id="s1-fuga-counter" class="s1-footer-mono">RETENCIÓN: $5,800.00 MXN</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // Frame 0 already shows #s1-topbar and #s1-left-card as the thumbnail
+    tl.fromTo(
+      "#s1-topbar",
+      { y: -8, opacity: 1 },
+      { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s1-left-card",
+      { x: -12, opacity: 1 },
+      { x: 0, opacity: 1, duration: 0.35, ease: "power3.out" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s1-right-card",
+      { x: 24, opacity: 0.85 },
+      { x: 0, opacity: 1, duration: 0.4, ease: "power4.out" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s1-row-1",
+      { y: 18, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.32, ease: "power3.out" },
+      0.55,
+    );
+
+    tl.fromTo(
+      "#s1-row-2",
+      { y: 18, opacity: 0, scale: 0.96 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.38, ease: "back.out(1.4)" },
+      0.85,
+    );
+
+    tl.fromTo(
+      "#s1-row-3",
+      { y: 18, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.32, ease: "power3.out" },
+      1.15,
+    );
+
+    tl.fromTo(
+      "#s1-footer",
+      { y: 28, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.42, ease: "expo.out" },
+      1.55,
+    );
+
+    tl.fromTo(
+      "#s1-status-pill",
+      { scale: 1 },
+      { scale: 1.06, duration: 0.35, yoyo: true, repeat: 1, ease: "power2.inOut" },
+      2.3,
+    );
+
+    tl.to(
+      "#s1-stage-wrap",
+      { scale: 1.04, opacity: 0, duration: 0.28, ease: "power3.in" },
+      4.18,
+    );
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["s1-hook"] = tl;
+  </script>
+</template>

@@ -1,6 +1,7 @@
 {
   "oc": "OC-005",
   "proveedor_rfc": "AAA010101AAA",
+  "proveedor_nombre": "Suministros Industriales de Occidente S.A.",
   "moneda": "MXN",
   "simular_caida_sat": false,
   "lineas": [

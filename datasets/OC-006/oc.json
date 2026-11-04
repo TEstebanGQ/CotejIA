@@ -1,6 +1,7 @@
 {
   "oc": "OC-006",
   "proveedor_rfc": "AAA010101AAA",
+  "proveedor_nombre": "Global Wire & Fasteners Corp (USD)",
   "moneda": "USD",
   "simular_caida_sat": false,
   "lineas": [

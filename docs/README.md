@@ -11,6 +11,12 @@ CotejAI se construye como un **framework**: un núcleo con contratos fijos (caso
 | [S3-datos-y-costos.md](S3-datos-y-costos.md) | Semana 3: set de 36 casos etiquetados, remisiones físicas, evaluación, optimización y reporte de costo |
 | [S4-semana-de-carga.md](S4-semana-de-carga.md) | Semana 4: despliegue, workers, 1,000 casos en 12 horas, inyección de fallos y bitácora |
 | [MEJORAS_COTEJAI.md](MEJORAS_COTEJAI.md) | Propuesta de mejoras (extracción por niveles, SKUs, backpressure, dashboard, MCP y precios), ya repartida en S2–S4. Sus cifras son ilustrativas |
+| [CONTRATO_API_FRONTEND.md](CONTRATO_API_FRONTEND.md) | Contrato REST API completo entre FastAPI (`src/api.py`) y el Dashboard Web (`web/`) |
+| [PLAN_ACCION_S2_HOY.md](PLAN_ACCION_S2_HOY.md) | Plan definitivo de herramientas reales S2, lote de 10 casos, stack web y guion de demo |
+| [HERRAMIENTAS_S2.md](HERRAMIENTAS_S2.md) | Especificación técnica de herramientas S2, matriz de resiliencia e idempotencia |
+| [../DESIGN.md](../DESIGN.md) | Sistema de diseño semántico del Dashboard Forense de CotejAI |
+| [../video-cotejai/SPEC.md](../video-cotejai/SPEC.md) | Especificación técnica del video programático en HyperFrames (`video-cotejai/cotejai-demo.mp4`) |
+| [../wiki/index.md](../wiki/index.md) | **LLM Knowledge Base (Wiki)** con entidades, conceptos, herramientas y bitácora del proyecto |
 | [mercado.md](mercado.md) | Quién necesita CotejAI, datos del problema, competencia, países, pitch y validación con clientes |
 | [../README_PLATICA.md](../README_PLATICA.md) | Track 2: integración con Platica, estado de S1 y stack |
 | [../CotejAI_guia_implementacion.md](../CotejAI_guia_implementacion.md) | Guía original de diseño |

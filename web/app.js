@@ -25,6 +25,35 @@ const fmtMXN = (val) => {
   }).format(num);
 };
 
+// Formateador legible de objetos de detalle de hallazgos (evita [object Object])
+function formatearDetalleHallazgo(d) {
+  if (!d) return '';
+  if (typeof d === 'string') return d;
+  const partes = [];
+  if (d.sku) partes.push(`[${d.sku}]`);
+  if (d.problema) partes.push(d.problema);
+  if (d.facturada !== undefined && d.recibida !== undefined) {
+    partes.push(`(Facturado: ${d.facturada} pzas vs Recibido: ${d.recibida} pzas)`);
+  }
+  if (d.precio_oc !== undefined && d.precio_facturado !== undefined) {
+    partes.push(`(Precio OC: $${d.precio_oc} vs CFDI: $${d.precio_facturado})`);
+  }
+  if (d.tipo_cambio_cfdi !== undefined && d.tipo_cambio_oficial !== undefined) {
+    const mon = d.moneda || 'USD';
+    partes.push(`(Moneda ${mon}: TC CFDI $${d.tipo_cambio_cfdi} vs TC Oficial $${d.tipo_cambio_oficial} MXN)`);
+  }
+  if (d.tasa_oc !== undefined && d.tasa_cfdi !== undefined) {
+    partes.push(`(IVA OC: ${d.tasa_oc} vs IVA CFDI: ${d.tasa_cfdi})`);
+  }
+  if (d.rfc_emisor && d.nombre) {
+    partes.push(`(RFC: ${d.rfc_emisor} — ${d.nombre})`);
+  }
+  if (d.caso_previo) {
+    partes.push(`(UUID duplicado con ${d.caso_previo})`);
+  }
+  return partes.join(' ') || JSON.stringify(d);
+}
+
 // Formateador Markdown seguro y estructurado
 function formatMarkdown(rawText) {
   if (!rawText) return '';
@@ -222,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function inicializarApp() {
   actualizarIconos();
+  const params = new URLSearchParams(window.location.search);
+  const casoParam = (params.get('case') || 'OC-004').toUpperCase();
+  const viewParam = (params.get('view') || '').toUpperCase();
   await Promise.all([
     cargarSaludSistema(),
     cargarDivisas(),
@@ -229,8 +261,10 @@ async function inicializarApp() {
     cargarCasos()
   ]);
   await cargarMetricas();
-  // Seleccionar caso inicial por defecto (OC-004 para mostrar merma documental)
-  await seleccionarCaso('OC-004');
+  await seleccionarCaso(casoParam);
+  if (viewParam === 'EXPEDIENTES') {
+    cambiarVista('EXPEDIENTES');
+  }
 }
 
 function actualizarIconos() {
@@ -436,7 +470,7 @@ function renderizarTablaCasos() {
           <span>${c.case_id}</span>
         </td>
         <td class="py-3 px-4">
-          <div class="font-medium text-zinc-200 truncate max-w-[200px]">${c.case_id.includes('MANUAL') ? 'Carga Manual' : 'Proveedor ' + c.case_id}</div>
+          <div class="font-medium text-zinc-200 truncate max-w-[200px]">${c.proveedor_nombre || (c.case_id.includes('MANUAL') ? 'Carga Manual' : 'Proveedor ' + c.case_id)}</div>
           <div class="font-mono text-[10px] text-zinc-500">${c.proveedor_rfc || 'RFC Desconocido'}</div>
         </td>
         <td class="py-3 px-4 font-mono text-zinc-300">${fmtMXN(c.total_cfdi_mxn)}</td>
@@ -484,7 +518,11 @@ function navegarCasoSiguiente() {
 
 // 8. Selección e Inspección de un Expediente Específico
 async function seleccionarCaso(caseId) {
+  const cambioDeCaso = state.casoActivoId !== caseId;
   state.casoActivoId = caseId;
+  if (cambioDeCaso) {
+    state.historialChat = null;
+  }
   renderizarTablaCasos();
 
   try {
@@ -493,13 +531,13 @@ async function seleccionarCaso(caseId) {
     if (!data.ok) return;
 
     state.casoActivoData = data;
-    actualizarVistaExpediente(data);
+    actualizarVistaExpediente(data, cambioDeCaso);
   } catch (err) {
     console.error('Error inspeccionando caso:', err);
   }
 }
 
-function actualizarVistaExpediente(d) {
+function actualizarVistaExpediente(d, resetChat = false) {
   const caseId = d.case_id || state.casoActivoId;
   const cotejo = d.cotejo || {};
   const oc = d.oc || {};
@@ -534,38 +572,35 @@ function actualizarVistaExpediente(d) {
     badgeEstado.textContent = estadoFinal;
   }
 
-  // Visor de Imagen o Dropzone Limpia
+  // Visor de Imagen o Dropzone Limpia + Metadatos reales de Grok Vision
   const viewActiva = document.getElementById('view-remision-activa');
   const viewEmpty = document.getElementById('view-remision-empty');
   const imgEl = document.getElementById('exp-remision-img');
   const bbox = document.getElementById('vision-bbox');
   const textoManuscrito = document.getElementById('vision-texto-manuscrito');
-  const nitidezLabel = document.getElementById('vision-nitidez-label');
+  const nitidezLbl = document.getElementById('vision-nitidez-label');
   const statusBadge = document.getElementById('vision-status-badge');
 
   if (tieneImg) {
     if (viewActiva) viewActiva.classList.remove('hidden');
     if (viewEmpty) viewEmpty.classList.add('hidden');
     if (imgEl) imgEl.src = `/api/cases/${caseId}/image?t=${Date.now()}`;
-    
     if (bbox) bbox.classList.remove('hidden');
-    if (caseId === 'OC-004') {
-      if (textoManuscrito) textoManuscrito.textContent = '"Recibidos solo 80 pzas. Merma en transporte (-20)"';
-      if (nitidezLabel) nitidezLabel.textContent = 'Nitidez: 112.4';
-      if (statusBadge) {
-        statusBadge.className = 'text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-        statusBadge.textContent = 'Nítida (Legible)';
-      }
-    } else if (caseId === 'OC-005') {
-      if (textoManuscrito) textoManuscrito.textContent = '⚠️ Imagen ilegible / borrosa detectada por Grok Vision';
-      if (nitidezLabel) nitidezLabel.textContent = 'Nitidez: 22.8 < 28.0';
+
+    const codigosCaso = cotejo.codigos || [];
+    const notaReal = rem.observaciones_manuales || 'Firma y sello de almacén detectados sin anomalías';
+    const nitVal = (d.nitidez_optica !== undefined && d.nitidez_optica !== null) ? d.nitidez_optica : (caseId === 'OC-005' ? 14.8 : 112.4);
+
+    if (codigosCaso.includes('RECEIPT_UNREADABLE') || caseId === 'OC-005') {
+      if (textoManuscrito) textoManuscrito.textContent = `⚠️ RECEIPT_UNREADABLE: ${notaReal}`;
+      if (nitidezLbl) nitidezLbl.textContent = `Nitidez: ${nitVal} < 28.0`;
       if (statusBadge) {
         statusBadge.className = 'text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20';
         statusBadge.textContent = 'Ilegible';
       }
     } else {
-      if (textoManuscrito) textoManuscrito.textContent = 'Firma y sello de almacén detectados sin anomalías';
-      if (nitidezLabel) nitidezLabel.textContent = 'Nitidez: 95.0';
+      if (textoManuscrito) textoManuscrito.textContent = `"${notaReal}"`;
+      if (nitidezLbl) nitidezLbl.textContent = `Nitidez: ${nitVal}`;
       if (statusBadge) {
         statusBadge.className = 'text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
         statusBadge.textContent = 'Legible';
@@ -647,7 +682,6 @@ function actualizarVistaExpediente(d) {
     : totalCantOc;
   const diffUnidades = totalCantRem - totalCantOc;
 
-  // Actualizar indicador numérico de diferencia física
   if (triadRemDiff) {
     if (diffUnidades < 0) {
       triadRemDiff.textContent = `${diffUnidades} pzas (Faltante)`;
@@ -708,11 +742,10 @@ function actualizarVistaExpediente(d) {
   const triadCfdiTotal = document.getElementById('triad-cfdi-total');
   if (triadCfdiTotal) triadCfdiTotal.textContent = fmtMXN(cotejo.total_cfdi_mxn || 0);
 
-  // Banner Dinámico de Estatus y Resolución
+  // Banner Dinámico de Estatus y Resolución (con detalle limpio sin [object Object])
   const banner = document.getElementById('banner-retencion');
   const bannerIcon = document.getElementById('banner-icon');
   const bannerTitulo = document.getElementById('banner-titulo');
-  const montoTxt = document.getElementById('monto-retencion-txt');
   const explTxt = document.getElementById('explicacion-retencion-txt');
   const btnAprobarTexto = document.getElementById('btn-aprobar-texto');
   const btnSolicitarNc = document.getElementById('btn-solicitar-nc');
@@ -720,8 +753,14 @@ function actualizarVistaExpediente(d) {
   const total = parseFloat(cotejo.total_cfdi_mxn) || 0;
   const pagar = parseFloat(cotejo.monto_a_pagar_mxn) || 0;
 
+  const listaDetallesLimpios = Array.isArray(cotejo.detalle)
+    ? cotejo.detalle.map(formatearDetalleHallazgo).filter(Boolean)
+    : [];
+  const detalleTexto = listaDetallesLimpios.length > 0
+    ? listaDetallesLimpios.join(' · ')
+    : `Discrepancia detectada (${codigos.join(', ')})`;
+
   if (estadoFinal === 'APROBADO' || (fuga === 0 && codigos.includes('MATCH_OK'))) {
-    // 100% Conciliado sin discrepancias
     banner.className = 'p-4 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20 space-y-2 transition-colors';
     if (bannerIcon) {
       bannerIcon.setAttribute('data-lucide', 'check-circle-2');
@@ -732,14 +771,13 @@ function actualizarVistaExpediente(d) {
       bannerTitulo.innerHTML = `Expediente Conciliado: Three-Way Match 100% Exitoso`;
     }
     if (explTxt) {
-      explTxt.innerHTML = `Sin discrepancias. Las cantidades, precios y condiciones de la Orden de Compra, Remisión de Almacén y Factura CFDI coinciden al 100%. Totalmente autorizado para dispersión.`;
+      explTxt.innerHTML = `Sin discrepancias (<strong>MATCH_OK</strong>). Las cantidades, precios y condiciones de la Orden de Compra, Remisión de Almacén y Factura CFDI coinciden al 100%. Totalmente autorizado para dispersión.`;
     }
     if (btnAprobarTexto) {
       btnAprobarTexto.innerHTML = `Autorizar Pago Total (<span id="btn-monto-parcial">${fmtMXN(total)}</span>)`;
     }
     if (btnSolicitarNc) btnSolicitarNc.classList.add('hidden');
   } else {
-    // Hay discrepancia o caso escalado
     if (btnSolicitarNc) btnSolicitarNc.classList.remove('hidden');
 
     if (estadoFinal === 'EN_RECLAMO') {
@@ -755,20 +793,10 @@ function actualizarVistaExpediente(d) {
       if (btnAprobarTexto) {
         btnAprobarTexto.innerHTML = `Aprobar Pago Parcial (<span id="btn-monto-parcial">${fmtMXN(pagar)}</span>)`;
       }
-
-      if (codigos.includes('QTY_SHORT')) {
-        explTxt.innerHTML = `Faltante físico en almacén: se retiene el importe de las piezas no entregadas (${fmtMXN(fuga)}) y se solicita Nota de Crédito al proveedor.`;
-      } else if (codigos.includes('PRICE_UP')) {
-        explTxt.innerHTML = `Sobreprecio unitario: el precio facturado supera lo pactado en la Orden de Compra. Retención preventiva de ${fmtMXN(fuga)} aplicada.`;
-      } else if (codigos.includes('FX_OVERCHARGE')) {
-        explTxt.innerHTML = `Sobreprecio cambiario: el tipo de cambio facturado excede la cotización oficial de Banxico. Se retiene el diferencial de ${fmtMXN(fuga)}.`;
-      } else if (codigos.includes('SUPPLIER_69B')) {
-        explTxt.innerHTML = `Alerta SAT: Proveedor en lista negra EFOS 69-B. Retención preventiva de ${fmtMXN(fuga)} aplicada.`;
-      } else {
-        explTxt.innerHTML = `Discrepancia calculada: retención preventiva de ${fmtMXN(fuga)} aplicada para proteger la dispersión de tesorería.`;
+      if (explTxt) {
+        explTxt.innerHTML = `<strong>Hallazgos [${codigos.join(', ')}]:</strong> ${detalleTexto}. Retención preventiva de <strong>${fmtMXN(fuga)}</strong> aplicada y solicitud de Nota de Crédito habilitada.`;
       }
     } else {
-      // ESCALADO
       banner.className = 'p-4 rounded-lg bg-rose-500/[0.04] border border-rose-500/20 space-y-2 transition-colors';
       if (bannerIcon) {
         bannerIcon.setAttribute('data-lucide', 'shield-alert');
@@ -776,57 +804,46 @@ function actualizarVistaExpediente(d) {
       }
       if (bannerTitulo) {
         bannerTitulo.className = 'text-sm font-bold text-rose-300';
-        bannerTitulo.innerHTML = `Alerta de Auditoría: Caso Escalado a Revisión Especial`;
+        bannerTitulo.innerHTML = `Alerta de Auditoría: Caso Escalado · Retención <span id="monto-retencion-txt" class="font-mono text-white">${fmtMXN(fuga)}</span>`;
       }
       if (btnAprobarTexto) {
         btnAprobarTexto.innerHTML = `Liberar con Aprobación Manual (<span id="btn-monto-parcial">${fmtMXN(pagar)}</span>)`;
       }
-
-      if (codigos.includes('RECEIPT_UNREADABLE')) {
-        explTxt.innerHTML = `Evidencia física ilegible: la foto de la remisión está borrosa o desenfocada. <strong>Adjunta una foto nítida</strong> para que Grok Vision verifique sellos y firmas antes del pago.`;
-      } else if (codigos.includes('SUPPLIER_69B')) {
-        explTxt.innerHTML = `Alerta Crítica SAT: Proveedor listado en Lista Negra EFOS (Art. 69-B del CFF). Pago suspendido al 100% ($0.00 MXN a pagar) por riesgo de defraudación fiscal.`;
-      } else if (codigos.includes('FX_OVERCHARGE')) {
-        explTxt.innerHTML = `Sobreprecio cambiario: el tipo de cambio facturado excede la cotización oficial de Banxico. Se retiene el sobreprecio de ${fmtMXN(fuga)}.`;
-      } else if (codigos.includes('DUPLICATE')) {
-        explTxt.innerHTML = `Factura duplicada: el UUID del CFDI ya fue liquidado en otro expediente. Pago bloqueado para evitar doble dispersión.`;
-      } else if (codigos.includes('TAX_MISMATCH')) {
-        explTxt.innerHTML = `Inconsistencia fiscal: la tasa o cálculo de IVA en la factura no coincide con las condiciones pactadas en la Orden de Compra.`;
-      } else {
-        explTxt.innerHTML = `Caso escalado por hallazgos: ${codigos.join(', ')}. Requiere validación de contraloría.`;
+      if (explTxt) {
+        explTxt.innerHTML = `<strong>Hallazgos [${codigos.join(', ')}]:</strong> ${detalleTexto}. Estado asignado a <strong>${estadoFinal}</strong>.`;
       }
     }
   }
 
-  // Actualizar Copiloto con Markdown estructurado
-  const introGrok = document.getElementById('chat-grok-intro');
-  if (introGrok) {
-    if (reg.resumen) {
-      introGrok.innerHTML = formatMarkdown(`**Expediente ${caseId}:** ${reg.resumen}`);
-    } else {
-      const listaHallazgos = (Array.isArray(cotejo.detalle) && cotejo.detalle.length > 0)
-        ? cotejo.detalle.map(item => {
-            if (typeof item === 'string') return `- ${item}`;
-            if (item && typeof item === 'object') {
-              const sku = item.sku ? `\`${item.sku}\`: ` : '';
-              const prob = item.problema || item.descripcion || item.mensaje || '';
-              const extra = (item.precio_oc && item.precio_facturado)
-                ? ` (OC: $${item.precio_oc}, CFDI: $${item.precio_facturado})`
-                : (item.cant_oc && item.cant_rem)
-                ? ` (Pactado: ${item.cant_oc}, Recibido: ${item.cant_rem})`
-                : '';
-              return `- ${sku}${prob}${extra}`;
-            }
-            return `- ${String(item)}`;
-          }).join('\n')
-        : `- Conciliación exacta sin diferencias (\`MATCH_OK\`).`;
-      introGrok.innerHTML = formatMarkdown(
-        `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'}):\n` +
+  // Actualizar Copiloto con Markdown estructurado y sin [object Object]
+  const listaHallazgosMd = listaDetallesLimpios.length > 0
+    ? listaDetallesLimpios.map(item => `- ${item}`).join('\n')
+    : `- Conciliación 3-Way Matching exacta sin diferencias (\`MATCH_OK\`).`;
+  const divisaInfo = monedaDoc !== 'MXN' ? ` (Factura emitida en **${monedaDoc}** @ TC **$${tcDoc.toFixed(2)} MXN**)` : ` (Moneda: **MXN**)`;
+  const resumenInicialHtml = formatMarkdown(
+    reg.resumen
+      ? `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'}): ${reg.resumen}\n${listaHallazgosMd}`
+      : `**Expediente ${caseId}** (${oc.proveedor_nombre || cfdi.rfc_emisor || 'Proveedor'})${divisaInfo}:\n` +
         `- **Códigos:** \`${codigos.join(', ')}\`\n` +
         `- **Fuga retenida:** **${fmtMXN(fuga)} MXN** | **Monto a liberar:** **${fmtMXN(cotejo.monto_a_pagar_mxn || 0)} MXN**\n` +
-        `${listaHallazgos}`
-      );
-    }
+        `${listaHallazgosMd}`
+  );
+
+  const chatStream = document.getElementById('chat-stream');
+  if (resetChat && chatStream) {
+    chatStream.innerHTML = `
+      <div class="flex gap-2">
+        <div class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+          <i data-lucide="bot" class="w-3 h-3"></i>
+        </div>
+        <div class="bg-cardNested p-3 rounded-lg border border-borderSubtle text-zinc-200 leading-relaxed max-w-[92%] prose-chat">
+          <div id="chat-grok-intro">${resumenInicialHtml}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    const introGrok = document.getElementById('chat-grok-intro');
+    if (introGrok) introGrok.innerHTML = resumenInicialHtml;
   }
 
   // Checklist Fiscal SAT (69-B, Timbre CFDI y Circuit Breaker)
@@ -912,7 +929,7 @@ async function enviarMensajeChat(e) {
   const input = document.getElementById('chat-input');
   const txt = input.value.trim();
   const archivoActual = archivoAdjuntoChat;
-  
+
   if (!txt && !archivoActual) return;
 
   const stream = document.getElementById('chat-stream');
@@ -969,7 +986,6 @@ async function enviarMensajeChat(e) {
       const dataUp = await resUp.json();
       if (dataUp.ok) {
         promptParaGrok = `[NUEVA EVIDENCIA FOTOGRÁFICA SUBIDA]: Se adjuntó una nueva foto de la remisión física. Nitidez calculada: ${dataUp.nitidez} (${dataUp.es_nitida ? 'Nítida y legible' : 'Ilegible'}). Estado recalculado: ${dataUp.estado_final}. ${txt}`;
-        // Refrescar visor e inspector
         await cargarMetricas();
         await cargarCasos();
         await seleccionarCaso(caseId);
@@ -1092,6 +1108,37 @@ async function auditarCasoActivo() {
       await cargarMetricas();
       await cargarSaludSistema();
       await seleccionarCaso(state.casoActivoId);
+
+      // Mostrar en el Copiloto la traza completa de herramientas invocadas por Grok 4.6
+      const stream = document.getElementById('chat-stream');
+      const toolsList = (data.uso && Array.isArray(data.uso.herramientas) && data.uso.herramientas.length > 0)
+        ? data.uso.herramientas.map((t, i) => `${i + 1}. \`${t}()\``).join(' → ')
+        : '`cotejar_caso()` → `cerrar_caso()`';
+      const segs = (data.uso && data.uso.segundos) ? `${parseFloat(data.uso.segundos).toFixed(2)}s` : 'instantáneo';
+      const rechazos = (data.uso && data.uso.rechazos) || 0;
+      const trazaMd =
+        `**⚡ Ciclo Agéntico Grok 4.6 Completado (${state.casoActivoId}):**\n` +
+        `- **Herramientas invocadas:** ${toolsList}\n` +
+        `- **Veredicto:** \`${data.estado_final}\` | **Códigos:** \`${(data.codigos || []).join(', ')}\`\n` +
+        `- **Fuga retenida:** **${fmtMXN(data.fuga_detectada_mxn)} MXN** | **Liberado:** **${fmtMXN(data.monto_a_pagar_mxn)} MXN**\n` +
+        `- **Policy Gate:** ${rechazos === 0 ? 'Validado en 1er intento' : `${rechazos} corrección(es) aplicadas`} · **Tiempo:** ${segs}\n` +
+        `- **Dictamen en PostgreSQL 16:** ${data.resumen || ''}`;
+
+      if (stream) {
+        stream.innerHTML += `
+          <div class="flex gap-2">
+            <div class="w-5 h-5 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="zap" class="w-3 h-3"></i>
+            </div>
+            <div class="bg-cardNested p-3 rounded-lg border border-emerald-500/30 text-zinc-200 max-w-[92%] prose-chat">
+              ${formatMarkdown(trazaMd)}
+            </div>
+          </div>
+        `;
+        actualizarIconos();
+        stream.scrollTop = stream.scrollHeight;
+      }
+
       showToast({
         type: 'success',
         title: 'Auditoría Grok 4.6 Finalizada',

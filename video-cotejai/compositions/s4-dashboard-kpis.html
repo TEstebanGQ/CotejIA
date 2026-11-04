@@ -1,0 +1,239 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #090d16;
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      overflow: hidden;
+    }
+    .s4-stage {
+      position: absolute;
+      inset: 0;
+      padding: 64px 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s4-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .s4-kpi-card {
+      background: #131c2e;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 18px;
+      padding: 26px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 210px;
+    }
+    .s4-kpi-card.highlight {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.09) 0%, #131c2e 100%);
+    }
+    .s4-kpi-label {
+      font-size: 28px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    .s4-kpi-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 40px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.02em;
+    }
+    .s4-kpi-foot {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      color: #10b981;
+    }
+    .s4-table-card {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 20px;
+      padding: 30px 34px;
+      flex: 1;
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .s4-table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .s4-table-title {
+      font-size: 34px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .s4-filter-pills {
+      display: flex;
+      gap: 14px;
+    }
+    .s4-tab {
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: #1a263d;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .s4-tab.active {
+      background: #10b981;
+      color: #090d16;
+      font-weight: 800;
+    }
+    .s4-row {
+      background: #131c2e;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 18px 26px;
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 0.9fr;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+    }
+    .s4-badge-ok {
+      color: #10b981;
+      font-weight: 700;
+    }
+    .s4-badge-warn {
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .s4-badge-err {
+      color: #f87171;
+      font-weight: 700;
+    }
+  </style>
+
+  <div data-hf-id="hf-v3sb" id="root" data-composition-id="s4-dashboard-kpis" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-1hkt" id="s4-clip-main" class="clip" data-start="0" data-duration="4.8" data-track-index="1">
+      <div data-hf-id="hf-vryz" id="s4-stage-wrap" class="s4-stage">
+        <!-- 4 Top Bento KPIs -->
+        <div data-hf-id="hf-lkhd" class="s4-kpi-grid" data-beat="dashboard-kpis">
+          <div data-hf-id="hf-x4kz" id="s4-kpi-1" class="s4-kpi-card highlight">
+            <span data-hf-id="hf-uxw7" class="s4-kpi-label">Fuga Retenida</span>
+            <span data-hf-id="hf-a3dj" id="s4-fuga-val" class="s4-kpi-num" data-var-text="fugaTotal">$418,920.00</span>
+            <span data-hf-id="hf-md2l" class="s4-kpi-foot">+14.2% MXN Protegido</span>
+          </div>
+
+          <div data-hf-id="hf-eaf4" id="s4-kpi-2" class="s4-kpi-card">
+            <span data-hf-id="hf-k1en" class="s4-kpi-label">Casos Auditados</span>
+            <span data-hf-id="hf-ors7" class="s4-kpi-num">10 / 10</span>
+            <span data-hf-id="hf-99az" class="s4-kpi-foot" style="color: #fbbf24">3 En Reclamo</span>
+          </div>
+
+          <div data-hf-id="hf-f22x" id="s4-kpi-3" class="s4-kpi-card">
+            <span data-hf-id="hf-85wt" class="s4-kpi-label">Resolución IA</span>
+            <span data-hf-id="hf-4jrg" class="s4-kpi-num">94.8%</span>
+            <span data-hf-id="hf-2y99" class="s4-kpi-foot" style="color: #22d3ee">Grok 4.6 + Vision</span>
+          </div>
+
+          <div data-hf-id="hf-6e72" id="s4-kpi-4" class="s4-kpi-card">
+            <span data-hf-id="hf-w50j" class="s4-kpi-label">Costo / Factura</span>
+            <span data-hf-id="hf-s597" class="s4-kpi-num">$0.038</span>
+            <span data-hf-id="hf-exxc" class="s4-kpi-foot">-99.7% vs Manual</span>
+          </div>
+        </div>
+
+        <!-- Central Audit Registry Table -->
+        <div data-hf-id="hf-w2sp" id="s4-table-box" class="s4-table-card">
+          <div data-hf-id="hf-d1ns" class="s4-table-header">
+            <span data-hf-id="hf-x7yn" class="s4-table-title">Registro Central de Expedientes Auditados</span>
+            <div data-hf-id="hf-2rx3" class="s4-filter-pills">
+              <span data-hf-id="hf-pk67" class="s4-tab active">Todos (10)</span>
+              <span data-hf-id="hf-r7hw" class="s4-tab">En Reclamo</span>
+              <span data-hf-id="hf-9n86" class="s4-tab">Carga Manual</span>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-a2ny" id="s4-tr-1" class="s4-row">
+            <strong data-hf-id="hf-bcjx" style="color: #ffffff">OC-001</strong>
+            <span data-hf-id="hf-ekr6" style="font-family: 'Outfit', sans-serif; color: #cbd5e1">Ferretería Industrial del Norte</span>
+            <span data-hf-id="hf-c87c">$6,090.00</span>
+            <span data-hf-id="hf-vcby" style="color: #94a3b8">Fuga: $0.00</span>
+            <span data-hf-id="hf-ypij" class="s4-badge-ok">APROBADO</span>
+          </div>
+
+          <div data-hf-id="hf-64jx" id="s4-tr-2" class="s4-row">
+            <strong data-hf-id="hf-cjh0" style="color: #ffffff">OC-002</strong>
+            <span data-hf-id="hf-p69c" style="font-family: 'Outfit', sans-serif; color: #cbd5e1">Tornillos y Sujetadores Bajío</span>
+            <span data-hf-id="hf-f75s">$6,090.00</span>
+            <span data-hf-id="hf-v9v6" style="color: #fbbf24">Fuga: $290.00</span>
+            <span data-hf-id="hf-f20e" class="s4-badge-warn">EN_RECLAMO</span>
+          </div>
+
+          <div data-hf-id="hf-5cw4" id="s4-tr-3" class="s4-row">
+            <strong data-hf-id="hf-dc32" style="color: #ffffff">OC-004</strong>
+            <span data-hf-id="hf-dlrq" style="font-family: 'Outfit', sans-serif; color: #cbd5e1">Metales & Manufacturas Toluca</span>
+            <span data-hf-id="hf-u5rc">$29,000.00</span>
+            <span data-hf-id="hf-6jga" style="color: #fbbf24">Fuga: $5,800.00</span>
+            <span data-hf-id="hf-81yq" class="s4-badge-warn">EN_RECLAMO</span>
+          </div>
+
+          <div data-hf-id="hf-sudn" id="s4-tr-4" class="s4-row">
+            <strong data-hf-id="hf-e4p4" style="color: #ffffff">OC-006</strong>
+            <span data-hf-id="hf-5tri" style="font-family: 'Outfit', sans-serif; color: #cbd5e1">Servicios Fantasma EFOS 69-B</span>
+            <span data-hf-id="hf-dgl9">$116,000.00</span>
+            <span data-hf-id="hf-gp37" style="color: #f87171">Fuga: $116,000</span>
+            <span data-hf-id="hf-9kf8" class="s4-badge-err">ESCALADO 69-B</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo(
+      ["#s4-kpi-1", "#s4-kpi-2", "#s4-kpi-3", "#s4-kpi-4"],
+      { y: -28, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.38, stagger: 0.09, ease: "power4.out" },
+      0.0,
+    );
+
+    tl.fromTo(
+      "#s4-table-box",
+      { y: 34, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.44, ease: "power4.out" },
+      0.38,
+    );
+
+    tl.fromTo(
+      ["#s4-tr-1", "#s4-tr-2", "#s4-tr-3", "#s4-tr-4"],
+      { x: -24, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.32, stagger: 0.14, ease: "power3.out" },
+      0.68,
+    );
+
+    tl.fromTo(
+      "#s4-kpi-1",
+      { scale: 1 },
+      { scale: 1.03, duration: 0.35, yoyo: true, repeat: 1, ease: "power2.inOut" },
+      2.2,
+    );
+
+    tl.to(
+      "#s4-stage-wrap",
+      { y: -36, opacity: 0, duration: 0.28, ease: "power3.in" },
+      4.48,
+    );
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["s4-dashboard-kpis"] = tl;
+  </script>
+</template>

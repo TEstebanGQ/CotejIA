@@ -323,6 +323,14 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ---
 
+## 🎬 Video Demo Programático (HyperFrames)
+
+El repositorio incluye una composición programática en **HyperFrames** (1920×1080, 30 fps) que demuestra la plataforma y sus flujos principales:
+- **Video MP4 renderizado:** [ideo-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)
+- **Especificación y revisión:** [ideo-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [ideo-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
+
+---
+
 ## 📚 Documentación Técnica y Subsanación de Evaluaciones
 
 Para atender con máxima transparencia y detalle técnico cada observación del comité evaluador, se publicaron los siguientes documentos oficiales:
