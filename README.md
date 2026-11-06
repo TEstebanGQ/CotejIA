@@ -7,8 +7,9 @@
     <em>Platica.mx × Campuslands · Reto Agente 2026 · Track 1 — <strong>Entrega S2 (Herramientas Reales y Web UI Forense)</strong></em>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/Tests-45%2F45%20Passing-emerald?style=flat-square&logo=pytest" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-70%2F70%20Passing-emerald?style=flat-square&logo=pytest" alt="Tests" />
     <img src="https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python" alt="Python" />
+    <img src="https://img.shields.io/badge/Sprint%204-1%2C000%20Tareas%20%7C%2012h%20Carga-purple?style=flat-square" alt="Sprint 4" />
     <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/AI%20Model-Grok%204.6%20Vision-orange?style=flat-square" alt="Grok" />
     <img src="https://img.shields.io/badge/SAT%20Compliance-CFDI%204.0%20%7C%2069--B%20EFOS-red?style=flat-square" alt="SAT" />
@@ -33,6 +34,7 @@
 6. [Guía de Verificación Rápida para Testers](#-guía-de-verificación-rápida-para-testers)
 7. [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
 8. [Resultados de Telemetría e Impacto Financiero](#-resultados-de-telemetría-e-impacto-financiero)
+9. [Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)](#-sprint-4-semana-de-carga-1000-tareas-y-12h-desatendido)
 
 ---
 
@@ -323,17 +325,65 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ---
 
+## ⚡ Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)
+
+Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala masiva y operación autónoma desatendida, cumpliendo con los tres pilares del reto:
+
+### 1. 1,000 Unidades de Trabajo de Punta a Punta
+- **Dataset de Carga Sintético (`datasets/s4/`):** 1,000 expedientes completos generados mediante `datasets/generate.py --s4 --n 1000` con tríada documental completa (`oc.json`, `remision.pdf` / `remision.png`, `cfdi.xml` y `esperado.json`).
+- **Ground Truth Exacto en Decimal:** Cálculos de impuestos, mermas, sobreprecios y tipos de cambio computados independientemente con Python `Decimal` y redondeo contable `ROUND_HALF_UP` al centavo.
+- **Diversidad de Escenarios Fiscales y de Fraude:**
+  - 40% Casos Limpios (`MATCH_OK` -> Aprobación directa de pago).
+  - 25% Faltantes Físicos y Mermas de Bodega (`QTY_SHORT` -> Nota de Crédito o retención preventiva).
+  - 15% Sobreprecios Unitarios o errores en cálculo de IVA (`PRICE_UP` / `TAX_MISMATCH`).
+  - 10% Desvíos en Tipo de Cambio vs Banxico FIX oficial (`FX_OVERCHARGE`).
+  - 5% Proveedores en Lista Negra SAT 69-B (`SUPPLIER_69B` con EFOS Definitivos reales del CSV).
+  - 5% CFDIs Cancelados ante el SAT o Facturas Duplicadas (`CFDI_CANCELADO` / `DUPLICATE`).
+
+### 2. Operación Continua de 12 Horas Desatendida
+- **Daemon Orquestador (`scripts/run_s4_12h_daemon.py`):**
+  - **Pacing Matemático:** $43,200\text{ s} \div 1,000\text{ tareas} = 43.2\text{ s}$ por caso con jitter orgánico ($\pm 4.0\text{ s}$) para evitar saturación de pasarela y simular auditoría orgánica en tiempo real.
+  - **Fuga de Memoria Cero:** Monitoreo y ejecución forzada de `gc.collect()` periódicamente para mantener la huella RSS estable en $\sim 85\text{ MB}$ durante 12 horas ininterrumpidas.
+  - **Pasarela Oficial del Reto:** Consumo real mediante variable `RETO_KEY` y auditoría de tokens de entrada y salida con registro de costo en USD/MXN.
+
+### 3. Capa de Resiliencia y Recuperación de Incidentes (`src/resilience.py`)
+- **Decorador `@with_resilience`:** Exponential backoff con jitter aleatorio para reintentar errores transitorios de red, HTTP 429 (Rate Limit) respetando cabeceras `Retry-After`, y errores 5xx del gateway.
+- **Mecanismos de Fallback Automático:**
+  - *Caída del servicio SOAP del SAT:* Fallback a validación sintáctica estructural del CFDI y registro de advertencia.
+  - *Micro-cortes de API Banxico FIX:* Fallback a la última cotización FIX válida en la base de datos local.
+- **Bitácora de Incidentes:** Cada incidente de red y su método de recuperación se asienta en `runs/bitacora_resiliencia.jsonl`.
+
+### 4. Bitácora Oficial Dual (JSONL y CSV)
+- Cada ciclo de auditoría escribe atómicamente a disco con `flush()` y `os.fsync()` en dos formatos inmutables:
+  - [`runs/bitacora_s4.jsonl`](runs/bitacora_s4.jsonl) (streaming estructurado)
+  - [`runs/bitacora_s4.csv`](runs/bitacora_s4.csv) (compatible con hojas de cálculo y herramientas BI)
+- Esquema completo de 18 columnas: `timestamp_inicio`, `timestamp_fin`, `latencia_segundos`, `case_id`, `proveedor`, `rfc`, `total_facturado_mxn`, `estado_final`, `codigos_discrepancia`, `monto_autorizado_mxn`, `fuga_retenida_mxn`, `exito`, `tokens_in`, `tokens_out`, `costo_usd`, `costo_mxn`, `error`, `estrategia_recuperacion`.
+
+### 5. Telemetría Web y Dashboard SPA en Vivo
+- **Endpoints de Monitoreo:** `/api/s4/status` y `/api/s4/bitacora` integrados en FastAPI.
+- **Card KPI de Carga en la Interfaz Web:** Badge pulsante en tiempo real (`EJECUTANDO` / `COMPLETADO`), conteo dinámico (`X / 1,000 tareas`), barra de progreso porcentual y seguimiento de costos acumulados en USD.
+
+---
+
 ## 🎬 Videos Demo y Grabación de Pantalla en Vivo
 
-El repositorio incluye dos demostraciones audiovisuales en alta fidelidad (1080p, 30 fps) que exhiben la plataforma, el agente autónomo y sus casos de uso reales:
+El repositorio incluye tres demostraciones audiovisuales en alta fidelidad (1080p, 30 fps) que exhiben la plataforma, el agente autónomo y sus casos de uso reales:
 
-1. **Grabación de Pantalla en Vivo del Agente (`1080p`, 1m 50s):**  
+1. **Evidencia de Carga Sprint 4 (12h Desatendido, 1080p):**  
+   [`docs/videos/s4_evidencia_carga_12h.mp4`](docs/videos/s4_evidencia_carga_12h.mp4)  
+   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/s4_evidencia_carga_12h.mp4`)*  
+   *Grabación de pantalla con Playwright que ilustra las fases del daemon desatendido, el avance de las 1,000 unidades de trabajo, la telemetría en tiempo real y el resumen final de la bitácora.*  
+   *Script de generación automática:* [`scripts/record_s4_evidence.py`](scripts/record_s4_evidence.py)
+
+2. **Grabación de Pantalla en Vivo del Agente con Audio Sincronizado (`1080p`, 3 min):**  
    [`docs/videos/demo_cotejai_agente.mp4`](docs/videos/demo_cotejai_agente.mp4)  
-   *Recorrido dinámico con cursor visual simulado operando la UI, inspeccionando remisiones con Grok Vision (`OC-004`), auditando sobreprecios cambiarios Banxico (`OC-006`), validando contra el SAT/69-B, aprobando pagos parciales y filtrando la tabla de auditoría.*  
-   *Script de reproducción automática:* [`scripts/record_demo_walkthrough.py`](scripts/record_demo_walkthrough.py)
+   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/demo_cotejai_agente.mp4`)*  
+   *Recorrido dinámico en alta fidelidad con locución descriptiva técnica, cursor visual simulado operando la UI, inspección con Grok Vision (`OC-004`), auditoría de tipo de cambio Banxico (`OC-006`), validación SAT/69-B, aprobación de pagos parciales y filtrado en tiempo real.*  
+   *Script de reproducción:* [`scripts/record_demo_walkthrough.py`](scripts/record_demo_walkthrough.py) · *Locución:* [`scripts/generate_custom_voiceover.py`](scripts/generate_custom_voiceover.py)
 
-2. **Video Demo Programático con HyperFrames y Mascota 3D Kotek (2 min):**  
+3. **Video Demo Programático con HyperFrames y Mascota 3D Kotek (2 min):**  
    [`video-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)  
+   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/video-cotejai/cotejai-demo.mp4`)*  
    *Composición programática en HyperFrames con locución master y render 3D.*  
    *Especificación y revisión:* [`video-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [`video-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
 
@@ -343,12 +393,14 @@ El repositorio incluye dos demostraciones audiovisuales en alta fidelidad (1080p
 
 Para atender con máxima transparencia y detalle técnico cada observación del comité evaluador, se publicaron los siguientes documentos oficiales:
 
-1. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
-2. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).
-3. **[Reporte Técnico Formal en PDF (S2)](docs/Reporte_Tecnico_S2_CotejAI.pdf):** Documento de entrega para el torneo con diseño editorial, diagramas de arquitectura, tablas de costos y capturas de pantalla de la UI.
-4. **[Telemetría de Producción Real en JSONL](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
-5. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
-6. **[Video Walkthrough Operativo (1080p MP4)](docs/videos/demo_cotejai_agente.mp4):** Grabación continua de la interacción con el sistema en tiempo real.
+1. **[Reporte Ejecutivo Oficial Sprint 4 (Semana de Carga)](eval/reporte_s4.md):** Resumen de la corrida de 12 horas, total de unidades procesadas, tasa de éxito, percentiles de latencia, costo total de inferencia y ROI financiero.
+2. **[Bitácora Oficial de Carga Sprint 4 (JSONL)](runs/bitacora_s4.jsonl) y [CSV](runs/bitacora_s4.csv):** Registro atómico inmutable de cada tarea ejecutada con sus 18 campos de telemetría y resolución de discrepancias.
+3. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
+4. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).
+5. **[Reporte Técnico Formal en PDF (S2)](docs/Reporte_Tecnico_S2_CotejAI.pdf):** Documento de entrega para el torneo con diseño editorial, diagramas de arquitectura, tablas de costos y capturas de pantalla de la UI.
+6. **[Telemetría de Producción Real en JSONL (S2)](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
+7. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
+8. **[Video de Evidencia de Carga 12h S4 (1080p MP4)](docs/videos/s4_evidencia_carga_12h.mp4):** Grabación continua de la telemetría y el avance desatendido del agente.
 
 ---
 

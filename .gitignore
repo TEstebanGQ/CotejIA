@@ -5,7 +5,9 @@ __pycache__/
 *.pyc
 runs/*
 !runs/*.jsonl
+!runs/*.csv
 *.db
 *.db-wal
 *.db-shm
 node_modules/
+datasets/s4/

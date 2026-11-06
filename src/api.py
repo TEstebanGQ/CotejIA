@@ -114,6 +114,55 @@ def api_metrics():
     return m
 
 
+@app.get("/api/s4/status")
+def api_s4_status():
+    """Retorna la telemetría en vivo del Daemon de 12 horas del Sprint 4."""
+    daemon_file = ROOT / "runs" / "s4_daemon_status.json"
+    if daemon_file.exists():
+        try:
+            return json.loads(daemon_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {
+        "estado": "INACTIVO",
+        "tarea_actual": 0,
+        "total_tareas": 1000,
+        "progreso_pct": 0.0,
+        "tiempo_transcurrido_segundos": 0.0,
+        "tiempo_restante_estimado_segundos": 43200.0,
+        "ultimo_caso": "NINGUNO",
+        "tasa_exito_pct": 100.0,
+        "costo_acumulado_usd": 0.0,
+        "costo_acumulado_mxn": 0.0,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
+
+@app.get("/api/s4/bitacora")
+def api_s4_bitacora(limite: int = 50):
+    """Devuelve los últimos registros de la bitácora oficial del Sprint 4."""
+    bitacora_file = ROOT / "runs" / "bitacora_s4.jsonl"
+    if not bitacora_file.exists():
+        return {"registros": [], "total_registros": 0}
+    
+    lineas = []
+    with open(bitacora_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    lineas.append(json.loads(line))
+                except Exception:
+                    pass
+    
+    total = len(lineas)
+    return {
+        "total_registros": total,
+        "registros": lineas[-limite:],
+    }
+
+
+
 @app.get("/api/cases")
 def api_list_cases():
     guardados = obtener_casos_db()

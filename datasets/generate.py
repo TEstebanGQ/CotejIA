@@ -6,6 +6,7 @@
   calculado de forma independiente del motor con Decimal, al centavo).
 
 Uso:  python datasets/generate.py [--s2] [--s3] [--semilla 42]   (sin banderas genera ambos)
+- S4: 1,000 casos (--s4 [--n N]) en datasets/s4/S4-XXXX, iterador streaming iter_casos_s4().
 """
 import argparse
 import json
@@ -391,12 +392,13 @@ def generar_xml_s3(spec: dict) -> tuple[str, Decimal]:
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" '
-        f'Moneda="MXN" SubTotal="{sub:.2f}" Total="{total:.2f}">\n'
+        f'{spec.get("comprobante_attrs", "")}Moneda="{spec.get("moneda", "MXN")}" '
+        f'{spec.get("tipo_cambio_attr", "")}SubTotal="{sub:.2f}" Total="{total:.2f}">\n'
         f'  <cfdi:Emisor Rfc="{spec["proveedor"]["rfc"]}"/>\n  <cfdi:Receptor Rfc="{RECEPTOR}"/>\n'
         f"  <cfdi:Conceptos>\n{conceptos}  </cfdi:Conceptos>\n"
         f'  <cfdi:Impuestos TotalImpuestosTrasladados="{iva_total:.2f}"/>\n'
         "  <cfdi:Complemento>\n"
-        f'    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="{spec["uuid"]}"/>\n'
+        f'    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="{spec["uuid"]}"{spec.get("tfd_attrs", "")}/>\n'
         "  </cfdi:Complemento>\n</cfdi:Comprobante>\n"
     )
     return xml, total
@@ -666,12 +668,226 @@ def generar_s3(semilla: int = SEMILLA_DEFAULT, salida: Path = OUT_S3) -> list[st
     return ids
 
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# S4 · 1,000 casos para la semana de carga (iterador streaming, reproducible por semilla)
+# ════════════════════════════════════════════════════════════════════════════
+OUT_S4 = OUT / "s4"
+N_S4 = 1000
+SEMILLA_S4 = 4
+CSV_69B = OUT / "cache" / "sat_69b_real.csv"
+FIX_REFERENCIA_USD = Decimal("18.7000")   # FIX de referencia fijo: el ground truth no depende de la red
+TOLERANCIA_FX = Decimal("0.015")
+FUGA_TIPICA_MAX = Decimal("4500")          # mermas/sobreprecios típicos quedan bajo el límite autónomo de 5,000
+# Distribución objetivo (fracción de N). El último cubo absorbe el redondeo.
+DISTRIBUCION_S4 = [("MATCH_OK", Decimal("0.40")), ("QTY_SHORT", Decimal("0.25")), ("PRICE_TAX", Decimal("0.15")),
+                   ("FX_OVERCHARGE", Decimal("0.10")), ("SUPPLIER_69B", Decimal("0.05")), ("FISCAL_RECHAZO", Decimal("0.05"))]
+
+
+def cargar_efos_definitivos(ruta: Path = CSV_69B) -> list[dict]:
+    """EFOS 'Definitivo' reales del CSV de la Lista 69-B (se excluyen los 'Presunto')."""
+    import csv
+    with ruta.open(encoding="utf-8", newline="") as f:
+        return [{"rfc": r["rfc"], "razon_social": r["nombre_contribuyente"], "regimen": "601"}
+                for r in csv.DictReader(f) if r["situacion"].strip().lower() == "definitivo"]
+
+
+def cuotas_s4(n: int) -> list[tuple[str, int]]:
+    """Cuotas enteras por tipo (método del mayor resto): suman exactamente n."""
+    base = [(t, int(n * f)) for t, f in DISTRIBUCION_S4]
+    resto = n - sum(c for _, c in base)
+    orden = sorted(range(len(DISTRIBUCION_S4)), key=lambda i: (n * DISTRIBUCION_S4[i][1]) % 1, reverse=True)
+    cuotas = dict(base)
+    for i in orden[:resto]:
+        cuotas[DISTRIBUCION_S4[i][0]] += 1
+    return [(t, cuotas[t]) for t, _ in DISTRIBUCION_S4]
+
+
+def _sello(rng: random.Random, largo: int) -> str:
+    import base64
+    return base64.b64encode(rng.getrandbits(8 * largo).to_bytes(largo, "big")).decode()
+
+
+def _atributos_cfdi40(rng: random.Random, idx: int, extra_mxn: bool = True) -> dict:
+    """Atributos estándar CFDI 4.0 (Serie/Folio/Fecha/FormaPago/MetodoPago/Sello simulado)."""
+    cert = f"{rng.getrandbits(80):020d}"[:20]
+    return {
+        "comprobante_attrs": (f'Serie="S4" Folio="{idx:04d}" Fecha="2026-10-2{rng.randint(0, 4)}T1{rng.randint(0, 9)}:{rng.randint(10, 59)}:00" '
+                              f'FormaPago="03" MetodoPago="PUE" LugarExpedicion="64000" Exportacion="01" '
+                              f'NoCertificado="{cert}" Sello="{_sello(rng, 48)}" '),
+        "tfd_attrs": (f' Version="1.1" FechaTimbrado="2026-10-24T12:00:00" RfcProvCertif="SAT970701NN3" '
+                      f'SelloCFD="{_sello(rng, 32)}" NoCertificadoSAT="00001000000504465028" SelloSAT="{_sello(rng, 48)}"'),
+    }
+
+
+def _spec_s4(rng: random.Random, catalogo: list[dict], idx: int, tipo: str, tipo_s4: str, **kw) -> dict:
+    s = _spec_base(rng, catalogo, idx, tipo, **kw)
+    s["id"] = f"S4-{idx:04d}"
+    s.update(_atributos_cfdi40(rng, idx))
+    # ~30% de las remisiones llega como foto escaneada (Nivel 2 visión); el resto es PDF digital (Nivel 1).
+    if rng.random() < 0.30:
+        s.update({"foto": True, "borrosa": False, "con_firma": True, "nota": rng.choice(
+            ["Recibido conforme.", "Entrega completa en anden 3.", "Sin novedad.", "Recibio turno matutino."])})
+    s["tipo_s4"] = tipo_s4
+    return s
+
+
+def iter_casos_s4(semilla: int = SEMILLA_S4, n: int = N_S4):
+    """Generador streaming: produce los `n` specs de S4 uno por uno (nunca los retiene todos en memoria).
+
+    El orden de tipos es una permutación barajada reproducible; un DUPLICATE siempre apunta a un caso
+    limpio ya emitido, por eso nunca se coloca antes del primer MATCH_OK.
+    """
+    rng = random.Random(semilla)
+    catalogo = construir_catalogo(rng)
+    efos = cargar_efos_definitivos()
+    tipos = [t for t, c in cuotas_s4(n) for _ in range(c)]
+    rng.shuffle(tipos)
+    limpios: list[dict] = []   # ventana acotada de originales posibles para duplicados
+    for idx, tipo_s4 in enumerate(tipos, start=1):
+        if tipo_s4 == "MATCH_OK":
+            s = _spec_s4(rng, catalogo, idx, "MATCH_OK", tipo_s4)
+            if rng.random() < 0.15:                       # precio dentro de tolerancia (centavo arriba)
+                s["facturado"][0]["p"] += Decimal("0.01")
+            limpios.append(s)
+            del limpios[:-50]
+        elif tipo_s4 == "QTY_SHORT":
+            caros = rng.random() < 0.08                   # unos pocos exceden el límite autónomo y se escalan
+            s = _spec_s4(rng, catalogo, idx, "QTY_SHORT", tipo_s4, n_lineas=1 if caros else None, caros=caros)
+            for l in rng.sample(s["oc_lineas"], 1 if not caros else 1):
+                faltan = max(1, int(l["cantidad"] * rng.randint(5, 60) / 100))
+                if not caros:   # merma típica: la fuga queda bajo el límite autónomo (reclamable)
+                    tope = int(FUGA_TIPICA_MAX / (l["precio"] * (1 + (l["tasa"] or 0))))
+                    faltan = max(1, min(faltan, tope))
+                s["recibido"][l["sku"]] = l["cantidad"] - faltan
+        elif tipo_s4 == "PRICE_TAX":
+            if rng.random() < 0.65:                       # sobreprecio unitario no pactado
+                s = _spec_s4(rng, catalogo, idx, "PRICE_UP", tipo_s4)
+                c = rng.choice(s["facturado"])
+                tope_pct = FUGA_TIPICA_MAX / (Decimal(c["q"]) * c["p"] * (1 + (c["tasa"] or 0)))
+                pct = Decimal(rng.randint(3, 25)) / 100
+                c["p"] = _q(c["p"] * (1 + max(Decimal("0.03"), min(pct, tope_pct))))
+            else:                                         # cálculo fiscal erróneo
+                s = _spec_s4(rng, catalogo, idx, "TAX_MISMATCH", tipo_s4, n_lineas=2)
+                if rng.random() < 0.5:
+                    c = next((c for c in s["facturado"] if c["tasa"]), s["facturado"][0])
+                    if c["tasa"]:
+                        c["iva_override"] = _q(_q(Decimal(c["q"]) * c["p"]) * c["tasa"]) + Decimal(rng.randint(300, 9000)) / 100
+                    else:
+                        s["ajuste_total"] = Decimal(rng.randint(3000, 12000)) / 100
+                else:
+                    s["ajuste_total"] = Decimal(rng.randint(3000, 12000)) / 100
+        elif tipo_s4 == "FX_OVERCHARGE":
+            s = _spec_s4(rng, catalogo, idx, "FX_OVERCHARGE", tipo_s4)
+            desvio = Decimal(rng.randint(300, 1500)) / 10000          # +3.00% .. +15.00% sobre el FIX
+            tc = (FIX_REFERENCIA_USD * (1 + desvio)).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+            s.update({"moneda": "USD", "tipo_cambio": tc, "tipo_cambio_attr": f'TipoCambio="{tc:.4f}" '})
+        elif tipo_s4 == "SUPPLIER_69B":
+            s = _spec_s4(rng, catalogo, idx, "SUPPLIER_69B", tipo_s4)
+            s.update({"proveedor": rng.choice(efos), "es_69b": True})
+        else:  # FISCAL_RECHAZO: duplicado (UUID repetido) o factura cancelada ante el SAT
+            if limpios and rng.random() < 0.5:
+                orig = rng.choice(limpios)
+                s = _spec_s4(rng, catalogo, idx, "DUPLICATE", tipo_s4)
+                s.update({"proveedor": orig["proveedor"], "uuid": orig["uuid"], "oc_lineas": orig["oc_lineas"],
+                          "recibido": dict(orig["recibido"]), "facturado": [dict(c) for c in orig["facturado"]],
+                          "duplicado_de": orig["id"], "foto": False})
+            else:
+                s = _spec_s4(rng, catalogo, idx, "CFDI_CANCELADO", tipo_s4)
+                s["cancelado"] = True
+        yield s
+
+
+def calcular_esperado_s4(spec: dict, total: Decimal) -> dict:
+    """Ground truth S4: Decimal + ROUND_HALF_UP al centavo, sin usar src/. Reutiliza la regla contractual de S3.
+
+    FX: los montos del CFDI/OC están en USD; lo justo se convierte al FIX oficial y lo facturado al TC del CFDI.
+    """
+    base = calcular_esperado({**spec, "id": spec["id"]}, total)
+    codigos, estado = set(base["codigos"]), base["estado_final"]
+    monto, fuga, total_mxn = Decimal(base["monto_a_pagar_mxn"]), Decimal(base["fuga_detectada_mxn"]), total
+    if spec.get("moneda") == "USD":
+        tc = spec["tipo_cambio"]
+        total_mxn = _q(total * tc)
+        if (tc - FIX_REFERENCIA_USD) / FIX_REFERENCIA_USD > TOLERANCIA_FX:
+            codigos.discard("MATCH_OK")
+            codigos.add("FX_OVERCHARGE")
+            monto = _q(monto * FIX_REFERENCIA_USD)
+            fuga = _q(max(total_mxn - monto, Decimal("0")))
+        else:  # TC dentro de tolerancia: se paga al TC del CFDI
+            monto, fuga = _q(monto * tc), _q(fuga * tc)
+        estado = "APROBADO" if codigos == {"MATCH_OK"} else (
+            "EN_RECLAMO" if codigos <= {"QTY_SHORT", "PRICE_UP"} and fuga <= LIMITE_AUTONOMO else "ESCALADO")
+    if spec.get("cancelado"):
+        codigos, monto, fuga, estado = {"CFDI_CANCELADO"}, Decimal("0.00"), total, "ESCALADO"
+    resultado = {
+        **base, "tipo_caso": spec["tipo"], "estado_final": estado, "codigos": sorted(codigos),
+        "monto_a_pagar_mxn": f"{monto:.2f}", "fuga_detectada_mxn": f"{fuga:.2f}", "total_cfdi_mxn": f"{total_mxn:.2f}",
+        # Alias con la nomenclatura del Sprint 4
+        "monto_autorizado_mxn": f"{monto:.2f}",
+        "fuga_retenida_mxn": f"{(Decimal('0') if estado == 'APROBADO' else fuga):.2f}",
+        "codigos_discrepancia": sorted(codigos - {"MATCH_OK"}),
+        "moneda": spec.get("moneda", "MXN"), "familia_s4": spec["tipo_s4"],
+    }
+    if spec.get("moneda") == "USD":
+        resultado.update({"tipo_cambio_cfdi": f"{spec['tipo_cambio']:.4f}", "fix_oficial_referencia": f"{FIX_REFERENCIA_USD:.4f}",
+                          "total_cfdi_usd": f"{total:.2f}"})
+    return resultado
+
+
+def escribir_caso_s4(spec: dict, salida: Path, rng_img: random.Random) -> None:
+    p = salida / spec["id"]
+    p.mkdir(parents=True, exist_ok=True)
+    xml, total = generar_xml_s3(spec)
+    (p / "cfdi.xml").write_text(xml, encoding="utf-8")
+    oc = {"oc": spec["id"], "proveedor_rfc": spec["proveedor"]["rfc"], "proveedor": spec["proveedor"]["razon_social"],
+          "moneda": spec.get("moneda", "MXN"), "simular_caida_sat": False, "fecha": "2026-10-20",
+          "terminos": {"pago": "30 dias", "entrega": "LAB almacen central", "moneda_pago": "MXN"},
+          "lineas": [{"sku": l["sku"], "descripcion": l["descripcion"], "unidad": l["unidad"], "cantidad": l["cantidad"],
+                      "precio_unitario": f"{l['precio']:.2f}", "tasa_iva": str(l["tasa"] or Decimal("0")),
+                      **({"exento": True} if l["tasa"] is None else {})} for l in spec["oc_lineas"]]}
+    (p / "oc.json").write_text(json.dumps(oc, indent=2, ensure_ascii=False), encoding="utf-8")
+    rem = {"oc_referencia": spec["id"], "tiene_sello_almacen": True, "tiene_firma_recepcion": True,
+           "requiere_vision": bool(spec.get("foto")),
+           "lineas": [{"sku": k, "cantidad_recibida": v} for k, v in spec["recibido"].items()]}
+    if spec.get("foto"):
+        rem["observaciones_manuales"] = spec["nota"]
+        dibujar_foto_remision(p / "remision.png", spec, rng_img)
+    else:
+        dibujar_remision_pdf(p / "remision.pdf", spec)
+    (p / "remision.json").write_text(json.dumps(rem, indent=2, ensure_ascii=False), encoding="utf-8")
+    if spec.get("cancelado"):
+        (p / "sat_estatus.json").write_text(json.dumps(
+            {"uuid": spec["uuid"], "estado": "Cancelado", "es_cancelable": "Cancelable sin aceptacion",
+             "fecha_cancelacion": "2026-10-26"}, indent=2), encoding="utf-8")
+    (p / "esperado.json").write_text(json.dumps(calcular_esperado_s4(spec, total), indent=2, ensure_ascii=False),
+                                     encoding="utf-8")
+
+
+def generar_s4(semilla: int = SEMILLA_S4, salida: Path = OUT_S4, n: int = N_S4) -> list[str]:
+    """Escribe n casos en `salida/S4-XXXX`. Reproducible byte a byte con la misma semilla."""
+    salida.mkdir(parents=True, exist_ok=True)
+    rng_img = random.Random(semilla + 1)
+    ids = []
+    for spec in iter_casos_s4(semilla, n):
+        escribir_caso_s4(spec, salida, rng_img)
+        ids.append(spec["id"])
+    return ids
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--s2", action="store_true", help="Solo los 10 casos S2")
     ap.add_argument("--s3", action="store_true", help="Solo los 36 casos S3")
-    ap.add_argument("--semilla", type=int, default=SEMILLA_DEFAULT)
+    ap.add_argument("--s4", action="store_true", help="Solo los 1,000 casos S4 (carga) en datasets/s4")
+    ap.add_argument("--n", type=int, default=N_S4, help="Casos S4 a generar (default 1000)")
+    ap.add_argument("--semilla", type=int, default=None)
     a = ap.parse_args()
+    if a.s4:
+        ids = generar_s4(a.semilla if a.semilla is not None else SEMILLA_S4, n=a.n)
+        print(f"S4: {len(ids)} casos en datasets/s4: {ids[0]} .. {ids[-1]}")
+        raise SystemExit(0)
+    a.semilla = SEMILLA_DEFAULT if a.semilla is None else a.semilla
     if a.s2 or not a.s3:
         generar_todos()
         print("S2: 10 casos generados:", ", ".join(CASOS))
