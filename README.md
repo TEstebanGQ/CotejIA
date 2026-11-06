@@ -370,13 +370,13 @@ Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala 
 El repositorio incluye tres demostraciones audiovisuales en alta fidelidad (1080p, 30 fps) que exhiben la plataforma, el agente autónomo y sus casos de uso reales:
 
 1. **Evidencia de Carga Sprint 4 (12h Desatendido, 1080p):**  
-   [`docs/videos/s4_evidencia_carga_12h.mp4`](docs/videos/s4_evidencia_carga_12h.mp4)  
+   [`docs/videos/s4_evidencia_carga_12h.mp4`](docs/videos/s4_evidencia_carga_12h.mp4) · 🔗 **[Ver en Google Drive (Público)](https://drive.google.com/file/d/13h-CPBloLvk40kZMb9bgiRzJ0jDVzgLK/view?usp=drivesdk)**  
    *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/s4_evidencia_carga_12h.mp4`)*  
    *Grabación de pantalla con Playwright que ilustra las fases del daemon desatendido, el avance de las 1,000 unidades de trabajo, la telemetría en tiempo real y el resumen final de la bitácora.*  
    *Script de generación automática:* [`scripts/record_s4_evidence.py`](scripts/record_s4_evidence.py)
 
 2. **Grabación de Pantalla en Vivo del Agente con Audio Sincronizado (`1080p`, 3 min):**  
-   [`docs/videos/demo_cotejai_agente.mp4`](docs/videos/demo_cotejai_agente.mp4)  
+   [`docs/videos/demo_cotejai_agente.mp4`](docs/videos/demo_cotejai_agente.mp4) · 🔗 **[Ver en Google Drive (Público)](https://drive.google.com/file/d/1MV6u6blB3NIIUkO24vIQslKmx6L2VH7i/view?usp=drivesdk)**  
    *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/demo_cotejai_agente.mp4`)*  
    *Recorrido dinámico en alta fidelidad con locución descriptiva técnica, cursor visual simulado operando la UI, inspección con Grok Vision (`OC-004`), auditoría de tipo de cambio Banxico (`OC-006`), validación SAT/69-B, aprobación de pagos parciales y filtrado en tiempo real.*  
    *Script de reproducción:* [`scripts/record_demo_walkthrough.py`](scripts/record_demo_walkthrough.py) · *Locución:* [`scripts/generate_custom_voiceover.py`](scripts/generate_custom_voiceover.py)
