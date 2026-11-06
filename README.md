@@ -393,14 +393,15 @@ El repositorio incluye tres demostraciones audiovisuales en alta fidelidad (1080
 
 Para atender con máxima transparencia y detalle técnico cada observación del comité evaluador, se publicaron los siguientes documentos oficiales:
 
-1. **[Reporte Ejecutivo Oficial Sprint 4 (Semana de Carga)](eval/reporte_s4.md):** Resumen de la corrida de 12 horas, total de unidades procesadas, tasa de éxito, percentiles de latencia, costo total de inferencia y ROI financiero.
-2. **[Bitácora Oficial de Carga Sprint 4 (JSONL)](runs/bitacora_s4.jsonl) y [CSV](runs/bitacora_s4.csv):** Registro atómico inmutable de cada tarea ejecutada con sus 18 campos de telemetría y resolución de discrepancias.
-3. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
-4. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).
-5. **[Reporte Técnico Formal en PDF (S2)](docs/Reporte_Tecnico_S2_CotejAI.pdf):** Documento de entrega para el torneo con diseño editorial, diagramas de arquitectura, tablas de costos y capturas de pantalla de la UI.
-6. **[Telemetría de Producción Real en JSONL (S2)](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
-7. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
-8. **[Video de Evidencia de Carga 12h S4 (1080p MP4)](docs/videos/s4_evidencia_carga_12h.mp4):** Grabación continua de la telemetría y el avance desatendido del agente.
+1. **[Compendio Oficial: Notas de Entrega y Reportes Técnicos (S1 a S4)](docs/NOTAS_DE_ENTREGA_Y_REPORTES_TECNICOS_S1_S4.md):** Documento consolidado con la estructura oficial requerida (Qué se logró, Qué falló y cómo se solucionó, Telemetría y Costo por tarea) para cada una de las 4 semanas del reto.
+2. **[Reporte Técnico General en PDF (Google Drive)](https://drive.google.com/file/d/1rQduagkfqgl3EAuQ8Pq6AvGvsouCu5qp/view?usp=drivesdk):** Documento formal con diagramas de arquitectura, tablas de costos, capturas y justificación metodológica.
+3. **[Reporte Ejecutivo Oficial Sprint 4 (Semana de Carga)](eval/reporte_s4.md):** Resumen de la corrida de 12 horas, total de unidades procesadas, tasa de éxito, percentiles de latencia, costo total de inferencia y ROI financiero.
+4. **[Bitácora Oficial de Carga Sprint 4 (JSONL)](runs/bitacora_s4.jsonl) y [CSV](runs/bitacora_s4.csv):** Registro atómico inmutable de cada tarea ejecutada con sus 18 campos de telemetría y resolución de discrepancias.
+5. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
+6. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).
+7. **[Telemetría de Producción Real en JSONL (S2)](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
+8. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
+9. **[Video de Evidencia de Carga 12h S4 (1080p MP4)](docs/videos/s4_evidencia_carga_12h.mp4):** Grabación continua de la telemetría y el avance desatendido del agente.
 
 ---
 
