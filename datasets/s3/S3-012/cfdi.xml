@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="51950.70" Total="60262.81">
+  <cfdi:Emisor Rfc="DIP120930T55"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="PEGA-015" Descripcion="Pegamento PVC" Cantidad="293" ValorUnitario="146.28" Importe="42860.04" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="42860.04" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="6857.61"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="LIJA-017" Descripcion="Lija de agua grano 220" Cantidad="15" ValorUnitario="334.18" Importe="5012.70" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="5012.70" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="802.03"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="GUAN-009" Descripcion="Guantes de carnaza" Cantidad="68" ValorUnitario="59.97" Importe="4077.96" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="4077.96" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="652.47"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="8312.11"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="444ea7c8-c039-4710-8976-e334e2817efd"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

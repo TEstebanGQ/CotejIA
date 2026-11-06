@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-010",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "TUBO-013",
+      "cantidad_recibida": 80
+    },
+    {
+      "sku": "TAPO-012",
+      "cantidad_recibida": 270
+    },
+    {
+      "sku": "THIN-008",
+      "cantidad_recibida": 262
+    }
+  ]
+}

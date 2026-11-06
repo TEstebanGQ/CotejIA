@@ -1,0 +1,25 @@
+{
+  "oc": "S3-026",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "FOCO-020",
+      "descripcion": "Foco LED 12W",
+      "unidad": "caja",
+      "cantidad": 32,
+      "precio_unitario": "370.81",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "GUAN-009",
+      "descripcion": "Guantes de carnaza",
+      "unidad": "pza",
+      "cantidad": 245,
+      "precio_unitario": "59.97",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

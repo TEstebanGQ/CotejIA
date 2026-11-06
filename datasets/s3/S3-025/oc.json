@@ -1,0 +1,25 @@
+{
+  "oc": "S3-025",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "THIN-008",
+      "descripcion": "Thinner estandar",
+      "unidad": "litro",
+      "cantidad": 48,
+      "precio_unitario": "360.41",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "SEMF-028",
+      "descripcion": "Semilla zona frontera",
+      "unidad": "kg",
+      "cantidad": 236,
+      "precio_unitario": "7.25",
+      "tasa_iva": "0.08"
+    }
+  ]
+}

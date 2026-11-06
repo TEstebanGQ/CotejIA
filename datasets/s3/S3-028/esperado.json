@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-028",
+  "tipo_caso": "DUPLICATE",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "DUPLICATE"
+  ],
+  "monto_a_pagar_mxn": "0.00",
+  "fuga_detectada_mxn": "71289.52",
+  "total_cfdi_mxn": "71289.52",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "PINT-007",
+        "cantidad_recibida": 33
+      },
+      {
+        "sku": "ARRO-023",
+        "cantidad_recibida": 126
+      },
+      {
+        "sku": "ROND-003",
+        "cantidad_recibida": 158
+      }
+    ]
+  }
+}

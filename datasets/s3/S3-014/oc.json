@@ -1,0 +1,33 @@
+{
+  "oc": "S3-014",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "AGUA-025",
+      "descripcion": "Garrafon de agua 20 litros",
+      "unidad": "pza",
+      "cantidad": 64,
+      "precio_unitario": "297.39",
+      "tasa_iva": "0"
+    },
+    {
+      "sku": "CINT-006",
+      "descripcion": "Cinta de aislar negra",
+      "unidad": "pza",
+      "cantidad": 162,
+      "precio_unitario": "94.44",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "LIJA-017",
+      "descripcion": "Lija de agua grano 220",
+      "unidad": "pza",
+      "cantidad": 269,
+      "precio_unitario": "334.18",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

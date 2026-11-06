@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-021",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "THIN-008",
+      "cantidad_recibida": 258
+    },
+    {
+      "sku": "GUAN-009",
+      "cantidad_recibida": 119
+    },
+    {
+      "sku": "ARNE-022",
+      "cantidad_recibida": 286
+    }
+  ]
+}

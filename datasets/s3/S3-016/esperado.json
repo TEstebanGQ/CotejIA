@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-016",
+  "tipo_caso": "QTY_SHORT",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "QTY_SHORT"
+  ],
+  "monto_a_pagar_mxn": "9455.17",
+  "fuga_detectada_mxn": "1350.74",
+  "total_cfdi_mxn": "10805.91",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "MOTO-034",
+        "cantidad_recibida": 7
+      }
+    ]
+  }
+}

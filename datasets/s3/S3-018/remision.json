@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-018",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "CODO-014",
+      "cantidad_recibida": 286
+    },
+    {
+      "sku": "PINT-007",
+      "cantidad_recibida": 112
+    },
+    {
+      "sku": "MANU-030",
+      "cantidad_recibida": 169
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="9315.44" Total="10805.91">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="MOTO-034" Descripcion="Motor electrico 5HP" Cantidad="8" ValorUnitario="1164.43" Importe="9315.44" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="9315.44" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1490.47"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="1490.47"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="14296c07-f26b-4776-913e-4de2e0c53cb8"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

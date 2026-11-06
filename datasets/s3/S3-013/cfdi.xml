@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="73027.88" Total="84712.34">
+  <cfdi:Emisor Rfc="CMS090715QX2"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="CLAV-004" Descripcion="Clavo de acero 2 pulgadas" Cantidad="232" ValorUnitario="163.49" Importe="37929.68" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="37929.68" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="6068.75"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="CASC-010" Descripcion="Casco de seguridad" Cantidad="90" ValorUnitario="389.98" Importe="35098.20" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="35098.20" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="5615.71"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="11684.46"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="e037e5ed-b8db-4672-b42d-47cc00d4af59"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

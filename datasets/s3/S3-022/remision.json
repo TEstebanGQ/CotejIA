@@ -1,0 +1,12 @@
+{
+  "oc_referencia": "S3-022",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "LECH-026",
+      "cantidad_recibida": 252
+    }
+  ]
+}

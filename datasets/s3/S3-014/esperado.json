@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-014",
+  "tipo_caso": "QTY_SHORT",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "QTY_SHORT"
+  ],
+  "monto_a_pagar_mxn": "136299.41",
+  "fuga_detectada_mxn": "4758.24",
+  "total_cfdi_mxn": "141057.65",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "AGUA-025",
+        "cantidad_recibida": 48
+      },
+      {
+        "sku": "CINT-006",
+        "cantidad_recibida": 162
+      },
+      {
+        "sku": "LIJA-017",
+        "cantidad_recibida": 269
+      }
+    ]
+  }
+}

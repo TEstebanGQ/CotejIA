@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-034",
+  "tipo_caso": "RECEIPT_UNREADABLE",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "RECEIPT_UNREADABLE"
+  ],
+  "monto_a_pagar_mxn": null,
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "78122.10",
+  "fuente_remision": "foto",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "ROND-003",
+        "cantidad_recibida": 244
+      },
+      {
+        "sku": "TORN-001",
+        "cantidad_recibida": 298
+      }
+    ]
+  }
+}

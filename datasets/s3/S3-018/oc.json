@@ -1,0 +1,34 @@
+{
+  "oc": "S3-018",
+  "proveedor_rfc": "CMS090715QX2",
+  "proveedor": "Cableados y Materiales del Sur SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "CODO-014",
+      "descripcion": "Codo PVC 2 pulgadas",
+      "unidad": "pza",
+      "cantidad": 286,
+      "precio_unitario": "64.40",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "PINT-007",
+      "descripcion": "Pintura vinilica blanca",
+      "unidad": "litro",
+      "cantidad": 112,
+      "precio_unitario": "70.17",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "MANU-030",
+      "descripcion": "Manual de capacitacion impreso",
+      "unidad": "pza",
+      "cantidad": 169,
+      "precio_unitario": "279.96",
+      "tasa_iva": "0",
+      "exento": true
+    }
+  ]
+}

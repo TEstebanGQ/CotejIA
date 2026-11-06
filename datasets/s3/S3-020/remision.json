@@ -1,0 +1,12 @@
+{
+  "oc_referencia": "S3-020",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "ARRO-023",
+      "cantidad_recibida": 40
+    }
+  ]
+}

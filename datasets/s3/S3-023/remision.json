@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-023",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "CODO-014",
+      "cantidad_recibida": 37
+    },
+    {
+      "sku": "PEGA-015",
+      "cantidad_recibida": 60
+    }
+  ]
+}

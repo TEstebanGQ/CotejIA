@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="119100.98" Total="134120.71">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="LIJA-017" Descripcion="Lija de agua grano 220" Cantidad="281" ValorUnitario="334.18" Importe="93904.58" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="93904.58" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="15019.73"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="MANU-030" Descripcion="Manual de capacitacion impreso" Cantidad="90" ValorUnitario="279.96" Importe="25196.40" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="25196.40" Impuesto="002" TipoFactor="Exento"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="15019.73"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="d9f195d0-1482-4f53-8201-0c62f5f59b22"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

@@ -1,0 +1,12 @@
+{
+  "oc_referencia": "S3-011",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "ALAM-021",
+      "cantidad_recibida": 56
+    }
+  ]
+}

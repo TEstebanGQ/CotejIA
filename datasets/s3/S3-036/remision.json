@@ -1,0 +1,17 @@
+{
+  "oc_referencia": "S3-036",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": true,
+  "lineas": [
+    {
+      "sku": "FRON-027",
+      "cantidad_recibida": 132
+    },
+    {
+      "sku": "DISC-018",
+      "cantidad_recibida": 280
+    }
+  ],
+  "observaciones_manuales": "Se reciben 132; faltaron 32."
+}

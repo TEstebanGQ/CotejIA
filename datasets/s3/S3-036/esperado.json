@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-036",
+  "tipo_caso": "RECEIPT_HANDWRITTEN",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "QTY_SHORT"
+  ],
+  "monto_a_pagar_mxn": "155535.53",
+  "fuga_detectada_mxn": "6404.32",
+  "total_cfdi_mxn": "161939.85",
+  "fuente_remision": "foto",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "FRON-027",
+        "cantidad_recibida": 132
+      },
+      {
+        "sku": "DISC-018",
+        "cantidad_recibida": 280
+      }
+    ]
+  }
+}

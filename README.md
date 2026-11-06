@@ -7,8 +7,9 @@
     <em>Platica.mx × Campuslands · Reto Agente 2026 · Track 1 — <strong>Entrega S2 (Herramientas Reales y Web UI Forense)</strong></em>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/Tests-45%2F45%20Passing-emerald?style=flat-square&logo=pytest" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-70%2F70%20Passing-emerald?style=flat-square&logo=pytest" alt="Tests" />
     <img src="https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python" alt="Python" />
+    <img src="https://img.shields.io/badge/Sprint%204-1%2C000%20Tareas%20%7C%2012h%20Carga-purple?style=flat-square" alt="Sprint 4" />
     <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/AI%20Model-Grok%204.6%20Vision-orange?style=flat-square" alt="Grok" />
     <img src="https://img.shields.io/badge/SAT%20Compliance-CFDI%204.0%20%7C%2069--B%20EFOS-red?style=flat-square" alt="SAT" />
@@ -33,6 +34,7 @@
 6. [Guía de Verificación Rápida para Testers](#-guía-de-verificación-rápida-para-testers)
 7. [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
 8. [Resultados de Telemetría e Impacto Financiero](#-resultados-de-telemetría-e-impacto-financiero)
+9. [Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)](#-sprint-4-semana-de-carga-1000-tareas-y-12h-desatendido)
 
 ---
 
@@ -291,22 +293,115 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ---
 
-## 📈 Resultados de Telemetría e Impacto Financiero
+## 📈 Resultados de Telemetría Real e Impacto Financiero
 
-En la auditoría del lote completo S2 (10 expedientes), CotejAI arrojó los siguientes resultados:
+> **Exportación automática de corrida oficial:** Registrada en [`runs/lote_s2_telemetria.jsonl`](file:///home/Papi_Leo/VSCODE/CotejIA/runs/lote_s2_telemetria.jsonl).  
+> **Tarifas oficiales Inferencia:** Input: $2.00 USD / 1M tokens · Output: $10.00 USD / 1M tokens · Tipo de Cambio: $18.70 MXN/USD.
 
-- **Fuga de Capital Retenida:** **$64,844.39 MXN** retenidos preventivamente en tesorería antes de la dispersión de fondos.
-- **Resolución Autónoma:** **90.0%** de los casos resueltos sin intervención manual (dentro del umbral de $5,000 MXN y reglas deterministas).
-- **Costo Operativo por Expediente:** **$0.038 MXN** (~$0.002 USD en tokens de Grok 4.6), representando una **reducción del 99.2%** frente al costo de revisión manual por analistas de cuentas por pagar (~$5.00 USD/factura).
+### Tabla de Telemetría Real por Expediente (10 Corridas Desatendidas con Grok 4.6)
+
+| Expediente | Estado Final | Códigos SAT / Regla | Llamadas | Tokens In | Tokens Out | Latencia (s) | Costo (USD) | Costo (MXN) | Fuga Retenida | Monto Autorizado |
+| :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **OC-001** | `APROBADO` | `MATCH_OK` | 4 | 13,139 | 422 | 32.57s | $0.0305 | $0.5703 | $0.00 MXN | $6,090.00 MXN |
+| **OC-002** | `EN_RECLAMO` | `QTY_SHORT` | 5 | 18,690 | 435 | 37.77s | $0.0417 | $0.7804 | $290.00 MXN | $5,800.00 MXN |
+| **OC-003** | `EN_RECLAMO` | `PRICE_UP` | 5 | 19,477 | 617 | 40.50s | $0.0451 | $0.8438 | $464.00 MXN | $6,090.00 MXN |
+| **OC-004** | `EN_RECLAMO` | `QTY_SHORT` | 5 | 15,931 | 399 | 25.69s | $0.0359 | $0.6704 | $290.00 MXN | $5,800.00 MXN |
+| **OC-005** | `ESCALADO` | `RECEIPT_UNREADABLE` | 4 | 11,268 | 282 | 22.92s | $0.0254 | $0.4742 | $0.00 MXN | $6,090.00 MXN |
+| **OC-006** | `ESCALADO` | `FX_OVERCHARGE` | 4 | 11,668 | 213 | 22.07s | $0.0255 | $0.4762 | $19,707.24 MXN | $113,359.26 MXN |
+| **OC-007** | `ESCALADO` | `SUPPLIER_69B` | 3 | 8,659 | 287 | 21.48s | $0.0202 | $0.3775 | $6,090.00 MXN | $0.00 MXN |
+| **OC-008** | `ESCALADO` | `TAX_MISMATCH` | 3 | 9,389 | 268 | 30.75s | $0.0215 | $0.4013 | $0.00 MXN | $5,670.00 MXN |
+| **OC-009** | `ESCALADO` | `DUPLICATE` | 3 | 9,066 | 240 | 25.85s | $0.0205 | $0.3839 | $6,090.00 MXN | $0.00 MXN |
+| **OC-010** | `ESCALADO` | `QTY_SHORT`, `SAT_NO_VERIFICADO` | 3 | 8,529 | 297 | 19.42s | $0.0200 | $0.3745 | $9,280.00 MXN | $6,090.00 MXN |
+| **TOTALES** | **10 CASOS** | — | **39** | **125,816** | **3,460** | **279.02s** | **$0.2862 USD** | **$5.3525 MXN** | **$42,211.24 MXN** | **$154,989.26 MXN** |
+
+### Métricas de Rendimiento Financiero y Eficiencia
+- **Fuga Total Retenida:** **$42,211.24 MXN** protegidos preventivamente en tesorería antes de la dispersión de fondos.
+- **Costo Total de Inferencia LLM:** **$0.2862 USD** (**$5.35 MXN**) para auditar los 10 expedientes de inicio a fin.
+- **Costo Promedio por Expediente:** **$0.0286 USD** (**$0.535 MXN** por factura auditada).
+- **Retorno de Inversión (ROI Directo):** **7,886x** ($42,211.24 MXN retenidos vs $5.35 MXN invertidos en LLM).
+- **Ahorro Operativo vs Analista Humano:** Un analista de CxP promedia ~$5.00 USD ($93.50 MXN) por expediente manual. CotejAI reduce el costo en un **99.4%**.
+- **Latencia Promedio:** **27.9 segundos** por caso con ejecución multi-herramienta autónoma (SAT SOAP, Lista 69-B, Banxico FIX, Grok Vision y Three-Way Matching).
 - **Tasa de Acierto de Reglas Fiscales:** **100% de cumplimiento** ante las especificaciones del Anexo 20 del SAT (CFDI 4.0) y Art. 69-B del CFF.
 
 ---
 
-## 🎬 Video Demo Programático (HyperFrames)
+## ⚡ Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)
 
-El repositorio incluye una composición programática en **HyperFrames** (1920×1080, 30 fps) que demuestra la plataforma y sus flujos principales:
-- **Video MP4 renderizado:** [ideo-cotejai/cotejai-demo.mp4](video-cotejai/cotejai-demo.mp4)
-- **Especificación y revisión:** [ideo-cotejai/SPEC.md](video-cotejai/SPEC.md) · [ideo-cotejai/REVIEW.md](video-cotejai/REVIEW.md)
+Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala masiva y operación autónoma desatendida, cumpliendo con los tres pilares del reto:
+
+### 1. 1,000 Unidades de Trabajo de Punta a Punta
+- **Dataset de Carga Sintético (`datasets/s4/`):** 1,000 expedientes completos generados mediante `datasets/generate.py --s4 --n 1000` con tríada documental completa (`oc.json`, `remision.pdf` / `remision.png`, `cfdi.xml` y `esperado.json`).
+- **Ground Truth Exacto en Decimal:** Cálculos de impuestos, mermas, sobreprecios y tipos de cambio computados independientemente con Python `Decimal` y redondeo contable `ROUND_HALF_UP` al centavo.
+- **Diversidad de Escenarios Fiscales y de Fraude:**
+  - 40% Casos Limpios (`MATCH_OK` -> Aprobación directa de pago).
+  - 25% Faltantes Físicos y Mermas de Bodega (`QTY_SHORT` -> Nota de Crédito o retención preventiva).
+  - 15% Sobreprecios Unitarios o errores en cálculo de IVA (`PRICE_UP` / `TAX_MISMATCH`).
+  - 10% Desvíos en Tipo de Cambio vs Banxico FIX oficial (`FX_OVERCHARGE`).
+  - 5% Proveedores en Lista Negra SAT 69-B (`SUPPLIER_69B` con EFOS Definitivos reales del CSV).
+  - 5% CFDIs Cancelados ante el SAT o Facturas Duplicadas (`CFDI_CANCELADO` / `DUPLICATE`).
+
+### 2. Operación Continua de 12 Horas Desatendida
+- **Daemon Orquestador (`scripts/run_s4_12h_daemon.py`):**
+  - **Pacing Matemático:** $43,200\text{ s} \div 1,000\text{ tareas} = 43.2\text{ s}$ por caso con jitter orgánico ($\pm 4.0\text{ s}$) para evitar saturación de pasarela y simular auditoría orgánica en tiempo real.
+  - **Fuga de Memoria Cero:** Monitoreo y ejecución forzada de `gc.collect()` periódicamente para mantener la huella RSS estable en $\sim 85\text{ MB}$ durante 12 horas ininterrumpidas.
+  - **Pasarela Oficial del Reto:** Consumo real mediante variable `RETO_KEY` y auditoría de tokens de entrada y salida con registro de costo en USD/MXN.
+
+### 3. Capa de Resiliencia y Recuperación de Incidentes (`src/resilience.py`)
+- **Decorador `@with_resilience`:** Exponential backoff con jitter aleatorio para reintentar errores transitorios de red, HTTP 429 (Rate Limit) respetando cabeceras `Retry-After`, y errores 5xx del gateway.
+- **Mecanismos de Fallback Automático:**
+  - *Caída del servicio SOAP del SAT:* Fallback a validación sintáctica estructural del CFDI y registro de advertencia.
+  - *Micro-cortes de API Banxico FIX:* Fallback a la última cotización FIX válida en la base de datos local.
+- **Bitácora de Incidentes:** Cada incidente de red y su método de recuperación se asienta en `runs/bitacora_resiliencia.jsonl`.
+
+### 4. Bitácora Oficial Dual (JSONL y CSV)
+- Cada ciclo de auditoría escribe atómicamente a disco con `flush()` y `os.fsync()` en dos formatos inmutables:
+  - [`runs/bitacora_s4.jsonl`](runs/bitacora_s4.jsonl) (streaming estructurado)
+  - [`runs/bitacora_s4.csv`](runs/bitacora_s4.csv) (compatible con hojas de cálculo y herramientas BI)
+- Esquema completo de 18 columnas: `timestamp_inicio`, `timestamp_fin`, `latencia_segundos`, `case_id`, `proveedor`, `rfc`, `total_facturado_mxn`, `estado_final`, `codigos_discrepancia`, `monto_autorizado_mxn`, `fuga_retenida_mxn`, `exito`, `tokens_in`, `tokens_out`, `costo_usd`, `costo_mxn`, `error`, `estrategia_recuperacion`.
+
+### 5. Telemetría Web y Dashboard SPA en Vivo
+- **Endpoints de Monitoreo:** `/api/s4/status` y `/api/s4/bitacora` integrados en FastAPI.
+- **Card KPI de Carga en la Interfaz Web:** Badge pulsante en tiempo real (`EJECUTANDO` / `COMPLETADO`), conteo dinámico (`X / 1,000 tareas`), barra de progreso porcentual y seguimiento de costos acumulados en USD.
+
+---
+
+## 🎬 Videos Demo y Grabación de Pantalla en Vivo
+
+El repositorio incluye tres demostraciones audiovisuales en alta fidelidad (1080p, 30 fps) que exhiben la plataforma, el agente autónomo y sus casos de uso reales:
+
+1. **Evidencia de Carga Sprint 4 (12h Desatendido, 1080p):**  
+   [`docs/videos/s4_evidencia_carga_12h.mp4`](docs/videos/s4_evidencia_carga_12h.mp4) · 🔗 **[Ver en Google Drive (Público)](https://drive.google.com/file/d/13h-CPBloLvk40kZMb9bgiRzJ0jDVzgLK/view?usp=drivesdk)**  
+   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/s4_evidencia_carga_12h.mp4`)*  
+   *Grabación de pantalla con Playwright que ilustra las fases del daemon desatendido, el avance de las 1,000 unidades de trabajo, la telemetría en tiempo real y el resumen final de la bitácora.*  
+   *Script de generación automática:* [`scripts/record_s4_evidence.py`](scripts/record_s4_evidence.py)
+
+2. **Grabación de Pantalla en Vivo del Agente con Audio Sincronizado (`1080p`, 3 min):**  
+   [`docs/videos/demo_cotejai_agente.mp4`](docs/videos/demo_cotejai_agente.mp4) · 🔗 **[Ver en Google Drive (Público)](https://drive.google.com/file/d/1MV6u6blB3NIIUkO24vIQslKmx6L2VH7i/view?usp=drivesdk)**  
+   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/demo_cotejai_agente.mp4`)*  
+   *Recorrido dinámico en alta fidelidad con locución descriptiva técnica, cursor visual simulado operando la UI, inspección con Grok Vision (`OC-004`), auditoría de tipo de cambio Banxico (`OC-006`), validación SAT/69-B, aprobación de pagos parciales y filtrado en tiempo real.*  
+   *Script de reproducción:* [`scripts/record_demo_walkthrough.py`](scripts/record_demo_walkthrough.py) · *Locución:* [`scripts/generate_custom_voiceover.py`](scripts/generate_custom_voiceover.py)
+
+3. **Video Demo Programático con HyperFrames y Mascota 3D Kotek (2 min):**  
+   [`video-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)  
+   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/video-cotejai/cotejai-demo.mp4`)*  
+   *Composición programática en HyperFrames con locución master y render 3D.*  
+   *Especificación y revisión:* [`video-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [`video-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
+
+---
+
+## 📚 Documentación Técnica y Subsanación de Evaluaciones
+
+Para atender con máxima transparencia y detalle técnico cada observación del comité evaluador, se publicaron los siguientes documentos oficiales:
+
+1. **[Compendio Oficial: Notas de Entrega y Reportes Técnicos (S1 a S4)](docs/NOTAS_DE_ENTREGA_Y_REPORTES_TECNICOS_S1_S4.md):** Documento consolidado con la estructura oficial requerida (Qué se logró, Qué falló y cómo se solucionó, Telemetría y Costo por tarea) para cada una de las 4 semanas del reto.
+2. **[Reporte Técnico General en PDF (Google Drive)](https://drive.google.com/file/d/1rQduagkfqgl3EAuQ8Pq6AvGvsouCu5qp/view?usp=drivesdk):** Documento formal con diagramas de arquitectura, tablas de costos, capturas y justificación metodológica.
+3. **[Reporte Ejecutivo Oficial Sprint 4 (Semana de Carga)](eval/reporte_s4.md):** Resumen de la corrida de 12 horas, total de unidades procesadas, tasa de éxito, percentiles de latencia, costo total de inferencia y ROI financiero.
+4. **[Bitácora Oficial de Carga Sprint 4 (JSONL)](runs/bitacora_s4.jsonl) y [CSV](runs/bitacora_s4.csv):** Registro atómico inmutable de cada tarea ejecutada con sus 18 campos de telemetría y resolución de discrepancias.
+5. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
+6. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).
+7. **[Telemetría de Producción Real en JSONL (S2)](runs/lote_s2_telemetria.jsonl):** Registro crudo inmutable de las 39 llamadas a Grok 4.6 con tokens in/out, costos exactos y latencias por caso.
+8. **[Banco de Evidencias UI en Tiempo Real](docs/screenshots/live_run/):** 20 capturas de pantalla generadas automáticamente con Playwright validando cada modal, diálogo y flujo del sistema.
+9. **[Video de Evidencia de Carga 12h S4 (1080p MP4)](docs/videos/s4_evidencia_carga_12h.mp4):** Grabación continua de la telemetría y el avance desatendido del agente.
 
 ---
 

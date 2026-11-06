@@ -1,0 +1,34 @@
+{
+  "oc": "S3-008",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "LIBR-029",
+      "descripcion": "Libro tecnico de seguridad",
+      "unidad": "pza",
+      "cantidad": 118,
+      "precio_unitario": "107.63",
+      "tasa_iva": "0",
+      "exento": true
+    },
+    {
+      "sku": "ARRO-023",
+      "descripcion": "Arroz en grano para comedor",
+      "unidad": "kg",
+      "cantidad": 265,
+      "precio_unitario": "277.93",
+      "tasa_iva": "0"
+    },
+    {
+      "sku": "LENT-011",
+      "descripcion": "Lentes de seguridad",
+      "unidad": "pza",
+      "cantidad": 212,
+      "precio_unitario": "279.51",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

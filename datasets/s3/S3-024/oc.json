@@ -1,0 +1,17 @@
+{
+  "oc": "S3-024",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "PINT-007",
+      "descripcion": "Pintura vinilica blanca",
+      "unidad": "litro",
+      "cantidad": 107,
+      "precio_unitario": "70.17",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "oc": "S3-023",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "CODO-014",
+      "descripcion": "Codo PVC 2 pulgadas",
+      "unidad": "pza",
+      "cantidad": 37,
+      "precio_unitario": "64.40",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "PEGA-015",
+      "descripcion": "Pegamento PVC",
+      "unidad": "litro",
+      "cantidad": 60,
+      "precio_unitario": "146.28",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

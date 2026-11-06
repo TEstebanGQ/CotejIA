@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-035",
+  "tipo_caso": "RECEIPT_UNSIGNED",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "RECEIPT_UNREADABLE"
+  ],
+  "monto_a_pagar_mxn": null,
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "20870.68",
+  "fuente_remision": "foto",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "GUAN-009",
+        "cantidad_recibida": 188
+      },
+      {
+        "sku": "CABL-005",
+        "cantidad_recibida": 45
+      }
+    ]
+  }
+}

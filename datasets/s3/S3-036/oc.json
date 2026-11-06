@@ -1,0 +1,25 @@
+{
+  "oc": "S3-036",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "FRON-027",
+      "descripcion": "Fertilizante zona frontera",
+      "unidad": "kg",
+      "cantidad": 164,
+      "precio_unitario": "185.31",
+      "tasa_iva": "0.08"
+    },
+    {
+      "sku": "DISC-018",
+      "descripcion": "Disco de corte 4.5 pulgadas",
+      "unidad": "pza",
+      "cantidad": 280,
+      "precio_unitario": "397.53",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

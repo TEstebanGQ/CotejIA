@@ -1,0 +1,3 @@
+timestamp_inicio,timestamp_fin,latencia_segundos,case_id,proveedor,rfc,total_facturado_mxn,estado_final,codigos_discrepancia,monto_autorizado_mxn,fuga_retenida_mxn,exito,tokens_in,tokens_out,costo_usd,costo_mxn,error,estrategia_recuperacion
+2026-11-04T20:25:45.693153+00:00,2026-11-04T20:26:37.617597+00:00,51.924,S3-001,Distribuidora Industrial del Pacifico SA de CV,DIP120930T55,30808.31,APROBADO,MATCH_OK,30808.31,0.00,True,14494,426,0.033248,0.6217,,DIRECTO_GATEWAY
+2026-11-04T20:26:38.180545+00:00,2026-11-04T20:27:20.323942+00:00,42.143,S3-002,Distribuidora Industrial del Pacifico SA de CV,DIP120930T55,73783.42,APROBADO,MATCH_OK,73783.42,0.00,True,14082,456,0.032724,0.6119,,DIRECTO_GATEWAY

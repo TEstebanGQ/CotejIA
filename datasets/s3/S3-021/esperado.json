@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-021",
+  "tipo_caso": "PRICE_UP",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "PRICE_UP"
+  ],
+  "monto_a_pagar_mxn": "235618.49",
+  "fuga_detectada_mxn": "15533.00",
+  "total_cfdi_mxn": "251151.49",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "THIN-008",
+        "cantidad_recibida": 258
+      },
+      {
+        "sku": "GUAN-009",
+        "cantidad_recibida": 119
+      },
+      {
+        "sku": "ARNE-022",
+        "cantidad_recibida": 286
+      }
+    ]
+  }
+}

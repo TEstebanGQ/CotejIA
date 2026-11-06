@@ -10,7 +10,9 @@ Ejemplos:
 import argparse
 import json
 import sys
+from datetime import datetime, timezone
 from decimal import Decimal
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -23,7 +25,7 @@ from src.agent import (
     tool_cotejar_caso,
     veredicto_escalado,
 )
-from src.db import init_db, obtener_metricas_db
+from src.db import COSTO_INPUT_1M, COSTO_OUTPUT_1M, init_db, obtener_metricas_db
 
 
 def _responder_localmente(entrada: str, caso_activo: str | None) -> str:
@@ -74,7 +76,7 @@ def _mostrar_auditoria_caso(case_id: str, tiene_llave: bool, historial: list):
     })
 
 
-def _imprimir_tabla_ejecutiva(filas_resumen: list[dict]) -> None:
+def _imprimir_tabla_ejecutiva(filas_resumen: list[dict], telemetria_lote: list[dict] | None = None) -> None:
     """Imprime la tabla ejecutiva de cierre de lote para la demostración de S2."""
     if not filas_resumen:
         return
@@ -108,6 +110,32 @@ def _imprimir_tabla_ejecutiva(filas_resumen: list[dict]) -> None:
         file=sys.stderr,
     )
     print("=" * 96 + "\n", file=sys.stderr)
+
+    if telemetria_lote:
+        print("=" * 96, file=sys.stderr)
+        print(" TELEMETRÍA DETALLADA Y COSTO REAL POR EXPEDIENTE (LOTE S2)", file=sys.stderr)
+        print("=" * 96, file=sys.stderr)
+        enc_tel = f"{'CASO':<8} | {'ESTADO':<11} | {'TOKENS IN':>10} | {'TOKENS OUT':>11} | {'LATENCIA':>9} | {'COSTO USD':>11} | {'COSTO MXN':>11}"
+        print(enc_tel, file=sys.stderr)
+        print("-" * 96, file=sys.stderr)
+        tot_tin = sum(t.get("tokens_in", 0) for t in telemetria_lote)
+        tot_tout = sum(t.get("tokens_out", 0) for t in telemetria_lote)
+        tot_lat = sum(t.get("latencia_s", 0.0) for t in telemetria_lote)
+        tot_usd = sum(t.get("costo_usd", 0.0) for t in telemetria_lote)
+        tot_mxn = sum(t.get("costo_mxn", 0.0) for t in telemetria_lote)
+        for t in telemetria_lote:
+            print(
+                f"{t['case_id']:<8} | {t['estado_final']:<11} | {t['tokens_in']:>10,d} | {t['tokens_out']:>11,d} | "
+                f"{t['latencia_s']:>8.2f}s | ${t['costo_usd']:>10.4f} | ${t['costo_mxn']:>10.4f}",
+                file=sys.stderr,
+            )
+        print("-" * 96, file=sys.stderr)
+        print(
+            f"{'TOTALES':<8} | {'10 CASOS':<11} | {tot_tin:>10,d} | {tot_tout:>11,d} | "
+            f"{tot_lat:>8.2f}s | ${tot_usd:>10.4f} | ${tot_mxn:>10.4f}",
+            file=sys.stderr,
+        )
+        print("=" * 96 + "\n", file=sys.stderr)
 
 
 def iniciar_chat_interactivo() -> int:
@@ -237,6 +265,7 @@ def main() -> int:
 
     fallidos = 0
     filas_resumen = []
+    telemetria_lote = []
     for case_id in casos:
         try:
             r = ejecutar_caso(case_id)
@@ -253,6 +282,7 @@ def main() -> int:
             }
         print(json.dumps(r["veredicto"], indent=2, ensure_ascii=False))
         u = r.get("uso")
+        v = r.get("veredicto", {})
         if u:
             tools_usadas = u.get("herramientas", [])
             print(
@@ -261,13 +291,63 @@ def main() -> int:
                 f"tools={tools_usadas} latencia={u['segundos']:.1f}s\n",
                 file=sys.stderr,
             )
-            filas_resumen.append({"veredicto": r["veredicto"], "herramientas": tools_usadas})
+            filas_resumen.append({"veredicto": v, "herramientas": tools_usadas})
+            p_tok = int(u.get("prompt_tokens", 0))
+            c_tok = int(u.get("completion_tokens", 0))
+            lat = round(float(u.get("segundos", 0.0)), 2)
+            c_usd = round((p_tok / 1_000_000) * COSTO_INPUT_1M + (c_tok / 1_000_000) * COSTO_OUTPUT_1M, 6)
+            c_mxn = round(c_usd * 18.70, 4)
+            telemetria_lote.append({
+                "case_id": case_id,
+                "estado_final": v.get("estado_final", "ESCALADO"),
+                "codigos": v.get("codigos", []),
+                "llamadas": u.get("llamadas", 0),
+                "tokens_in": p_tok,
+                "tokens_out": c_tok,
+                "prompt_tokens": p_tok,
+                "completion_tokens": c_tok,
+                "total_tokens": p_tok + c_tok,
+                "latencia_s": lat,
+                "costo_usd": c_usd,
+                "costo_mxn": c_mxn,
+                "fuga_retenida_mxn": str(v.get("fuga_detectada_mxn") or "0.00"),
+                "monto_a_pagar_mxn": str(v.get("monto_a_pagar_mxn") or "0.00"),
+                "herramientas": tools_usadas,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
         else:
             print(f"[{case_id}] falló y quedó ESCALADO\n", file=sys.stderr)
-            filas_resumen.append({"veredicto": r["veredicto"], "herramientas": ["fallback_escalado"]})
+            filas_resumen.append({"veredicto": v, "herramientas": ["fallback_escalado"]})
+            telemetria_lote.append({
+                "case_id": case_id,
+                "estado_final": v.get("estado_final", "ESCALADO"),
+                "codigos": v.get("codigos", []),
+                "llamadas": 0,
+                "tokens_in": 0,
+                "tokens_out": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "latencia_s": 0.0,
+                "costo_usd": 0.0,
+                "costo_mxn": 0.0,
+                "fuga_retenida_mxn": str(v.get("fuga_detectada_mxn") or "0.00"),
+                "monto_a_pagar_mxn": str(v.get("monto_a_pagar_mxn") or "0.00"),
+                "herramientas": ["fallback_escalado"],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
+    if args.all:
+        runs_dir = Path(__file__).resolve().parent / "runs"
+        runs_dir.mkdir(parents=True, exist_ok=True)
+        telemetria_file = runs_dir / "lote_s2_telemetria.jsonl"
+        with open(telemetria_file, "w", encoding="utf-8") as f:
+            for item in telemetria_lote:
+                f.write(json.dumps(item, ensure_ascii=False) + "\n")
+        print(f"\n[Telemetría] Exportada telemetría de lote ({len(telemetria_lote)} corridas) a {telemetria_file}", file=sys.stderr)
 
     if len(filas_resumen) > 1:
-        _imprimir_tabla_ejecutiva(filas_resumen)
+        _imprimir_tabla_ejecutiva(filas_resumen, telemetria_lote=telemetria_lote if args.all else None)
     return 1 if fallidos else 0
 
 

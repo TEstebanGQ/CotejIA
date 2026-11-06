@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-005",
+  "tipo_caso": "MATCH_OK",
+  "estado_final": "APROBADO",
+  "codigos": [
+    "MATCH_OK"
+  ],
+  "monto_a_pagar_mxn": "97163.00",
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "97163.00",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "MANU-030",
+        "cantidad_recibida": 46
+      },
+      {
+        "sku": "ARNE-022",
+        "cantidad_recibida": 97
+      },
+      {
+        "sku": "ALAM-021",
+        "cantidad_recibida": 283
+      }
+    ]
+  }
+}

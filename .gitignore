@@ -3,8 +3,11 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
-runs/
+runs/*
+!runs/*.jsonl
+!runs/*.csv
 *.db
 *.db-wal
 *.db-shm
 node_modules/
+datasets/s4/

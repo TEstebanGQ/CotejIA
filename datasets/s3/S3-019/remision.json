@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-019",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "CLAV-004",
+      "cantidad_recibida": 125
+    },
+    {
+      "sku": "THIN-008",
+      "cantidad_recibida": 42
+    }
+  ]
+}

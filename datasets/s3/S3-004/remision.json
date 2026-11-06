@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-004",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "GUAN-009",
+      "cantidad_recibida": 196
+    },
+    {
+      "sku": "PEGA-015",
+      "cantidad_recibida": 93
+    }
+  ]
+}

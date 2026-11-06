@@ -1,0 +1,26 @@
+{
+  "oc": "S3-030",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "LIJA-017",
+      "descripcion": "Lija de agua grano 220",
+      "unidad": "pza",
+      "cantidad": 281,
+      "precio_unitario": "334.18",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "MANU-030",
+      "descripcion": "Manual de capacitacion impreso",
+      "unidad": "pza",
+      "cantidad": 90,
+      "precio_unitario": "279.96",
+      "tasa_iva": "0",
+      "exento": true
+    }
+  ]
+}

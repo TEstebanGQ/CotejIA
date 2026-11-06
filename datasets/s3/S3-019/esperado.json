@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-019",
+  "tipo_caso": "PRICE_UP",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "PRICE_UP"
+  ],
+  "monto_a_pagar_mxn": "41265.23",
+  "fuga_detectada_mxn": "1422.45",
+  "total_cfdi_mxn": "42687.68",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "CLAV-004",
+        "cantidad_recibida": 125
+      },
+      {
+        "sku": "THIN-008",
+        "cantidad_recibida": 42
+      }
+    ]
+  }
+}

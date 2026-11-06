@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="25358.16" Total="29415.47">
+  <cfdi:Emisor Rfc="CMS090715QX2"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="GUAN-009" Descripcion="Guantes de carnaza" Cantidad="196" ValorUnitario="59.97" Importe="11754.12" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="11754.12" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1880.66"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="PEGA-015" Descripcion="Pegamento PVC" Cantidad="93" ValorUnitario="146.28" Importe="13604.04" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="13604.04" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="2176.65"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="4057.31"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="4458a885-ab90-49a4-b5a2-40ae5af30553"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

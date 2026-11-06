@@ -1,0 +1,33 @@
+{
+  "oc": "S3-033",
+  "proveedor_rfc": "AAA080808AAA",
+  "proveedor": "COMERCIALIZADORA Y DISTRIBUIDORA DEL SURESTE SA DE CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "LENT-011",
+      "descripcion": "Lentes de seguridad",
+      "unidad": "pza",
+      "cantidad": 212,
+      "precio_unitario": "279.51",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "THIN-008",
+      "descripcion": "Thinner estandar",
+      "unidad": "litro",
+      "cantidad": 77,
+      "precio_unitario": "360.41",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "GUAN-009",
+      "descripcion": "Guantes de carnaza",
+      "unidad": "pza",
+      "cantidad": 163,
+      "precio_unitario": "59.97",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

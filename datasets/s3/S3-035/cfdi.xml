@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="17991.96" Total="20870.68">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="GUAN-009" Descripcion="Guantes de carnaza" Cantidad="188" ValorUnitario="59.97" Importe="11274.36" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="11274.36" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1803.90"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="CABL-005" Descripcion="Cable calibre 10 (rollo)" Cantidad="45" ValorUnitario="149.28" Importe="6717.60" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="6717.60" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1074.82"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="2878.72"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="702cdd20-2862-48b8-88f4-ef125e9953d2"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

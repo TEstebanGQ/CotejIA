@@ -268,8 +268,8 @@
     <!-- ==================== VISTA 1: DASHBOARD DE AUDITORÍA ==================== -->
     <div id="view-dashboard" class="p-4 lg:p-6 space-y-6">
 
-      <!-- 1. ROW DE KPIS ESENCIALES (2 CARDS) -->
-      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 1. ROW DE KPIS ESENCIALES (3 CARDS CON TELEMETRÍA S4) -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- KPI 1: Fuga de Capital Retenida -->
         <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between relative overflow-hidden">
           <div class="flex items-center justify-between">
@@ -286,7 +286,7 @@
           </div>
         </div>
 
-        <!-- KPI 2: Casos Auditados y Progreso -->
+        <!-- KPI 2: Casos Auditados y Progreso General -->
         <div class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-zinc-400">Progreso de Auditoría</span>
@@ -298,6 +298,33 @@
           </div>
           <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
             <div id="kpi-progreso-bar" class="bg-emerald-500 h-full w-full"></div>
+          </div>
+        </div>
+
+        <!-- KPI 3: Runner S4 Carga 12h (Telemetría en Vivo) -->
+        <div id="s4-card-telemetria" class="bg-card p-4 rounded-lg border border-borderSubtle flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span id="s4-status-dot" class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-medium text-zinc-400">Daemon S4 (12h Runner)</span>
+            </div>
+            <span id="s4-status-badge" class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-cyanAccent/10 text-cyan-400 border border-cyanAccent/20">EN ESPERA</span>
+          </div>
+          <div class="my-2 flex items-baseline justify-between">
+            <div>
+              <span id="s4-metric-tareas" class="text-2xl font-bold font-mono tracking-tight text-white">0</span>
+              <span class="text-xs text-zinc-500 font-mono">/ 1,000 tareas</span>
+            </div>
+            <span id="s4-metric-pct" class="text-xs text-cyan-400 font-mono font-semibold">0.0%</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div id="s4-progress-bar" class="bg-cyanAccent h-full w-0 transition-all duration-300"></div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-zinc-400 font-mono">
+              <span id="s4-metric-ultimo">Último: N/A</span>
+              <span id="s4-metric-costo">$0.00 USD</span>
+            </div>
           </div>
         </div>
       </section>

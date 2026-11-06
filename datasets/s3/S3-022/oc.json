@@ -1,0 +1,17 @@
+{
+  "oc": "S3-022",
+  "proveedor_rfc": "CMS090715QX2",
+  "proveedor": "Cableados y Materiales del Sur SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "LECH-026",
+      "descripcion": "Leche entera caja 12 litros",
+      "unidad": "caja",
+      "cantidad": 252,
+      "precio_unitario": "389.18",
+      "tasa_iva": "0"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "oc": "S3-021",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "THIN-008",
+      "descripcion": "Thinner estandar",
+      "unidad": "litro",
+      "cantidad": 258,
+      "precio_unitario": "360.41",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "GUAN-009",
+      "descripcion": "Guantes de carnaza",
+      "unidad": "pza",
+      "cantidad": 119,
+      "precio_unitario": "59.97",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "ARNE-022",
+      "descripcion": "Arnes de seguridad",
+      "unidad": "pza",
+      "cantidad": 286,
+      "precio_unitario": "360.13",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

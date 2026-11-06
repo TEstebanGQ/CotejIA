@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="67346.64" Total="78122.10">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="ROND-003" Descripcion="Rondana plana 1/2" Cantidad="244" ValorUnitario="183.24" Importe="44710.56" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="44710.56" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="7153.69"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="TORN-001" Descripcion="Tornillo hexagonal 1/2" Cantidad="298" ValorUnitario="75.96" Importe="22636.08" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="22636.08" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="3621.77"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="10775.46"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="8181a8cc-3691-47eb-89a2-688b12c136e0"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

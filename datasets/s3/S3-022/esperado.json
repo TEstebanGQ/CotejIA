@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-022",
+  "tipo_caso": "UNAGREED_CHARGE",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "SKU_UNMAPPED"
+  ],
+  "monto_a_pagar_mxn": "98073.36",
+  "fuga_detectada_mxn": "829.38",
+  "total_cfdi_mxn": "98902.74",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "LECH-026",
+        "cantidad_recibida": 252
+      }
+    ]
+  }
+}

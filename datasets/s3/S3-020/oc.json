@@ -1,0 +1,17 @@
+{
+  "oc": "S3-020",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "ARRO-023",
+      "descripcion": "Arroz en grano para comedor",
+      "unidad": "kg",
+      "cantidad": 40,
+      "precio_unitario": "277.93",
+      "tasa_iva": "0"
+    }
+  ]
+}

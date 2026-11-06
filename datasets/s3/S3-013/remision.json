@@ -1,0 +1,16 @@
+{
+  "oc_referencia": "S3-013",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "CLAV-004",
+      "cantidad_recibida": 161
+    },
+    {
+      "sku": "CASC-010",
+      "cantidad_recibida": 90
+    }
+  ]
+}

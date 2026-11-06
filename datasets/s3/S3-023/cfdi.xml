@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0" TipoDeComprobante="I" Moneda="MXN" SubTotal="11452.82" Total="13285.28">
+  <cfdi:Emisor Rfc="FHN150312K41"/>
+  <cfdi:Receptor Rfc="BBB020202BBB"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto NoIdentificacion="CODO-014" Descripcion="Codo PVC 2 pulgadas" Cantidad="37" ValorUnitario="64.40" Importe="2382.80" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="2382.80" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="381.25"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="PEGA-015" Descripcion="Pegamento PVC" Cantidad="60" ValorUnitario="146.28" Importe="8776.80" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="8776.80" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1404.29"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+    <cfdi:Concepto NoIdentificacion="MANI-001" Descripcion="Maniobras de descarga" Cantidad="1" ValorUnitario="293.22" Importe="293.22" ObjetoImp="02">
+      <cfdi:Impuestos><cfdi:Traslados>
+        <cfdi:Traslado Base="293.22" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="46.92"/>
+      </cfdi:Traslados></cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="1832.46"/>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" UUID="ccf3a171-56dc-4907-ba6c-34ab6712303a"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

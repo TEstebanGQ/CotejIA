@@ -1,0 +1,17 @@
+{
+  "oc": "S3-016",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "MOTO-034",
+      "descripcion": "Motor electrico 5HP",
+      "unidad": "pza",
+      "cantidad": 8,
+      "precio_unitario": "1164.43",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

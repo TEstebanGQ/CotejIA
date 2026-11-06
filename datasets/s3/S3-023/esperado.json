@@ -1,0 +1,24 @@
+{
+  "case_id": "S3-023",
+  "tipo_caso": "UNAGREED_CHARGE",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "SKU_UNMAPPED"
+  ],
+  "monto_a_pagar_mxn": "12945.14",
+  "fuga_detectada_mxn": "340.14",
+  "total_cfdi_mxn": "13285.28",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "CODO-014",
+        "cantidad_recibida": 37
+      },
+      {
+        "sku": "PEGA-015",
+        "cantidad_recibida": 60
+      }
+    ]
+  }
+}

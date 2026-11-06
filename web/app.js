@@ -402,10 +402,52 @@ async function cargarMetricas() {
       const costMxn = (m.telemetria_llm.costo_total_usd || 0.002) * 19.5;
       kpiCosto.textContent = fmtMXN(costMxn / (auditadosCount || 1));
     }
+
+    // Telemetría S4 Daemon
+    await cargarTelemetriaS4();
   } catch (err) {
     console.warn('Error cargando métricas:', err);
   }
 }
+
+async function cargarTelemetriaS4() {
+  try {
+    const res = await fetch('/api/s4/status');
+    if (!res.ok) return;
+    const s4 = await res.json();
+    
+    const badge = document.getElementById('s4-status-badge');
+    const dot = document.getElementById('s4-status-dot');
+    const tareasElem = document.getElementById('s4-metric-tareas');
+    const pctElem = document.getElementById('s4-metric-pct');
+    const bar = document.getElementById('s4-progress-bar');
+    const ultimoElem = document.getElementById('s4-metric-ultimo');
+    const costoElem = document.getElementById('s4-metric-costo');
+
+    if (badge) {
+      badge.textContent = s4.estado || 'INACTIVO';
+      if (s4.estado === 'EJECUTANDO') {
+        badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+      } else if (s4.estado === 'COMPLETADO') {
+        badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-cyanAccent/10 text-cyan-400 border border-cyanAccent/20';
+        if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-cyan-400';
+      } else {
+        badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700';
+        if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-zinc-600';
+      }
+    }
+
+    if (tareasElem) tareasElem.textContent = (s4.tarea_actual || 0).toLocaleString();
+    if (pctElem) pctElem.textContent = `${(s4.progreso_pct || 0).toFixed(1)}%`;
+    if (bar) bar.style.width = `${Math.min(100, s4.progreso_pct || 0)}%`;
+    if (ultimoElem) ultimoElem.textContent = `Caso: ${s4.ultimo_caso || 'N/A'}`;
+    if (costoElem) costoElem.textContent = `$${(s4.costo_acumulado_usd || 0).toFixed(4)} USD`;
+  } catch (e) {
+    console.debug('Daemon S4 no activo:', e);
+  }
+}
+
 
 // 5. Cargar Lista de Casos
 async function cargarCasos() {

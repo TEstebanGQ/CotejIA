@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-033",
+  "tipo_caso": "SUPPLIER_69B",
+  "estado_final": "ESCALADO",
+  "codigos": [
+    "SUPPLIER_69B"
+  ],
+  "monto_a_pagar_mxn": "0.00",
+  "fuga_detectada_mxn": "112268.05",
+  "total_cfdi_mxn": "112268.05",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "LENT-011",
+        "cantidad_recibida": 212
+      },
+      {
+        "sku": "THIN-008",
+        "cantidad_recibida": 77
+      },
+      {
+        "sku": "GUAN-009",
+        "cantidad_recibida": 163
+      }
+    ]
+  }
+}

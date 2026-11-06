@@ -1,0 +1,33 @@
+{
+  "oc": "S3-010",
+  "proveedor_rfc": "FHN150312K41",
+  "proveedor": "Ferretera Herrera del Norte SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "TUBO-013",
+      "descripcion": "Tubo PVC 2 pulgadas",
+      "unidad": "pza",
+      "cantidad": 80,
+      "precio_unitario": "22.52",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "TAPO-012",
+      "descripcion": "Tapon auditivo (caja 100)",
+      "unidad": "caja",
+      "cantidad": 270,
+      "precio_unitario": "23.82",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "THIN-008",
+      "descripcion": "Thinner estandar",
+      "unidad": "litro",
+      "cantidad": 262,
+      "precio_unitario": "360.41",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

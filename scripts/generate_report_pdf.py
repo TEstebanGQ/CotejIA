@@ -189,19 +189,19 @@ html_content = """<!DOCTYPE html>
   <!-- KPI CARDS -->
   <div class="kpi-grid">
     <div class="kpi-card">
-      <div class="kpi-val">$64,844.39 MXN</div>
+      <div class="kpi-val">$42,211.24 MXN</div>
       <div class="kpi-lbl">Fuga Retenida</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-val">90.0%</div>
-      <div class="kpi-lbl">Resolución Autónoma</div>
+      <div class="kpi-val">7,886x</div>
+      <div class="kpi-lbl">ROI Inferencia</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-val">$0.038 MXN</div>
+      <div class="kpi-val">$0.535 MXN</div>
       <div class="kpi-lbl">Costo por Tarea</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-val">45 / 45 (100%)</div>
+      <div class="kpi-val">56 / 56 (100%)</div>
       <div class="kpi-lbl">Tests Passing</div>
     </div>
   </div>
@@ -310,8 +310,8 @@ html_content = """<!DOCTYPE html>
         <td>Foto nítida con nota manuscrita: merma en transporte (-20)</td>
         <td><span class="badge badge-warn">QTY_SHORT</span></td>
         <td><strong>EN_RECLAMO</strong></td>
+        <td>$290.00 MXN</td>
         <td>$5,800.00 MXN</td>
-        <td>$23,200.00 MXN</td>
       </tr>
       <tr>
         <td><strong>OC-005</strong></td>
@@ -320,16 +320,16 @@ html_content = """<!DOCTYPE html>
         <td><span class="badge badge-err">RECEIPT_UNREADABLE</span></td>
         <td><strong>ESCALADO</strong></td>
         <td>$0.00 MXN</td>
-        <td>$0.00 MXN</td>
+        <td>$6,090.00 MXN</td>
       </tr>
       <tr>
         <td><strong>OC-006</strong></td>
         <td>Digital USD</td>
-        <td>Sobreprecio cambiario ($20.00 vs $18.69 Banxico FIX)</td>
-        <td><span class="badge badge-warn">FX_OVERCHARGE</span></td>
-        <td><strong>EN_RECLAMO</strong></td>
-        <td><strong>$19,230.39 MXN</strong></td>
-        <td>$274,800.00 MXN</td>
+        <td>Sobreprecio cambiario ($21.85 vs $18.61 Banxico FIX)</td>
+        <td><span class="badge badge-err">FX_OVERCHARGE</span></td>
+        <td><strong>ESCALADO</strong></td>
+        <td><strong>$19,707.24 MXN</strong></td>
+        <td>$113,359.26 MXN</td>
       </tr>
       <tr>
         <td><strong>OC-007</strong></td>
@@ -337,53 +337,176 @@ html_content = """<!DOCTYPE html>
         <td>Proveedor listado en Lista Negra 69-B del SAT (EFOS)</td>
         <td><span class="badge badge-err">SUPPLIER_69B</span></td>
         <td><strong>ESCALADO</strong></td>
-        <td>$34,800.00 MXN</td>
+        <td>$6,090.00 MXN</td>
         <td><strong>$0.00 MXN</strong></td>
       </tr>
       <tr>
         <td><strong>OC-008</strong></td>
         <td>Digital (sin foto)</td>
-        <td>Factura duplicada (UUID previamente liquidado en BD)</td>
-        <td><span class="badge badge-err">DUPLICATE</span></td>
-        <td><strong>ESCALADO</strong></td>
-        <td>$11,600.00 MXN</td>
-        <td><strong>$0.00 MXN</strong></td>
-      </tr>
-      <tr>
-        <td><strong>OC-009</strong></td>
-        <td>Digital (sin foto)</td>
         <td>Inconsistencia fiscal (IVA 8% facturado vs 16% en OC)</td>
         <td><span class="badge badge-err">TAX_MISMATCH</span></td>
         <td><strong>ESCALADO</strong></td>
         <td>$0.00 MXN</td>
-        <td>$0.00 MXN</td>
+        <td>$5,670.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-009</strong></td>
+        <td>Digital (sin foto)</td>
+        <td>Factura duplicada (UUID previamente liquidado en OC-001)</td>
+        <td><span class="badge badge-err">DUPLICATE</span></td>
+        <td><strong>ESCALADO</strong></td>
+        <td>$6,090.00 MXN</td>
+        <td><strong>$0.00 MXN</strong></td>
       </tr>
       <tr>
         <td><strong>OC-010</strong></td>
         <td>Digital (sin foto)</td>
-        <td>Faltante mayor a $5,000 MXN (Límite Policy Gate superado)</td>
-        <td><span class="badge badge-err">POLICY_GATE</span></td>
+        <td>Faltante + Fallo SAT (Timeout SOAP + Circuit Breaker)</td>
+        <td><span class="badge badge-err">QTY_SHORT, SAT_NO_VERIFICADO</span></td>
         <td><strong>ESCALADO</strong></td>
-        <td>$6,960.00 MXN</td>
-        <td>$13,920.00 MXN</td>
+        <td>$9,280.00 MXN</td>
+        <td>$6,090.00 MXN</td>
       </tr>
     </tbody>
   </table>
 
   <!-- 4. TELEMETRÍA Y COSTO -->
-  <h2>4. Telemetría de Modelos y Costo Operativo por Tarea</h2>
+  <h2>4. Telemetría Real y Costo Operativo por Expediente (10 Corridas Grok 4.6)</h2>
   <p>
-    Se registraron métricas de rendimiento reales a través del gateway de inferencia durante la ejecución del lote completo:
+    Se registraron métricas de rendimiento reales a través del gateway oficial de Grok 4.6 exportadas automáticamente a <span class="code">runs/lote_s2_telemetria.jsonl</span> durante el lote desatendido:
   </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Expediente</th>
+        <th>Estado</th>
+        <th style="text-align: right;">Tokens In</th>
+        <th style="text-align: right;">Tokens Out</th>
+        <th style="text-align: right;">Latencia (s)</th>
+        <th style="text-align: right;">Costo USD</th>
+        <th style="text-align: right;">Costo MXN</th>
+        <th style="text-align: right;">Fuga Retenida</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>OC-001</strong></td>
+        <td><span class="badge badge-ok">APROBADO</span></td>
+        <td style="text-align: right;">13,139</td>
+        <td style="text-align: right;">422</td>
+        <td style="text-align: right;">32.57s</td>
+        <td style="text-align: right;">$0.0305</td>
+        <td style="text-align: right;">$0.5703</td>
+        <td style="text-align: right;">$0.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-002</strong></td>
+        <td><span class="badge badge-warn">EN_RECLAMO</span></td>
+        <td style="text-align: right;">18,690</td>
+        <td style="text-align: right;">435</td>
+        <td style="text-align: right;">37.77s</td>
+        <td style="text-align: right;">$0.0417</td>
+        <td style="text-align: right;">$0.7804</td>
+        <td style="text-align: right;">$290.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-003</strong></td>
+        <td><span class="badge badge-warn">EN_RECLAMO</span></td>
+        <td style="text-align: right;">19,477</td>
+        <td style="text-align: right;">617</td>
+        <td style="text-align: right;">40.50s</td>
+        <td style="text-align: right;">$0.0451</td>
+        <td style="text-align: right;">$0.8438</td>
+        <td style="text-align: right;">$464.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-004</strong></td>
+        <td><span class="badge badge-warn">EN_RECLAMO</span></td>
+        <td style="text-align: right;">15,931</td>
+        <td style="text-align: right;">399</td>
+        <td style="text-align: right;">25.69s</td>
+        <td style="text-align: right;">$0.0359</td>
+        <td style="text-align: right;">$0.6704</td>
+        <td style="text-align: right;">$290.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-005</strong></td>
+        <td><span class="badge badge-err">ESCALADO</span></td>
+        <td style="text-align: right;">11,268</td>
+        <td style="text-align: right;">282</td>
+        <td style="text-align: right;">22.92s</td>
+        <td style="text-align: right;">$0.0254</td>
+        <td style="text-align: right;">$0.4742</td>
+        <td style="text-align: right;">$0.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-006</strong></td>
+        <td><span class="badge badge-err">ESCALADO</span></td>
+        <td style="text-align: right;">11,668</td>
+        <td style="text-align: right;">213</td>
+        <td style="text-align: right;">22.07s</td>
+        <td style="text-align: right;">$0.0255</td>
+        <td style="text-align: right;">$0.4762</td>
+        <td style="text-align: right;">$19,707.24 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-007</strong></td>
+        <td><span class="badge badge-err">ESCALADO</span></td>
+        <td style="text-align: right;">8,659</td>
+        <td style="text-align: right;">287</td>
+        <td style="text-align: right;">21.48s</td>
+        <td style="text-align: right;">$0.0202</td>
+        <td style="text-align: right;">$0.3775</td>
+        <td style="text-align: right;">$6,090.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-008</strong></td>
+        <td><span class="badge badge-err">ESCALADO</span></td>
+        <td style="text-align: right;">9,389</td>
+        <td style="text-align: right;">268</td>
+        <td style="text-align: right;">30.75s</td>
+        <td style="text-align: right;">$0.0215</td>
+        <td style="text-align: right;">$0.4013</td>
+        <td style="text-align: right;">$0.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-009</strong></td>
+        <td><span class="badge badge-err">ESCALADO</span></td>
+        <td style="text-align: right;">9,066</td>
+        <td style="text-align: right;">240</td>
+        <td style="text-align: right;">25.85s</td>
+        <td style="text-align: right;">$0.0205</td>
+        <td style="text-align: right;">$0.3839</td>
+        <td style="text-align: right;">$6,090.00 MXN</td>
+      </tr>
+      <tr>
+        <td><strong>OC-010</strong></td>
+        <td><span class="badge badge-err">ESCALADO</span></td>
+        <td style="text-align: right;">8,529</td>
+        <td style="text-align: right;">297</td>
+        <td style="text-align: right;">19.42s</td>
+        <td style="text-align: right;">$0.0200</td>
+        <td style="text-align: right;">$0.3745</td>
+        <td style="text-align: right;">$9,280.00 MXN</td>
+      </tr>
+      <tr style="font-weight: 700; background: #f4f4f5;">
+        <td>TOTALES</td>
+        <td>10 CASOS</td>
+        <td style="text-align: right;">125,816</td>
+        <td style="text-align: right;">3,460</td>
+        <td style="text-align: right;">279.02s</td>
+        <td style="text-align: right;">$0.2862</td>
+        <td style="text-align: right;">$5.3525</td>
+        <td style="text-align: right;">$42,211.24 MXN</td>
+      </tr>
+    </tbody>
+  </table>
+
   <ul>
-    <li><strong>Consumo promedio de tokens:</strong> ~2,550 tokens de entrada (Prompt con herramientas e historial) y ~150 tokens de salida estructurados por expediente.</li>
-    <li><strong>Latencia promedio de auditoría:</strong>
-      <ul>
-        <li><strong>Fase determinista y herramientas locales (SAT 69-B, BD, FX):</strong> &lt; 85 ms.</li>
-        <li><strong>Fase de razonamiento y visión con Grok 4.6:</strong> 9.8 a 11.2 segundos por expediente.</li>
-      </ul>
-    </li>
-    <li><strong>Costo monetario por expediente auditado:</strong> <strong>$0.0020 USD (~$0.038 MXN)</strong>. Comparado contra el costo de un analista de cuentas por pagar (~$5.00 USD / expediente manual), CotejAI reduce el costo operativo en un <strong>99.2%</strong>.</li>
+    <li><strong>Costo total de inferencia:</strong> <strong>$0.2862 USD (~$5.35 MXN)</strong> para el lote completo ($0.0286 USD / $0.535 MXN por factura).</li>
+    <li><strong>Retorno de Inversión (ROI Directo):</strong> <strong>7,886x</strong> ($42,211.24 MXN retenidos frente a $5.35 MXN de costo de inferencia LLM).</li>
+    <li><strong>Ahorro frente a revisión manual:</strong> Un analista humano promedia $5.00 USD / expediente; CotejAI reduce el costo en un <strong>99.4%</strong>.</li>
   </ul>
 
   <!-- 5. ANÁLISIS DE FALLOS Y RESILIENCIA -->

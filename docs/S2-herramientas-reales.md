@@ -17,15 +17,15 @@ Criterios de la rúbrica que mueve esta semana: **Autonomía y funcionalidad (25
 
 ## Entregables
 
-- [ ] Paquete `cotejai/` con el registro de herramientas (contrato en [00-framework.md](00-framework.md))
-- [ ] 3 familias de herramientas funcionando, cada una con tests
-- [ ] Compuerta de políticas con `config/policies.yaml`
-- [ ] Persistencia en SQLite: `cases`, `case_events`, `llm_calls`, `invoices_seen`
-- [ ] Facturas parciales y duplicados detectados
-- [ ] Reconciliador de SKUs con alias confirmados por una persona
-- [ ] CLI con tabla de resultados para el video
-- [ ] 10 casos en `datasets/` y una corrida guardada en `runs/`
-- [ ] Video de 2 minutos y README actualizado
+- [x] Paquete `cotejai/` con el registro de herramientas (contrato en [00-framework.md](00-framework.md))
+- [x] 3 familias de herramientas funcionando, cada una con tests
+- [x] Compuerta de políticas con `config/policies.yaml`
+- [x] Persistencia en SQLite/PostgreSQL: `cases`, `case_events`, `llm_calls`, `invoices_seen`
+- [x] Facturas parciales y duplicados detectados
+- [x] Reconciliador de SKUs con alias confirmados por una persona
+- [x] CLI con tabla de resultados para el video y telemetría JSONL
+- [x] 10 casos en `datasets/` y una corrida guardada en `runs/lote_s2_telemetria.jsonl`
+- [x] Reporte Técnico PDF, capturas de pantalla y README actualizado
 
 ## Tareas
 
