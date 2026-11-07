@@ -12,7 +12,8 @@ const state = {
   filtroActual: 'TODOS',
   vistaActual: 'DASHBOARD',
   historialChat: [],
-  metricas: null
+  metricas: null,
+  motor_db: 'SQLite WAL'
 };
 
 // Formateador de moneda en pesos mexicanos
@@ -301,8 +302,9 @@ async function cargarSaludSistema() {
     const res = await fetch('/api/health');
     const data = await res.json();
     if (data.ok) {
+      state.motor_db = data.motor_db || 'SQLite WAL';
       const dbLabel = document.getElementById('label-motor-db');
-      if (dbLabel) dbLabel.textContent = data.motor_db || 'SQLite WAL';
+      if (dbLabel) dbLabel.textContent = state.motor_db;
 
       const cb = data.circuit_breaker_sat;
       const dot = document.getElementById('sat-dot');
@@ -419,30 +421,42 @@ async function cargarTelemetriaS4() {
     const badge = document.getElementById('s4-status-badge');
     const dot = document.getElementById('s4-status-dot');
     const tareasElem = document.getElementById('s4-metric-tareas');
+    const totalElem = document.getElementById('s4-metric-total');
     const pctElem = document.getElementById('s4-metric-pct');
     const bar = document.getElementById('s4-progress-bar');
     const ultimoElem = document.getElementById('s4-metric-ultimo');
     const costoElem = document.getElementById('s4-metric-costo');
 
+    const actual = s4.tarea_actual || 0;
+    const meta = 1000;
+    const pctReal = Math.min(100, Math.round((actual / meta) * 1000) / 10);
+
+    if (tareasElem) tareasElem.textContent = actual.toLocaleString();
+    if (totalElem) totalElem.textContent = `/ ${meta.toLocaleString()} tareas`;
+    if (pctElem) pctElem.textContent = `${pctReal.toFixed(1)}%`;
+    if (bar) bar.style.width = `${pctReal}%`;
+    if (ultimoElem) ultimoElem.textContent = `Caso: ${s4.ultimo_caso || 'N/A'}`;
+    if (costoElem) costoElem.textContent = `$${(s4.costo_acumulado_usd || 0).toFixed(4)} USD`;
+
     if (badge) {
-      badge.textContent = s4.estado || 'INACTIVO';
       if (s4.estado === 'EJECUTANDO') {
+        badge.textContent = 'EJECUTANDO';
         badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
         if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-      } else if (s4.estado === 'COMPLETADO') {
+      } else if (actual >= meta) {
+        badge.textContent = 'COMPLETADO';
         badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-cyanAccent/10 text-cyan-400 border border-cyanAccent/20';
         if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-cyan-400';
+      } else if (actual > 0) {
+        badge.textContent = 'CALIBRADO';
+        badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20';
+        if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400';
       } else {
+        badge.textContent = 'EN ESPERA';
         badge.className = 'text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700';
         if (dot) dot.className = 'inline-block w-2 h-2 rounded-full bg-zinc-600';
       }
     }
-
-    if (tareasElem) tareasElem.textContent = (s4.tarea_actual || 0).toLocaleString();
-    if (pctElem) pctElem.textContent = `${(s4.progreso_pct || 0).toFixed(1)}%`;
-    if (bar) bar.style.width = `${Math.min(100, s4.progreso_pct || 0)}%`;
-    if (ultimoElem) ultimoElem.textContent = `Caso: ${s4.ultimo_caso || 'N/A'}`;
-    if (costoElem) costoElem.textContent = `$${(s4.costo_acumulado_usd || 0).toFixed(4)} USD`;
   } catch (e) {
     console.debug('Daemon S4 no activo:', e);
   }
@@ -519,7 +533,7 @@ function renderizarTablaCasos() {
         <td class="py-3 px-4 font-mono font-semibold text-white">${fmtMXN(c.monto_a_pagar_mxn)}</td>
         <td class="py-3 px-4 font-mono font-bold ${fugaColor}">${fmtMXN(fuga)}</td>
         <td class="py-3 px-4">
-          <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeClass}">
+          <span id="badge-status-${c.case_id}" class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeClass}">
             ${c.estado_final || 'PENDIENTE'}
           </span>
         </td>
@@ -1164,7 +1178,7 @@ async function auditarCasoActivo() {
         `- **Veredicto:** \`${data.estado_final}\` | **Códigos:** \`${(data.codigos || []).join(', ')}\`\n` +
         `- **Fuga retenida:** **${fmtMXN(data.fuga_detectada_mxn)} MXN** | **Liberado:** **${fmtMXN(data.monto_a_pagar_mxn)} MXN**\n` +
         `- **Policy Gate:** ${rechazos === 0 ? 'Validado en 1er intento' : `${rechazos} corrección(es) aplicadas`} · **Tiempo:** ${segs}\n` +
-        `- **Dictamen en PostgreSQL 16:** ${data.resumen || ''}`;
+        `- **Dictamen en ${state.motor_db || 'SQLite WAL'}:** ${data.resumen || ''}`;
 
       if (stream) {
         stream.innerHTML += `
@@ -1200,25 +1214,71 @@ async function auditarCasoActivo() {
 
 async function auditarTodoElLote() {
   const btn = document.getElementById('btn-audit-all');
+  const originalHtml = btn ? btn.innerHTML : 'Auditar Lote';
   if (btn) btn.disabled = true;
+
   try {
-    const res = await fetch('/api/audit-all', { method: 'POST' });
-    const data = await res.json();
-    if (data.ok) {
-      await cargarCasos();
-      await cargarMetricas();
-      await cargarSaludSistema();
-      await seleccionarCaso(state.casoActivoId);
-      showToast({
-        type: 'success',
-        title: 'Lote Auditado con Éxito',
-        message: `${data.total_procesados} expedientes procesados por Grok 4.6 y persistidos.`
-      });
+    const casos = (state.casos && state.casos.length > 0) ? state.casos : [];
+    if (casos.length === 0) {
+      showToast({ type: 'warning', title: 'Sin Casos', message: 'No hay expedientes cargados para auditar.' });
+      return;
     }
+    const total = casos.length;
+    let procesados = 0;
+
+    showToast({
+      type: 'info',
+      title: 'Auditoría de Lote Iniciada',
+      message: `Iniciando auditoría secuencial de ${total} expedientes con Grok 4.6...`
+    });
+
+    for (let i = 0; i < total; i++) {
+      const cid = casos[i].case_id;
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Auditando ${cid} (${i + 1}/${total})...</span>`;
+        actualizarIconos();
+      }
+
+      const badgeRow = document.getElementById(`badge-status-${cid}`);
+      if (badgeRow) {
+        badgeRow.textContent = 'PROCESANDO...';
+        badgeRow.className = 'text-[10px] font-mono font-semibold px-2 py-0.5 rounded border bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse';
+      }
+
+      try {
+        const res = await fetch(`/api/audit/${cid}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          procesados++;
+          await cargarCasos();
+          await cargarMetricas();
+          if (state.casoActivoId === cid) {
+            await seleccionarCaso(cid);
+          }
+        }
+      } catch (errCase) {
+        console.error(`Error auditando ${cid}:`, errCase);
+      }
+    }
+
+    await cargarCasos();
+    await cargarMetricas();
+    await cargarSaludSistema();
+    await seleccionarCaso(state.casoActivoId);
+
+    showToast({
+      type: 'success',
+      title: 'Lote Auditado con Éxito',
+      message: `${procesados} de ${total} expedientes procesados por Grok 4.6 y persistidos en base de datos.`
+    });
   } catch (err) {
     showToast({ type: 'error', title: 'Error de Lote', message: 'Fallo al procesar el lote completo.' });
   } finally {
-    if (btn) btn.disabled = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+      actualizarIconos();
+    }
   }
 }
 

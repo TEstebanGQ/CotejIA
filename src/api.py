@@ -373,11 +373,31 @@ def api_audit_case(case_id: str):
     if tiene_llave_configurada():
         try:
             r = ejecutar_caso(cid)
-            return {"ok": True, "modo": "grok-4.6", **r}
+            verd = r.get("veredicto") or {}
+            return {
+                "ok": True,
+                "modo": "grok-4.6",
+                "estado_final": verd.get("estado_final"),
+                "codigos": verd.get("codigos", []),
+                "fuga_detectada_mxn": verd.get("fuga_detectada_mxn", "0.00"),
+                "monto_a_pagar_mxn": verd.get("monto_a_pagar_mxn", "0.00"),
+                "resumen": verd.get("resumen", ""),
+                **r,
+            }
         except Exception as exc:
             veredicto_fb = veredicto_escalado(cid, f"Contingencia en gateway: {type(exc).__name__}", cotejo)
             guardar_resultado_caso(cid, veredicto_fb, total_cfdi_mxn=cotejo["total_cfdi_mxn"], herramientas=["cotejar_caso"])
-            return {"ok": True, "modo": "fallback_determinista", "veredicto": veredicto_fb, "cotejo": cotejo}
+            return {
+                "ok": True,
+                "modo": "fallback_determinista",
+                "estado_final": veredicto_fb.get("estado_final"),
+                "codigos": veredicto_fb.get("codigos", []),
+                "fuga_detectada_mxn": veredicto_fb.get("fuga_detectada_mxn", "0.00"),
+                "monto_a_pagar_mxn": veredicto_fb.get("monto_a_pagar_mxn", "0.00"),
+                "resumen": veredicto_fb.get("resumen", ""),
+                "veredicto": veredicto_fb,
+                "cotejo": cotejo,
+            }
 
     # Modo local determinista si no hay RETO_KEY
     cods = set(cotejo["codigos"])
@@ -401,7 +421,17 @@ def api_audit_case(case_id: str):
         "resumen": res_txt,
     }
     guardar_resultado_caso(cid, veredicto_local, total_cfdi_mxn=cotejo["total_cfdi_mxn"], herramientas=["cotejar_caso"])
-    return {"ok": True, "modo": "determinista_local", "veredicto": veredicto_local, "cotejo": cotejo}
+    return {
+        "ok": True,
+        "modo": "determinista_local",
+        "estado_final": est,
+        "codigos": cotejo["codigos"],
+        "fuga_detectada_mxn": cotejo["fuga_detectada_mxn"],
+        "monto_a_pagar_mxn": cotejo["monto_a_pagar_mxn"],
+        "resumen": res_txt,
+        "veredicto": veredicto_local,
+        "cotejo": cotejo,
+    }
 
 
 @app.post("/api/audit-all")
