@@ -1,0 +1,20 @@
+{
+  "oc_referencia": "S3-032",
+  "tiene_sello_almacen": true,
+  "tiene_firma_recepcion": true,
+  "requiere_vision": false,
+  "lineas": [
+    {
+      "sku": "FOCO-020",
+      "cantidad_recibida": 224
+    },
+    {
+      "sku": "TUER-002",
+      "cantidad_recibida": 299
+    },
+    {
+      "sku": "ROND-003",
+      "cantidad_recibida": 277
+    }
+  ]
+}

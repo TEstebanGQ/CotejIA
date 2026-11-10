@@ -1,0 +1,17 @@
+{
+  "estado": "COMPLETADO",
+  "tarea_actual": 1000,
+  "total_tareas": 1000,
+  "progreso_pct": 100.0,
+  "tiempo_transcurrido_segundos": 44030.7,
+  "tiempo_restante_estimado_segundos": 0.0,
+  "ultimo_caso": "S4-1000",
+  "ultimo_estado_final": "ESCALADO",
+  "ultima_latencia_s": 25.931,
+  "tasa_exito_pct": 100.0,
+  "tokens_totales_in": 7818420,
+  "tokens_totales_out": 177296,
+  "costo_acumulado_usd": 17.4098,
+  "costo_acumulado_mxn": 325.5513,
+  "timestamp": "2026-11-07T17:53:17.668453+00:00"
+}

@@ -20,8 +20,18 @@ COMPOSICION = {"MATCH_OK": 10, "QTY_SHORT": 6, "PRICE_UP": 5, "UNAGREED_CHARGE":
                "RECEIPT_HANDWRITTEN": 1}
 
 
+def _contenido(p: Path) -> bytes:
+    # Las PNG se comparan por píxeles: los bytes comprimidos cambian entre versiones de zlib/Pillow
+    if p.suffix == ".png":
+        from PIL import Image
+
+        with Image.open(p) as im:
+            return f"{im.size}{im.mode}".encode() + im.tobytes()
+    return p.read_bytes()
+
+
 def _hashes(carpeta: Path) -> dict[str, bytes]:
-    return {str(p.relative_to(carpeta)): p.read_bytes() for p in sorted(carpeta.rglob("*")) if p.is_file()}
+    return {str(p.relative_to(carpeta)): _contenido(p) for p in sorted(carpeta.rglob("*")) if p.is_file()}
 
 
 def test_generador_reproducible_con_semilla(tmp_path):

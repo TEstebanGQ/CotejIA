@@ -56,7 +56,7 @@ Reglas de decisión para `cerrar_caso`:
 2. Estado final:
    - `APROBADO`: únicamente si `codigos` es `["MATCH_OK"]`.
    - `EN_RECLAMO`: únicamente si `codigos` contiene solo `QTY_SHORT` y/o `PRICE_UP` y `fuga_detectada_mxn` <= {LIMITE_AUTONOMO_MXN:,} MXN.
-   - `ESCALADO`: cualquier otro código (`RECEIPT_UNREADABLE`, `SUPPLIER_69B`, `FX_OVERCHARGE`, `TAX_MISMATCH`, `DUPLICATE`, `SAT_NO_VERIFICADO`), o cuando la fuga supere {LIMITE_AUTONOMO_MXN:,} MXN.
+   - `ESCALADO`: cualquier otro código (`RECEIPT_UNREADABLE`, `SUPPLIER_69B`, `FX_OVERCHARGE`, `TAX_MISMATCH`, `DUPLICATE`, `CFDI_CANCELADO`, `SAT_NO_VERIFICADO`, `SYSTEM_ERROR`), o cuando la fuga supere {LIMITE_AUTONOMO_MXN:,} MXN.
 3. Si `cerrar_caso` es rechazado por la compuerta `policy_gate`, corrige según el motivo indicado y vuelve a llamarlo."""
 
 TOOLS = [
@@ -180,7 +180,13 @@ class Veredicto(BaseModel):
 def cargar_caso(case_id: str) -> tuple[dict, dict, dict]:
     d = DATASETS / case_id
     oc = json.loads((d / "oc.json").read_text(encoding="utf-8"))
-    remision = json.loads((d / "remision.json").read_text(encoding="utf-8"))
+    if (d / "remision.json").exists():
+        remision = json.loads((d / "remision.json").read_text(encoding="utf-8"))
+    elif (d / "remision.pdf").exists() or (d / "remision.png").exists():
+        # Sin remisión estructurada: las líneas salen del PDF (Nivel 1) o de la foto con Grok Vision
+        remision = {"lineas": [], "requiere_vision": (d / "remision.png").exists()}
+    else:
+        raise FileNotFoundError(f"El caso {case_id} no tiene remision.json, remision.pdf ni remision.png")
     return oc, remision, leer_cfdi(str(d / "cfdi.xml"))
 
 
@@ -231,6 +237,15 @@ def tool_cotejar_caso(case_id: str, vision_res: dict | None = None) -> dict:
     monto_pagar = Decimal(base["monto_a_pagar_mxn"])
     fuga = Decimal(base["fuga_detectada_mxn"])
 
+    # Una remisión sin firma de recepción o sin sello de almacén no prueba la entrega
+    sin_firma_o_sello = remision.get("tiene_firma_recepcion") is False or remision.get("tiene_sello_almacen") is False
+    if vision_res and isinstance(vision_res.get("remision_extraida"), dict):
+        ext = vision_res["remision_extraida"]
+        sin_firma_o_sello = sin_firma_o_sello or ext.get("tiene_firma_recepcion") is False \
+            or ext.get("tiene_sello_almacen") is False
+    if sin_firma_o_sello and not alerta_vision:
+        alerta_vision = True
+
     # 1. Alerta de imagen ilegible (Grok Vision)
     if alerta_vision:
         codigos.discard("MATCH_OK")
@@ -274,6 +289,27 @@ def tool_cotejar_caso(case_id: str, vision_res: dict | None = None) -> dict:
             "nombre": efos["nombre_contribuyente"],
             "oficio_dof": efos.get("oficio_definitivo_dof"),
         })
+
+    # 3b. Estatus del CFDI ante el SAT: si el expediente trae el acuse de consulta (`sat_estatus.json`,
+    # p. ej. descargado del portal o del webservice) y dice Cancelado, la factura no es pagable.
+    ruta_estatus = DATASETS / case_id / "sat_estatus.json"
+    if ruta_estatus.exists():
+        try:
+            estatus = json.loads(ruta_estatus.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            estatus = {}
+        uuid_estatus = (estatus.get("uuid") or "").strip().upper()
+        uuid_cfdi = (cfdi.get("uuid") or "").strip().upper()
+        if str(estatus.get("estado", "")).strip().lower() == "cancelado" and (not uuid_estatus or uuid_estatus == uuid_cfdi):
+            codigos.discard("MATCH_OK")
+            codigos.add("CFDI_CANCELADO")
+            fuga = total_cfdi
+            monto_pagar = Decimal("0.00")
+            detalle.append({
+                "problema": "CFDI cancelado ante el SAT; no procede el pago",
+                "uuid": cfdi.get("uuid"),
+                "fecha_cancelacion": estatus.get("fecha_cancelacion"),
+            })
 
     # 4. Validación de Factura Duplicada (invoices_seen)
     # OC-009 comparte UUID con OC-001; garantizamos que OC-001 esté registrado si se audita OC-009
@@ -349,6 +385,25 @@ def validar_veredicto(v: Veredicto, case_id: str, cotejo: dict | None) -> str | 
     if v.estado_final not in permitidos:
         return f"Con estos códigos y esta fuga el estado debe ser uno de {sorted(permitidos)}."
     return None
+
+
+def cotejo_error_sistema() -> dict:
+    """Cotejo sintético para cuando el motor no pudo correr: deja rastro con código SYSTEM_ERROR."""
+    return {"codigos": ["SYSTEM_ERROR"], "fuga_detectada_mxn": "0.00", "monto_a_pagar_mxn": "0.00"}
+
+
+def _cotejar_con_reintentos(case_id: str, vision_res: dict | None, intentos: int = 3) -> dict:
+    """El cotejo toca SQLite/Postgres y servicios externos; un lock o timeout transitorio no debe tumbar el caso."""
+    ultimo: Exception | None = None
+    for i in range(intentos):
+        try:
+            return tool_cotejar_caso(case_id, vision_res=vision_res)
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+            raise  # errores del expediente: reintentar no los arregla
+        except Exception as e:
+            ultimo = e
+            time.sleep(1.5 * (i + 1))
+    raise ultimo  # type: ignore[misc]
 
 
 def veredicto_escalado(case_id: str, motivo: str, cotejo: dict | None = None) -> dict:
@@ -473,11 +528,14 @@ def ejecutar_caso(case_id: str, client: OpenAI | None = None) -> dict:
 
                 elif nombre_fn == "cotejar_caso":
                     try:
-                        cotejo = tool_cotejar_caso(case_id, vision_res=vision_cache)
+                        cotejo = _cotejar_con_reintentos(case_id, vision_cache)
                     except Exception as e:
+                        # Nunca escalar en silencio: el veredicto lleva SYSTEM_ERROR y el motivo exacto.
+                        uso["error_sistema"] = f"{type(e).__name__}: {str(e)[:300]}"
                         return {
                             "veredicto": veredicto_escalado(
-                                case_id, f"No se pudo cotejar el caso: {type(e).__name__}: {e}"
+                                case_id, f"No se pudo cotejar el caso: {type(e).__name__}: {e}",
+                                cotejo_error_sistema(),
                             ),
                             "uso": uso,
                         }
@@ -529,7 +587,9 @@ def ejecutar_caso(case_id: str, client: OpenAI | None = None) -> dict:
                 }
             )
 
-    veredicto_esc = veredicto_escalado(case_id, "El agente agotó sus pasos sin cerrar el caso", cotejo)
+    veredicto_esc = veredicto_escalado(
+        case_id, "El agente agotó sus pasos sin cerrar el caso", cotejo or cotejo_error_sistema()
+    )
     return {"veredicto": veredicto_esc, "uso": uso}
 
 

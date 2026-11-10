@@ -73,6 +73,55 @@ class ReclamoRequest(BaseModel):
     llave_idempotencia: str | None = None
 
 
+class CasoHarness(BaseModel):
+    """Un expediente completo enviado por un evaluador externo."""
+    case_id: str = "HARNESS-001"
+    oc: dict[str, Any]
+    cfdi_xml: str
+    remision: dict[str, Any] | None = None
+    remision_pdf_base64: str | None = None
+    remision_png_base64: str | None = None
+    sat_estatus: dict[str, Any] | None = None
+    modo: str = "auto"
+
+
+class LoteHarness(BaseModel):
+    casos: list[CasoHarness]
+
+
+def _auditar_harness(caso: CasoHarness) -> dict:
+    from . import harness
+
+    if caso.modo not in ("auto", "grok", "determinista"):
+        raise HTTPException(status_code=422, detail="modo debe ser auto, grok o determinista")
+    try:
+        base, case_id, tmp = harness.escribir_caso_temporal(caso.model_dump())
+    except (ValueError, TypeError) as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # base64 inválido, etc.
+        raise HTTPException(status_code=422, detail=f"Expediente inválido: {type(e).__name__}: {e}")
+    try:
+        return harness.auditar_caso(base, case_id, modo=caso.modo)
+    finally:
+        tmp.cleanup()
+
+
+@app.post("/api/v1/auditar")
+def api_v1_auditar(caso: CasoHarness):
+    """Audita un expediente propio (OC + remisión + CFDI) y devuelve el veredicto. Contrato en README."""
+    return _auditar_harness(caso)
+
+
+@app.post("/api/v1/auditar-lote")
+def api_v1_auditar_lote(lote: LoteHarness):
+    """Audita varios expedientes en orden (permite detectar UUID duplicados dentro del lote)."""
+    resultados = [_auditar_harness(c) for c in lote.casos]
+    estados: dict[str, int] = {}
+    for r in resultados:
+        estados[r["estado_final"]] = estados.get(r["estado_final"], 0) + 1
+    return {"total": len(resultados), "estados": estados, "resultados": resultados}
+
+
 @app.get("/api/health")
 def api_health():
     motor = init_db()

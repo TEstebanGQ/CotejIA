@@ -2,51 +2,137 @@
 
 <div align="center">
   <img src="web/logo.png" alt="CotejAI Logo" width="320" />
-  <p><strong>Auditoría Autónoma de Facturas, Remisiones Físicas y Órdenes de Compra con Grok 4.6 Vision</strong></p>
+  <p><strong>Auditoría autónoma de facturas CFDI 4.0, remisiones físicas y órdenes de compra con Grok 4.6</strong></p>
+  <p><em>Platica.mx × Campuslands · Reto Agente 2026 · Track 1 — <strong>Entrega final</strong></em></p>
   <p>
-    <em>Platica.mx × Campuslands · Reto Agente 2026 · Track 1 — <strong>Entrega S2 (Herramientas Reales y Web UI Forense)</strong></em>
-  </p>
-  <p>
-    <img src="https://img.shields.io/badge/Tests-70%2F70%20Passing-emerald?style=flat-square&logo=pytest" alt="Tests" />
-    <img src="https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python" alt="Python" />
-    <img src="https://img.shields.io/badge/Sprint%204-1%2C000%20Tareas%20%7C%2012h%20Carga-purple?style=flat-square" alt="Sprint 4" />
-    <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/Tests-82%2F82%20passing-emerald?style=flat-square&logo=pytest" alt="Tests" />
+    <img src="https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square&logo=python" alt="Python" />
+    <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT" />
     <img src="https://img.shields.io/badge/AI%20Model-Grok%204.6%20Vision-orange?style=flat-square" alt="Grok" />
-    <img src="https://img.shields.io/badge/SAT%20Compliance-CFDI%204.0%20%7C%2069--B%20EFOS-red?style=flat-square" alt="SAT" />
-    <img src="https://img.shields.io/badge/FX%20Audit-Banco%20de%20M%C3%A9xico%20SIE-yellow?style=flat-square" alt="Banxico" />
-    <img src="https://img.shields.io/badge/UI-Shadcn%20Dark%20SPA-zinc?style=flat-square" alt="UI" />
+    <img src="https://img.shields.io/badge/SAT-CFDI%204.0%20%7C%2069--B-red?style=flat-square" alt="SAT" />
   </p>
 </div>
 
 ---
 
-## 📌 Tabla de Contenidos
-1. [Resumen Ejecutivo de la Entrega S2](#-resumen-ejecutivo-de-la-entrega-s2)
-2. [Evidencias Visuales en Tiempo Real (Capturas UI)](#-evidencias-visuales-en-tiempo-real-capturas-ui)
-3. [Inspección Multidocumental (El Sistema de 3 Vías)](#-inspección-multidocumental-el-sistema-de-3-vías)
-4. [Las 5 Herramientas Autónomas de CotejAI (Function Calling)](#-las-5-herramientas-autónomas-de-cotejai-function-calling)
-   - [Herramienta 1: `cotejar_caso`](#herramienta-1-cotejar_caso-three-way-matching-determinista)
-   - [Herramienta 2: `inspeccionar_remision_vision`](#herramienta-2-inspeccionar_remision_vision-grok-vision--nitidez)
-   - [Herramienta 3: `consultar_tipo_cambio`](#herramienta-3-consultar_tipo_cambio-auditoría-oficial-banxico)
-   - [Herramienta 4: `consultar_sat_69b_y_soap`](#herramienta-4-consultar_sat_69b_y_soap-validación-fiscal-y-circuit-breaker)
-   - [Herramienta 5: `solicitar_nota_credito`](#herramienta-5-solicitar_nota_credito-idempotencia-y-policy-gate)
-5. [Matriz de Expedientes de Prueba (Lote S2: OC-001 a OC-010)](#-matriz-de-expedientes-de-prueba-lote-s2)
-6. [Guía de Verificación Rápida para Testers](#-guía-de-verificación-rápida-para-testers)
-7. [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
-8. [Resultados de Telemetría e Impacto Financiero](#-resultados-de-telemetría-e-impacto-financiero)
-9. [Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)](#-sprint-4-semana-de-carga-1000-tareas-y-12h-desatendido)
+## 🏁 Entrega final (para el jurado y el harness)
+
+| Entregable | Dónde |
+|---|---|
+| Repositorio público, licencia abierta | Este repo · [`LICENSE`](LICENSE) (MIT) |
+| Arranque de un comando | [`docker compose up --build`](#-arranque-en-un-comando) o `python main.py web` |
+| CLI / endpoint para casos propios | [`python main.py audit --dir <carpeta>`](#-evaluar-con-casos-propios-harness) · `POST /api/v1/auditar` |
+| Video de demostración (5 min) | [`docs/videos/cotejai_demo_final_5min.mp4`](docs/videos/cotejai_demo_final_5min.mp4) |
+| Reporte técnico (≤ 3 páginas) | [`docs/Reporte_Tecnico_Final_CotejAI.pdf`](docs/Reporte_Tecnico_Final_CotejAI.pdf) · fuente [`reports/REPORTE_TECNICO_FINAL_COTEJAI.md`](reports/REPORTE_TECNICO_FINAL_COTEJAI.md) |
+| Bitácora de consumo (exportación de la consola) | [`runs/consumo_consola_reto.csv`](runs/consumo_consola_reto.csv) |
+| Bitácora de la corrida de carga (1,000 tareas, 12 h) | [`runs/bitacora_s4.csv`](runs/bitacora_s4.csv) · [`.jsonl`](runs/bitacora_s4.jsonl) · auditoría contra ground truth: [`eval/analisis_bitacora_s4.md`](eval/analisis_bitacora_s4.md) |
+
+### Resultados en una línea
+
+1,000 expedientes en 12 h 14 min con Grok 4.6 por **USD 17.49** (USD 0.037 por expediente completo). Al auditar la bitácora contra el ground truth, encontramos que el 68% de los casos se escaló en silencio por una falla del sistema y que 11 CFDI cancelados se aprobaron. Donde el cotejo sí corrió, el agente acertó en el **96.6%**. Ambas fallas están corregidas y verificadas: el motor ahora acierta **1000/1000** en S4 y **36/36** en S3, y ninguna falla se escala sin código. El detalle está en [`eval/analisis_bitacora_s4.md`](eval/analisis_bitacora_s4.md).
 
 ---
 
-## 🚀 Resumen Ejecutivo de la Entrega S2
+## 🚀 Arranque en un comando
 
-Durante la **Semana 2 (S2)**, CotejAI evolucionó de un cotejador puramente determinista de terminal a una plataforma integral de **auditoría fiscal y forense en tiempo real**, incorporando:
+**Con Docker** (API + dashboard + PostgreSQL):
 
-1. **Grok 4.6 Vision con Varianza Laplaciana:** Inspección óptica de remisiones físicas escaneadas (`OC-004`), detección de notas manuscritas del almacenista (*"Recibidos solo 80 pzas. Merma en transporte (-20)"*) y rechazo preventivo de fotografías borrosas o ilegibles (`OC-005`).
-2. **Auditoría Cambiaria Banxico (SIE API):** Validación de facturas en divisa extranjera (USD/EUR) contra el tipo de cambio oficial publicado por el Banco de México, neutralizando sobreprecios cambiarios no pactados (`OC-006` retuvo **$19,230.39 MXN** de sobreprecio fraudulento).
-3. **Escudo Fiscal SAT 69-B y Validador SOAP:** Verificación de facturas apócrifas o emitidas por EFOS definitivos del SAT con Circuit Breaker de 3 caídas para alta disponibilidad (`OC-007`).
-4. **Compuerta de Políticas (Policy Gate de $5,000 MXN) e Idempotencia:** Emisión desatendida de notas de crédito para discrepancias $\le \$5,000$ MXN y bloqueo con solicitud de autorización de contraloría para importes superiores (`OC-010`).
-5. **Interfaz Web SPA Forense de Clase Mundial:** Sistema Shadcn Dark (`#121316`) con Bento Grid, selector de 180 divisas, buscador instantáneo `⌘K`, notificaciones Toast flotantes y visor modal multidocumental para revisar la **Remisión de Almacén**, el **CFDI 4.0 XML** y la **Orden de Compra ERP**.
+```bash
+docker compose up --build
+```
+
+Abre http://localhost:8000. Si existe un `.env` con `RETO_KEY`, el agente usa Grok 4.6; si no, funciona en modo determinista.
+
+**Sin Docker** (Python 3.11+; si no hay Postgres, usa SQLite):
+
+```bash
+pip install -r requirements.txt
+python main.py web
+```
+
+Para usar Grok: `cp .env.example .env` y pega tu `RETO_KEY`.
+
+---
+
+## 🧪 Evaluar con casos propios (harness)
+
+### Formato de un caso
+
+Un caso es una carpeta; un lote es una carpeta de carpetas. Hay ejemplos en [`casos/`](casos/README.md).
+
+| Archivo | Requerido | Contenido |
+|---|---|---|
+| `oc.json` | sí | Orden de compra: `proveedor_rfc`, `moneda`, `lineas[]` con `sku`, `cantidad`, `precio_unitario`, `tasa_iva` |
+| `cfdi.xml` | sí | CFDI 4.0 (los conceptos se cruzan por `NoIdentificacion` = `sku`) |
+| `remision.json` · `remision.pdf` · `remision.png` | al menos uno | Lo recibido en almacén: JSON, PDF digital (extracción local sin red) o foto (Grok Vision) |
+| `sat_estatus.json` | no | Acuse de estatus SAT, p. ej. `{"uuid": "...", "estado": "Cancelado"}` |
+| `esperado.json` | no | Si existe, la salida agrega `comparacion_esperado` (estado, códigos y monto) |
+
+### CLI
+
+```bash
+python main.py audit --dir casos                          # carpeta de casos
+python main.py audit --dir casos/EJEMPLO-001              # un solo caso
+python main.py audit --dir casos --modo determinista --out resultados.jsonl
+docker compose run --rm app python main.py audit --dir /casos   # en Docker (monta ./casos)
+```
+
+- **stdout:** un veredicto JSON por línea. **stderr:** progreso y un resumen final (`total`, `estados`, `aciertos` contra `esperado.json`, `costo_usd`).
+- `--modo auto` (por defecto) usa Grok si hay `RETO_KEY`, si no el motor determinista; también acepta `grok` o `determinista`.
+- Cada corrida usa una **SQLite temporal aislada**, así que los duplicados se detectan dentro del lote y no contra corridas anteriores. Con `--persistir-bd` usa la BD del proyecto.
+- Código de salida `0`, o `1` si algún caso terminó en error de sistema. Un caso nunca se pierde: el peor resultado es `ESCALADO` con `SYSTEM_ERROR` y el motivo.
+
+Ejemplo de veredicto (una línea de stdout, aquí formateada):
+
+```json
+{"case_id": "EJEMPLO-002", "estado_final": "EN_RECLAMO", "codigos": ["PRICE_UP"],
+ "monto_a_pagar_mxn": "…", "fuga_detectada_mxn": "…", "resumen": "…", "modo": "grok-4.6",
+ "herramientas": ["cotejar_caso", "consultar_sat_en_vivo", "enviar_alerta_reclamo_real", "cerrar_caso"],
+ "uso": {"llamadas_llm": 4, "tokens_in": 15210, "tokens_out": 402, "costo_usd": 0.0344, "latencia_s": 41.2},
+ "error": null}
+```
+
+**Estados:** `APROBADO` (solo `MATCH_OK`) · `EN_RECLAMO` (solo `QTY_SHORT`/`PRICE_UP` con fuga ≤ $5,000 MXN; retiene la diferencia y pide nota de crédito) · `ESCALADO` (todo lo demás: `SUPPLIER_69B`, `CFDI_CANCELADO`, `DUPLICATE`, `FX_OVERCHARGE`, `TAX_MISMATCH`, `RECEIPT_UNREADABLE`, `SKU_UNMAPPED`, `SAT_NO_VERIFICADO`, `SYSTEM_ERROR`, o fuga > $5,000).
+
+### HTTP
+
+Con el servidor arriba (`python main.py web` o Docker):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auditar -H "Content-Type: application/json" -d '{
+  "case_id": "MI-CASO-1",
+  "oc": { "proveedor_rfc": "DIP120930T55", "moneda": "MXN", "lineas": [ ... ] },
+  "cfdi_xml": "<?xml version=\"1.0\" ...>",
+  "remision": { "tiene_sello_almacen": true, "tiene_firma_recepcion": true, "lineas": [ {"sku": "DISC-018", "cantidad_recibida": 160} ] },
+  "modo": "auto"
+}'
+```
+
+- La remisión también puede ir como `remision_pdf_base64` o `remision_png_base64`, y el acuse SAT como `sat_estatus`.
+- Responde con el mismo JSON de veredicto que el CLI; si la entrada es inválida, devuelve `422` con el motivo.
+- `POST /api/v1/auditar-lote` recibe `{"casos": [ ... ]}` en orden, así que detecta UUID duplicados entre ellos.
+- Documentación interactiva en http://localhost:8000/docs.
+
+### Pruebas y reproducción
+
+```bash
+python -m pytest        # 82 pruebas, ~25 s
+```
+
+Para reproducir la evaluación: `python main.py audit --dir datasets/s3`. El dataset S4 se regenera idéntico con `python datasets/generate.py --s4`, y después `python main.py audit --dir datasets/s4`.
+
+---
+
+## 📌 Tabla de Contenidos (detalle técnico por sprint)
+1. [Evidencias Visuales en Tiempo Real (Capturas UI)](#-evidencias-visuales-en-tiempo-real-capturas-ui)
+2. [Inspección Multidocumental (El Sistema de 3 Vías)](#-inspección-multidocumental-el-sistema-de-3-vías)
+3. [Las 5 Herramientas Autónomas de CotejAI (Function Calling)](#-las-5-herramientas-autónomas-de-cotejai-function-calling)
+4. [Matriz de Expedientes de Prueba (Lote S2: OC-001 a OC-010)](#-matriz-de-expedientes-de-prueba-lote-s2)
+5. [Guía de Verificación Rápida para Testers](#-guía-de-verificación-rápida-para-testers)
+6. [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
+7. [Resultados de Telemetría e Impacto Financiero (S2)](#-resultados-de-telemetría-real-e-impacto-financiero)
+8. [Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)](#-sprint-4-semana-de-carga-1000-tareas-y-12h-desatendido)
+9. [Videos](#-videos-demo-y-grabación-de-pantalla-en-vivo)
 
 ---
 
@@ -215,10 +301,10 @@ CotejAI no es un simple chat; es un **agente gobernado por herramientas determin
 ### 1. Ejecutar las Pruebas Automatizadas (Pytest)
 Para verificar la integridad matemática y fiscal de todos los módulos:
 ```bash
-# Ejecutar las 45 pruebas unitarias e integrales
-.venv/bin/pytest tests/ -v
+# Ejecutar las 82 pruebas unitarias e integrales
+python -m pytest -v
 ```
-*Resultado esperado:* `45 passed in 4.xx seconds`.
+*Resultado esperado:* `82 passed`.
 
 ---
 
@@ -263,7 +349,7 @@ Elige la opción `[1]`, `[2]`, `[3]` o escribe una pregunta como:
 ## ⚙️ Instalación y Puesta en Marcha
 
 ### Prerrequisitos
-- Python 3.11 o 3.12
+- Python 3.11 o superior
 - Git
 
 ### Paso 1: Clonar el Repositorio
@@ -274,8 +360,8 @@ cd CotejIA
 
 ### Paso 2: Crear el Entorno Virtual e Instalar Dependencias
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -295,7 +381,7 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ## 📈 Resultados de Telemetría Real e Impacto Financiero
 
-> **Exportación automática de corrida oficial:** Registrada en [`runs/lote_s2_telemetria.jsonl`](file:///home/Papi_Leo/VSCODE/CotejIA/runs/lote_s2_telemetria.jsonl).  
+> **Exportación automática de corrida oficial:** Registrada en [`runs/lote_s2_telemetria.jsonl`](runs/lote_s2_telemetria.jsonl).  
 > **Tarifas oficiales Inferencia:** Input: $2.00 USD / 1M tokens · Output: $10.00 USD / 1M tokens · Tipo de Cambio: $18.70 MXN/USD.
 
 ### Tabla de Telemetría Real por Expediente (10 Corridas Desatendidas con Grok 4.6)
@@ -327,6 +413,8 @@ DATABASE_URL=sqlite:///cotejai.db
 
 ## ⚡ Sprint 4: Semana de Carga (1,000 Tareas y 12h Desatendido)
 
+> **Resultado auditado:** la corrida terminó las 1,000 tareas, pero al compararla con el ground truth encontramos 679 escalamientos silenciosos por una falla del sistema y 11 CFDI cancelados aprobados. Las causas, las correcciones y la validación posterior (1000/1000) están en [`eval/analisis_bitacora_s4.md`](eval/analisis_bitacora_s4.md).
+
 Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala masiva y operación autónoma desatendida, cumpliendo con los tres pilares del reto:
 
 ### 1. 1,000 Unidades de Trabajo de Punta a Punta
@@ -343,7 +431,7 @@ Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala 
 ### 2. Operación Continua de 12 Horas Desatendida
 - **Daemon Orquestador (`scripts/run_s4_12h_daemon.py`):**
   - **Pacing Matemático:** $43,200\text{ s} \div 1,000\text{ tareas} = 43.2\text{ s}$ por caso con jitter orgánico ($\pm 4.0\text{ s}$) para evitar saturación de pasarela y simular auditoría orgánica en tiempo real.
-  - **Fuga de Memoria Cero:** Monitoreo y ejecución forzada de `gc.collect()` periódicamente para mantener la huella RSS estable en $\sim 85\text{ MB}$ durante 12 horas ininterrumpidas.
+  - **Fuga de Memoria Cero:** Monitoreo y ejecución forzada de `gc.collect()` periódicamente con RAM estable entre 120 y 270 MB durante la corrida (`runs/watchdog_12h.log`).
   - **Pasarela Oficial del Reto:** Consumo real mediante variable `RETO_KEY` y auditoría de tokens de entrada y salida con registro de costo en USD/MXN.
 
 ### 3. Capa de Resiliencia y Recuperación de Incidentes (`src/resilience.py`)
@@ -357,7 +445,7 @@ Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala 
 - Cada ciclo de auditoría escribe atómicamente a disco con `flush()` y `os.fsync()` en dos formatos inmutables:
   - [`runs/bitacora_s4.jsonl`](runs/bitacora_s4.jsonl) (streaming estructurado)
   - [`runs/bitacora_s4.csv`](runs/bitacora_s4.csv) (compatible con hojas de cálculo y herramientas BI)
-- Esquema completo de 18 columnas: `timestamp_inicio`, `timestamp_fin`, `latencia_segundos`, `case_id`, `proveedor`, `rfc`, `total_facturado_mxn`, `estado_final`, `codigos_discrepancia`, `monto_autorizado_mxn`, `fuga_retenida_mxn`, `exito`, `tokens_in`, `tokens_out`, `costo_usd`, `costo_mxn`, `error`, `estrategia_recuperacion`.
+- El JSONL agrega ahora `motivo` y `herramientas` por caso, y las fallas del sistema se registran con `exito=false`, `SYSTEM_ERROR` y el error. Esquema CSV de 18 columnas: `timestamp_inicio`, `timestamp_fin`, `latencia_segundos`, `case_id`, `proveedor`, `rfc`, `total_facturado_mxn`, `estado_final`, `codigos_discrepancia`, `monto_autorizado_mxn`, `fuga_retenida_mxn`, `exito`, `tokens_in`, `tokens_out`, `costo_usd`, `costo_mxn`, `error`, `estrategia_recuperacion`.
 
 ### 5. Telemetría Web y Dashboard SPA en Vivo
 - **Endpoints de Monitoreo:** `/api/s4/status` y `/api/s4/bitacora` integrados en FastAPI.
@@ -367,23 +455,24 @@ Para el cierre del **Sprint 4 (Semana de Carga)**, CotejAI fue llevado a escala 
 
 ## 🎬 Videos Demo y Grabación de Pantalla en Vivo
 
-El repositorio incluye tres demostraciones audiovisuales en alta fidelidad (1080p, 30 fps) que exhiben la plataforma, el agente autónomo y sus casos de uso reales:
+0. **Video oficial de la entrega final (5 min, 1080p):**  
+   [`docs/videos/cotejai_demo_final_5min.mp4`](docs/videos/cotejai_demo_final_5min.mp4)  
+   *Recorrido por los cinco criterios de la rúbrica: problema, autonomía, ingeniería sobre Grok, evidencia auditada y viabilidad. Se genera con [`scripts/generate_5min_demo.py`](scripts/generate_5min_demo.py).*
+
+Videos de sprints anteriores:
 
 1. **Evidencia de Carga Sprint 4 (12h Desatendido, 1080p):**  
    [`docs/videos/s4_evidencia_carga_12h.mp4`](docs/videos/s4_evidencia_carga_12h.mp4) · 🔗 **[Ver en Google Drive (Público)](https://drive.google.com/file/d/13h-CPBloLvk40kZMb9bgiRzJ0jDVzgLK/view?usp=drivesdk)**  
-   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/s4_evidencia_carga_12h.mp4`)*  
    *Grabación de pantalla con Playwright que ilustra las fases del daemon desatendido, el avance de las 1,000 unidades de trabajo, la telemetría en tiempo real y el resumen final de la bitácora.*  
    *Script de generación automática:* [`scripts/record_s4_evidence.py`](scripts/record_s4_evidence.py)
 
 2. **Grabación de Pantalla en Vivo del Agente con Audio Sincronizado (`1080p`, 3 min):**  
    [`docs/videos/demo_cotejai_agente.mp4`](docs/videos/demo_cotejai_agente.mp4) · 🔗 **[Ver en Google Drive (Público)](https://drive.google.com/file/d/1MV6u6blB3NIIUkO24vIQslKmx6L2VH7i/view?usp=drivesdk)**  
-   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/docs/videos/demo_cotejai_agente.mp4`)*  
    *Recorrido dinámico en alta fidelidad con locución descriptiva técnica, cursor visual simulado operando la UI, inspección con Grok Vision (`OC-004`), auditoría de tipo de cambio Banxico (`OC-006`), validación SAT/69-B, aprobación de pagos parciales y filtrado en tiempo real.*  
    *Script de reproducción:* [`scripts/record_demo_walkthrough.py`](scripts/record_demo_walkthrough.py) · *Locución:* [`scripts/generate_custom_voiceover.py`](scripts/generate_custom_voiceover.py)
 
 3. **Video Demo Programático con HyperFrames y Mascota 3D Kotek (2 min):**  
    [`video-cotejai/cotejai-demo.mp4`](video-cotejai/cotejai-demo.mp4)  
-   *(Ruta absoluta: `/home/Papi_Leo/VSCODE/CotejIA/video-cotejai/cotejai-demo.mp4`)*  
    *Composición programática en HyperFrames con locución master y render 3D.*  
    *Especificación y revisión:* [`video-cotejai/SPEC.md`](video-cotejai/SPEC.md) · [`video-cotejai/REVIEW.md`](video-cotejai/REVIEW.md)
 
@@ -395,7 +484,7 @@ Para atender con máxima transparencia y detalle técnico cada observación del 
 
 1. **[Compendio Oficial: Notas de Entrega y Reportes Técnicos (S1 a S4)](docs/NOTAS_DE_ENTREGA_Y_REPORTES_TECNICOS_S1_S4.md):** Documento consolidado con la estructura oficial requerida (Qué se logró, Qué falló y cómo se solucionó, Telemetría y Costo por tarea) para cada una de las 4 semanas del reto.
 2. **[Reporte Técnico General en PDF (Google Drive)](https://drive.google.com/file/d/1rQduagkfqgl3EAuQ8Pq6AvGvsouCu5qp/view?usp=drivesdk):** Documento formal con diagramas de arquitectura, tablas de costos, capturas y justificación metodológica.
-3. **[Reporte Ejecutivo Oficial Sprint 4 (Semana de Carga)](eval/reporte_s4.md):** Resumen de la corrida de 12 horas, total de unidades procesadas, tasa de éxito, percentiles de latencia, costo total de inferencia y ROI financiero.
+3. **[Auditoría de la bitácora S4 contra ground truth](eval/analisis_bitacora_s4.md):** Qué salió bien y qué falló en la corrida de 12 horas, la causa, la corrección y la validación posterior. Reemplaza a [`eval/reporte_s4.md`](eval/reporte_s4.md), que se generó antes de terminar la corrida.
 4. **[Bitácora Oficial de Carga Sprint 4 (JSONL)](runs/bitacora_s4.jsonl) y [CSV](runs/bitacora_s4.csv):** Registro atómico inmutable de cada tarea ejecutada con sus 18 campos de telemetría y resolución de discrepancias.
 5. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
 6. **[Reporte de Evaluación Técnica S3 (36 Casos)](eval/reporte_s3.md):** Análisis de exactitud, métricas de retención de capital ($534,195.78 MXN prevenidos) y desglose de extracción estratificada (91.67% determinista Nivel 1 a costo $0).

@@ -17,5 +17,22 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build: .
+    container_name: cotejai-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://cotejai:cotejai_secret_2026@postgres:5432/cotejai
+    ports:
+      - "8000:8000"
+    volumes:
+      # Monta aquí los casos propios del harness: docker compose run --rm app python main.py audit --dir /casos
+      - ./casos:/casos
+
 volumes:
   cotejai_pgdata:

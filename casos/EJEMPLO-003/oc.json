@@ -1,0 +1,33 @@
+{
+  "oc": "S3-032",
+  "proveedor_rfc": "AAA080808AAA",
+  "proveedor": "COMERCIALIZADORA Y DISTRIBUIDORA DEL SURESTE SA DE CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "FOCO-020",
+      "descripcion": "Foco LED 12W",
+      "unidad": "caja",
+      "cantidad": 224,
+      "precio_unitario": "370.81",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "TUER-002",
+      "descripcion": "Tuerca hexagonal 1/2",
+      "unidad": "pza",
+      "cantidad": 299,
+      "precio_unitario": "19.39",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "ROND-003",
+      "descripcion": "Rondana plana 1/2",
+      "unidad": "pza",
+      "cantidad": 277,
+      "precio_unitario": "183.24",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

@@ -237,6 +237,12 @@ def ejecutar_tarea_auditoria(case_id: str, carpeta_base: Path, client) -> dict:
     veredicto = res_agent.get("veredicto", {})
     uso = res_agent.get("uso", {})
 
+    # Un escalamiento por falla del sistema no es un éxito: se marca y se guarda el motivo
+    if uso.get("error_sistema") or "SYSTEM_ERROR" in (veredicto.get("codigos") or []):
+        exito = False
+        error_msg = error_msg or uso.get("error_sistema") or str(veredicto.get("resumen", ""))[:300]
+        estrategia = "ESCALADO_POR_ERROR_SISTEMA" if estrategia == "DIRECTO_GATEWAY" else estrategia
+
     tok_in = uso.get("prompt_tokens", 0)
     tok_out = uso.get("completion_tokens", 0)
 
@@ -263,6 +269,9 @@ def ejecutar_tarea_auditoria(case_id: str, carpeta_base: Path, client) -> dict:
         "costo_mxn": float(c_mxn),
         "error": error_msg,
         "estrategia_recuperacion": estrategia,
+        # Solo en JSONL (el CSV conserva sus 18 columnas): permite auditar por qué se decidió cada caso
+        "motivo": str(veredicto.get("resumen", ""))[:500],
+        "herramientas": uso.get("herramientas", []),
     }
     return registro
 
@@ -297,6 +306,7 @@ def ejecutar_daemon(total_tareas: int = TOTAL_TAREAS_OBJETIVO, duracion_total_s:
     tiempo_inicio_global = time.time()
     
     contador_exitos = 0
+    tasa_exito = 100.0
     tokens_totales_in = 0
     tokens_totales_out = 0
     costo_acumulado_usd = Decimal("0.00")

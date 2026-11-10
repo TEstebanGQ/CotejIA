@@ -26,16 +26,33 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+# Cache del sondeo de PostgreSQL por URL: sin esto cada conexión esperaba ~4 s el timeout
+# de un Postgres apagado (4 conexiones por cotejo = ~16 s de latencia muerta por caso).
+_SONDEO_PG: dict[str, bool] = {}
+# Bases ya inicializadas en este proceso (init_db corría en cada consulta y competía por el lock).
+_BD_INICIALIZADAS: set[str] = set()
+
+
 def _usar_postgres() -> bool:
     url = os.environ.get("DATABASE_URL", "").strip()
     if not url.startswith("postgres"):
         return False
-    try:
-        import psycopg
-        with psycopg.connect(url, connect_timeout=2) as _:
-            return True
-    except Exception:
-        return False
+    if url not in _SONDEO_PG:
+        try:
+            import psycopg
+            with psycopg.connect(url, connect_timeout=2) as _:
+                _SONDEO_PG[url] = True
+        except Exception:
+            _SONDEO_PG[url] = False
+    return _SONDEO_PG[url]
+
+
+def _llave_bd() -> str | None:
+    """Identifica la base activa; None si es un SQLite que aún no existe en disco."""
+    if _usar_postgres():
+        return "pg:" + os.environ.get("DATABASE_URL", "").strip()
+    db_path = os.environ.get("SQLITE_PATH", str(DEFAULT_SQLITE_PATH))
+    return ("sqlite:" + db_path) if Path(db_path).exists() else None
 
 
 class _DBConn:
@@ -98,7 +115,10 @@ class _DBConn:
 
 
 def init_db() -> str:
-    """Inicializa el esquema de base de datos y precarga el catálogo real 69-B del SAT."""
+    """Inicializa el esquema de base de datos y precarga el catálogo real 69-B del SAT (una vez por proceso)."""
+    llave = _llave_bd()
+    if llave is not None and llave in _BD_INICIALIZADAS:
+        return "PostgreSQL 16" if llave.startswith("pg:") else "SQLite WAL"
     with _DBConn() as db:
         db.execute("""
             CREATE TABLE IF NOT EXISTS cases (
@@ -193,6 +213,9 @@ def init_db() -> str:
                             ),
                         )
         motor = "PostgreSQL 16" if db.es_postgres else "SQLite WAL"
+    llave = _llave_bd()
+    if llave is not None:
+        _BD_INICIALIZADAS.add(llave)
     return motor
 
 

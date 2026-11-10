@@ -11,3 +11,5 @@ runs/*
 *.db-shm
 node_modules/
 datasets/s4/
+!runs/watchdog_12h.log
+!runs/s4_daemon_status.json

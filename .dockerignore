@@ -1,0 +1,15 @@
+.git
+.env
+.venv
+**/__pycache__
+.pytest_cache
+node_modules
+docs/videos
+docs/screenshots
+video-cotejai
+wiki
+.agents
+runs/*.log
+*.db
+*.db-wal
+*.db-shm
