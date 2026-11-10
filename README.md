@@ -22,10 +22,12 @@
 | Repositorio público, licencia abierta | Este repo · [`LICENSE`](LICENSE) (MIT) |
 | Arranque de un comando | [`docker compose up --build`](#-arranque-en-un-comando) o `python main.py web` |
 | CLI / endpoint para casos propios | [`python main.py audit --dir <carpeta>`](#-evaluar-con-casos-propios-harness) · `POST /api/v1/auditar` |
-| Video de demostración (5 min) | [`docs/videos/cotejai_demo_final_5min.mp4`](docs/videos/cotejai_demo_final_5min.mp4) |
+| Video de demostración (5 min) | 🔗 **[Ver en Google Drive](https://drive.google.com/file/d/1e8TJilVylbz0fz_jSWQRWsL-Nvo3ilv0/view?usp=drivesdk)** · copia en el repo: [`docs/videos/cotejai_demo_final_5min.mp4`](docs/videos/cotejai_demo_final_5min.mp4) |
 | Reporte técnico (≤ 3 páginas) | [`docs/Reporte_Tecnico_Final_CotejAI.pdf`](docs/Reporte_Tecnico_Final_CotejAI.pdf) · fuente [`reports/REPORTE_TECNICO_FINAL_COTEJAI.md`](reports/REPORTE_TECNICO_FINAL_COTEJAI.md) |
 | Bitácora de consumo (exportación de la consola) | [`runs/consumo_consola_reto.csv`](runs/consumo_consola_reto.csv) |
 | Bitácora de la corrida de carga (1,000 tareas, 12 h) | [`runs/bitacora_s4.csv`](runs/bitacora_s4.csv) · [`.jsonl`](runs/bitacora_s4.jsonl) · auditoría contra ground truth: [`eval/analisis_bitacora_s4.md`](eval/analisis_bitacora_s4.md) |
+
+**Sobre la bitácora de consumo:** el panel del reto (`reto.pltk.mx/panel`) no tiene botón de exportación. `runs/consumo_consola_reto.csv` transcribe sus tablas al 10 nov 2026: **3,024 peticiones a grok-4.6, 23.4 M tokens de entrada y 306 k de salida, USD 28.21** acumulados desde S1. Los costos de las bitácoras propias se calcularon a precio de lista (USD 2 por M de entrada y USD 10 por M de salida), por lo que son una cota superior: la consola cobra menos por token.
 
 ### Resultados en una línea
 
