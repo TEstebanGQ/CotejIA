@@ -118,7 +118,7 @@ curl -X POST http://localhost:8000/api/v1/auditar -H "Content-Type: application/
 ### Pruebas y reproducción
 
 ```bash
-python -m pytest        # 82 pruebas, ~25 s
+python -m pytest        # 82 pruebas, ~25 s (en un clon limpio se omite 1 que requiere datasets/s4; genérelo con datasets/generate.py --s4)
 ```
 
 Para reproducir la evaluación: `python main.py audit --dir datasets/s3`. El dataset S4 se regenera idéntico con `python datasets/generate.py --s4`, y después `python main.py audit --dir datasets/s4`.
@@ -485,7 +485,7 @@ Videos de sprints anteriores:
 Para atender con máxima transparencia y detalle técnico cada observación del comité evaluador, se publicaron los siguientes documentos oficiales:
 
 1. **[Compendio Oficial: Notas de Entrega y Reportes Técnicos (S1 a S4)](docs/NOTAS_DE_ENTREGA_Y_REPORTES_TECNICOS_S1_S4.md):** Documento consolidado con la estructura oficial requerida (Qué se logró, Qué falló y cómo se solucionó, Telemetría y Costo por tarea) para cada una de las 4 semanas del reto.
-2. **[Reporte Técnico General en PDF (Google Drive)](https://drive.google.com/file/d/1rQduagkfqgl3EAuQ8Pq6AvGvsouCu5qp/view?usp=drivesdk):** Documento formal con diagramas de arquitectura, tablas de costos, capturas y justificación metodológica.
+2. **[Reporte Técnico Final (PDF, 2 páginas)](docs/Reporte_Tecnico_Final_CotejAI.pdf):** Reporte de la entrega final con las cifras auditadas. El [reporte de S2 en Google Drive](https://drive.google.com/file/d/1rQduagkfqgl3EAuQ8Pq6AvGvsouCu5qp/view?usp=drivesdk) se conserva como histórico.
 3. **[Auditoría de la bitácora S4 contra ground truth](eval/analisis_bitacora_s4.md):** Qué salió bien y qué falló en la corrida de 12 horas, la causa, la corrección y la validación posterior. Reemplaza a [`eval/reporte_s4.md`](eval/reporte_s4.md), que se generó antes de terminar la corrida.
 4. **[Bitácora Oficial de Carga Sprint 4 (JSONL)](runs/bitacora_s4.jsonl) y [CSV](runs/bitacora_s4.csv):** Registro atómico inmutable de cada tarea ejecutada con sus 18 campos de telemetría y resolución de discrepancias.
 5. **[Subsanación Explícita de Retroalimentaciones (S1 y S2)](docs/SUBSANACION_RETROALIMENTACION_S1_S2.md):** Documento técnico exhaustivo que detalla la respuesta a los hallazgos de datos sintéticos, cálculo agregado del ROI y desglose de las 10 corridas reales con Grok 4.6.
