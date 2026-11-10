@@ -308,6 +308,8 @@ def consultar_sat_en_vivo(
 
         soap_res = _llamar_soap_sat_real(rfc_emisor, rfc_receptor, str(total), uuid)
         CIRCUIT_BREAKER_SAT.registrar_exito()
+        if str(soap_res.get("estado_sat", "")).strip().lower() == "cancelado":
+            codigos_fiscales.append("CFDI_CANCELADO")
     except Exception as exc:
         abrio = CIRCUIT_BREAKER_SAT.registrar_fallo()
         soap_res = {

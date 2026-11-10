@@ -1,0 +1,33 @@
+{
+  "oc": "S3-017",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "SELL-016",
+      "descripcion": "Sellador de silicon",
+      "unidad": "pza",
+      "cantidad": 282,
+      "precio_unitario": "155.47",
+      "tasa_iva": "0.16"
+    },
+    {
+      "sku": "FRON-027",
+      "descripcion": "Fertilizante zona frontera",
+      "unidad": "kg",
+      "cantidad": 74,
+      "precio_unitario": "185.31",
+      "tasa_iva": "0.08"
+    },
+    {
+      "sku": "ROND-003",
+      "descripcion": "Rondana plana 1/2",
+      "unidad": "pza",
+      "cantidad": 75,
+      "precio_unitario": "183.24",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

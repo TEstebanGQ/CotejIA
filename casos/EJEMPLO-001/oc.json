@@ -1,0 +1,17 @@
+{
+  "oc": "S3-002",
+  "proveedor_rfc": "DIP120930T55",
+  "proveedor": "Distribuidora Industrial del Pacifico SA de CV",
+  "moneda": "MXN",
+  "simular_caida_sat": false,
+  "lineas": [
+    {
+      "sku": "DISC-018",
+      "descripcion": "Disco de corte 4.5 pulgadas",
+      "unidad": "pza",
+      "cantidad": 160,
+      "precio_unitario": "397.53",
+      "tasa_iva": "0.16"
+    }
+  ]
+}

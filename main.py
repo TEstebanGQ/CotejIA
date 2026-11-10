@@ -217,6 +217,47 @@ def iniciar_chat_interactivo() -> int:
     return 0
 
 
+def auditar_carpeta(ruta: Path, modo: str, out: str | None, persistir_bd: bool) -> int:
+    """Modo harness: audita casos de cualquier carpeta. stdout = un veredicto JSON por línea."""
+    from src import harness
+
+    try:
+        base, ids = harness.descubrir_casos(ruta)
+    except FileNotFoundError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    tmp_bd = None if persistir_bd else harness.bd_aislada()
+    init_db()
+    salida = open(out, "w", encoding="utf-8") if out else None
+    resumen = {"total": 0, "estados": {}, "errores": 0, "costo_usd": 0.0, "evaluados": 0, "aciertos": 0}
+    try:
+        for case_id in ids:
+            r = harness.auditar_caso(base, case_id, modo=modo)
+            cmp = harness.comparar_con_esperado(base / case_id, r)
+            if cmp is not None:
+                r["comparacion_esperado"] = cmp
+                resumen["evaluados"] += 1
+                resumen["aciertos"] += int(cmp["estado"] and cmp["codigos"])
+            linea = json.dumps(r, ensure_ascii=False)
+            print(linea, flush=True)
+            if salida:
+                salida.write(linea + "\n")
+                salida.flush()
+            resumen["total"] += 1
+            resumen["estados"][r["estado_final"]] = resumen["estados"].get(r["estado_final"], 0) + 1
+            resumen["errores"] += int(bool(r["error"]) and r["modo"] == "error")
+            resumen["costo_usd"] = round(resumen["costo_usd"] + r["uso"]["costo_usd"], 6)
+            print(f"[{case_id}] {r['estado_final']} {r['codigos']} modo={r['modo']} "
+                  f"{r['uso']['latencia_s']}s ${r['uso']['costo_usd']}", file=sys.stderr)
+    finally:
+        if salida:
+            salida.close()
+        if tmp_bd:
+            tmp_bd.cleanup()
+    print(json.dumps({"resumen": resumen}, ensure_ascii=False), file=sys.stderr)
+    return 1 if resumen["errores"] else 0
+
+
 def main() -> int:
     load_dotenv()
     sys.stdout.reconfigure(encoding="utf-8")
@@ -235,6 +276,12 @@ def main() -> int:
     a = sub.add_parser("audit", help="Audita casos con el agente (usa Grok 4.6)")
     a.add_argument("--case")
     a.add_argument("--all", action="store_true")
+    a.add_argument("--dir", help="Carpeta de un caso o de varios casos propios (modo harness)")
+    a.add_argument("--modo", choices=["auto", "grok", "determinista"], default="auto",
+                   help="auto = Grok si hay RETO_KEY, si no determinista (solo con --dir)")
+    a.add_argument("--out", help="Escribe un veredicto JSON por línea en este archivo (solo con --dir)")
+    a.add_argument("--persistir-bd", action="store_true",
+                   help="Usa la BD del proyecto en vez de una SQLite temporal aislada (solo con --dir)")
     c = sub.add_parser("cotejo", help="Corre solo el cotejo determinista")
     c.add_argument("--case", required=True)
 
@@ -248,6 +295,9 @@ def main() -> int:
         print(f"Iniciando CotejAI Backend + Web en http://localhost:{args.port} ...")
         uvicorn.run("src.api:app", host=args.host, port=args.port, reload=False)
         return 0
+
+    if args.cmd == "audit" and args.dir:
+        return auditar_carpeta(Path(args.dir), args.modo, args.out, args.persistir_bd)
 
     if args.case and args.case not in listar_casos():
         p.error(f"no existe el caso {args.case} en datasets/ (debe tener oc.json, remision.json y cfdi.xml)")

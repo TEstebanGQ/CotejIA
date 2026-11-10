@@ -1,0 +1,20 @@
+{
+  "case_id": "S3-002",
+  "tipo_caso": "MATCH_OK",
+  "estado_final": "APROBADO",
+  "codigos": [
+    "MATCH_OK"
+  ],
+  "monto_a_pagar_mxn": "73783.42",
+  "fuga_detectada_mxn": "0.00",
+  "total_cfdi_mxn": "73783.42",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "DISC-018",
+        "cantidad_recibida": 160
+      }
+    ]
+  }
+}

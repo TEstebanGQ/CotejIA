@@ -1,0 +1,10 @@
+# Los PDF de remisiones son binarios: sin esto, core.autocrlf=true en Windows
+# los reescribe con CRLF y rompe la reproducibilidad byte a byte del dataset.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.mp4 binary
+*.mp3 binary
+*.aac binary
+*.db binary
+*.docx binary

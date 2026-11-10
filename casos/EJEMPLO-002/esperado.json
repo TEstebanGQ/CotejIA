@@ -1,0 +1,28 @@
+{
+  "case_id": "S3-017",
+  "tipo_caso": "PRICE_UP",
+  "estado_final": "EN_RECLAMO",
+  "codigos": [
+    "PRICE_UP"
+  ],
+  "monto_a_pagar_mxn": "81609.21",
+  "fuga_detectada_mxn": "2073.12",
+  "total_cfdi_mxn": "83682.33",
+  "fuente_remision": "pdf",
+  "remision": {
+    "lineas": [
+      {
+        "sku": "SELL-016",
+        "cantidad_recibida": 282
+      },
+      {
+        "sku": "FRON-027",
+        "cantidad_recibida": 74
+      },
+      {
+        "sku": "ROND-003",
+        "cantidad_recibida": 75
+      }
+    ]
+  }
+}

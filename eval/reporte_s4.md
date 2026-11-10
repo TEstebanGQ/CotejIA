@@ -1,9 +1,11 @@
+> **Reemplazado.** Este reporte se generó cuando la corrida llevaba 2 tareas. El resultado final y su auditoría contra ground truth están en [`analisis_bitacora_s4.md`](analisis_bitacora_s4.md).
+
 # CotejAI — Reporte Ejecutivo Oficial Sprint 4: Semana de Carga (12 Horas)
 
 **Fecha de Emisión:** 2026-11-04  
 **Agente Autónomo:** CotejAI (Grok 4.6 + Policy Gate + SAT SOAP en vivo + Lista 69-B + Banxico FX)  
 **Entorno de Auditoría:** Pasarela Oficial del Reto (`RETO_KEY` activada con gateway central)  
-**Bitácoras Duales:** [`runs/bitacora_s4.jsonl`](file:///home/Papi_Leo/VSCODE/CotejIA/runs/bitacora_s4.jsonl) | [`runs/bitacora_s4.csv`](file:///home/Papi_Leo/VSCODE/CotejIA/runs/bitacora_s4.csv)
+**Bitácoras Duales:** [`runs/bitacora_s4.jsonl`](../runs/bitacora_s4.jsonl) | [`runs/bitacora_s4.csv`](../runs/bitacora_s4.csv)
 
 ---
 
