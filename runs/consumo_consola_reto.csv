@@ -1,0 +1,19 @@
+seccion,fecha_hora,ruta,modelo,http,peticiones,tokens_entrada,tokens_salida,costo_usd,nota
+resumen_creditos,2026-11-10T10:45-05:00,,,,,,,30.48,"Gastado USD 30.48 de 80.00 asignados (49.52 disponibles); crédito compartido con el equipo (Leonardo Andrés Hernández Hernández)"
+consumo_por_modelo,2026-11-10T10:45-05:00,,grok-4.6,,3024,23404196,306085,28.21,"Acumulado de la llave desde S1 hasta la entrega final"
+consumo_por_modelo,2026-11-10T10:45-05:00,,—,,1,0,0,0.00,"Petición sin modelo (/v1/models)"
+ultimas_peticiones,2026-11-10T10:43-05:00,/v1/models,—,200,1,,,0.0000,
+ultimas_peticiones,2026-11-10T10:04-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0073,
+ultimas_peticiones,2026-11-10T10:03-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0059,
+ultimas_peticiones,2026-11-10T10:03-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0072,
+ultimas_peticiones,2026-11-10T10:03-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0109,
+ultimas_peticiones,2026-11-10T10:03-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0130,
+ultimas_peticiones,2026-11-10T10:03-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0090,
+ultimas_peticiones,2026-11-10T10:03-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0041,
+ultimas_peticiones,2026-11-10T10:02-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0065,
+ultimas_peticiones,2026-11-10T10:02-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0144,
+ultimas_peticiones,2026-11-10T10:02-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0047,
+ultimas_peticiones,2026-11-10T10:02-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0087,
+ultimas_peticiones,2026-11-10T09:45-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0098,
+ultimas_peticiones,2026-11-10T09:44-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0071,
+ultimas_peticiones,2026-11-10T09:44-05:00,/v1/chat/completions,grok-4.6,200,1,,,0.0064,
