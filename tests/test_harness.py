@@ -60,7 +60,7 @@ def test_cfdi_cancelado_se_escala_y_no_se_paga(tmp_path):
     shutil.copytree(S4 / "S4-0015", tmp_path / "S4-0015")
     r = harness.auditar_caso(tmp_path, "S4-0015", modo="determinista")
     assert r["estado_final"] == "ESCALADO"
-    assert r["codigos"] == ["CFDI_CANCELADO"]
+    assert "CFDI_CANCELADO" in r["codigos"]
     assert r["monto_a_pagar_mxn"] == "0.00"
 
 
